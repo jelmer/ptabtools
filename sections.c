@@ -147,6 +147,10 @@ ssize_t handle_CLineData (struct ptbf *bf, const char *section) {
 	ret+=ptb_read(bf, &linedata->properties, 1);
 	ret+=ptb_read(bf, &linedata->transcribe, 1);
 	ret+=ptb_read(bf, &linedata->conn_to_next, 1);
+	
+	if(linedata->conn_to_next) { 
+		ptb_read_unknown(bf, 4);
+	}
 
 	return ret;
 }
