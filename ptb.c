@@ -198,21 +198,7 @@ void ptb_debug(const char *fmt, ...)
 	free(newfmt);
 }
 
-int ptb_read_stuff(struct ptbf *bf) {
-	ssize_t ret = 0, tmp = 1;
-	guint16 end;
-	
-	do { 
-		tmp = ptb_read_items(bf);
-		ptb_debug("TMP: %d\n", tmp);
-		g_assert(tmp >= 0);
-		ret+=tmp;
-	} while(tmp > 2);
-
-	return ret;
-}
-
-int ptb_read_items(struct ptbf *bf) {
+GList *ptb_read_items(struct ptbf *bf, const char *assumed_type) {
 	int i;
 	guint16 unknownval;
 	guint16 l;
@@ -221,9 +207,10 @@ int ptb_read_items(struct ptbf *bf) {
 	guint16 nr_items;
 	int ret = 0;
 	char *sectionname;
+	GList *list = NULL;
 
 	ret+=ptb_read(bf, &nr_items, 2);	
-	if(ret == 0 || nr_items == 0x0) return ret; 
+	if(ret == 0 || nr_items == 0x0) return NULL; 
 	ret+=ptb_read(bf, &header, 2);
 	section_index++;
 
@@ -234,13 +221,14 @@ int ptb_read_items(struct ptbf *bf) {
 
 		if(unknownval != 0x0001) {
 			fprintf(stderr, "Unknownval: %04x\n", unknownval);
-			return -1;
+			return NULL;
 		}
 
 		ret+=ptb_read(bf, &length, 2);
 
 		sectionname = g_new0(char, length + 1);
 		ret+=ptb_read(bf, sectionname, length);
+
 
 		for(i = 0; ptb_section_handlers[i].name; i++) {
 			if(!strcmp(ptb_section_handlers[i].name, sectionname)) {
@@ -252,7 +240,7 @@ int ptb_read_items(struct ptbf *bf) {
 
 		if(!ptb_section_handlers[i].handler) {
 			fprintf(stderr, "No handler for '%s'\n", sectionname);
-			return -1;
+			return NULL;
 		}
 	} else if(header & 0x8000) {
 		header-=0x8000;
@@ -262,19 +250,21 @@ int ptb_read_items(struct ptbf *bf) {
 		}
 	} else { 
 		fprintf(stderr, "Expected new item type, got %04x %02x\n", nr_items, header);
-		return -1;
+		return NULL;
 	}
 
 	if(!ptb_section_handlers[i].handler) {
 		fprintf(stderr, "Unable to find handler for section %s\n", sectionname);
-		return -1;
+		return NULL;
 	}
 
+
 	for(l = 0; l < nr_items; l++) {
-		int tmp;
+		void *tmp;
 		guint16 next_thing;
 
 		ptb_debug("%02x %02x ============= Handling %s (%d of %d) =============", bf->curpos, ptb_section_handlers[i].index, ptb_section_handlers[i].name, l+1, nr_items);
+		g_assert(!assumed_type || !strcmp(assumed_type, ptb_section_handlers[i].name));
 		section_index++;
 		debug_level++;
 		tmp = ptb_section_handlers[i].handler(bf, ptb_section_handlers[i].name);
@@ -282,10 +272,11 @@ int ptb_read_items(struct ptbf *bf) {
 
 		ptb_debug("%02x ============= END Handling %s =============", ptb_section_handlers[i].index, ptb_section_handlers[i].name);
 
-		if(tmp < 0) {
+		if(!tmp) {
 			fprintf(stderr, "Error parsing section '%s'\n", ptb_section_handlers[i].name);
 		}
-		ret+=tmp;
+
+		list = g_list_append(list, tmp);
 		
 		if(l < nr_items - 1) {
 			ret+=ptb_read(bf, &next_thing, 2);
@@ -297,7 +288,7 @@ int ptb_read_items(struct ptbf *bf) {
 		}
 	}
 
-	return ret;
+	return list;
 }
 
 
@@ -324,9 +315,31 @@ struct ptbf *ptb_read_file(const char *file)
 		fprintf(stderr, "Header parsed correctly\n");
 	}
 
-	while(ret) {
-		ret=ptb_read_items(bf);
-	}
+	bf->regular.guitars = ptb_read_items(bf, "CGuitar");
+	printf("e\n");
+	bf->regular.chorddiagrams = ptb_read_items(bf, "CChordDiagram");
+	printf("f\n");
+	ptb_read_items(bf, "");
+	bf->regular.guitarins = ptb_read_items(bf, "CGuitarIn");
+	bf->regular.tempomarkers = ptb_read_items(bf, "CTempoMarker");
+	bf->regular.dynamics = ptb_read_items(bf, "CDynamic");
+	printf("5\n");
+	ptb_read_items(bf, "");
+	bf->regular.sections = ptb_read_items(bf, "CSection");
+	bf->bass.guitars = ptb_read_items(bf, "CGuitar");
+	bf->bass.chorddiagrams = ptb_read_items(bf, "CChordDiagram");
+	printf("8\n");
+	ptb_read_items(bf, "");
+	printf("9\n");
+	ptb_read_items(bf, "");
+	bf->bass.guitarins = ptb_read_items(bf, "CGuitarIn");
+	bf->bass.tempomarkers = ptb_read_items(bf, "CTempoMarker");
+	bf->bass.dynamics = ptb_read_items(bf, "CDynamic");
+	printf("12\n");
+	ptb_read_items(bf, "");
+	printf("13\n");
+	ptb_read_items(bf, "");
+	bf->bass.sections = ptb_read_items(bf, "CSection");
 
 	ptb_read_font(bf, bf->tablature_font);
 	ptb_read_font(bf, bf->chord_name_font);

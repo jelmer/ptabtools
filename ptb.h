@@ -152,11 +152,12 @@ struct ptb_chordtext {
 
 struct ptb_position {
 	guint8 offset;
-	guint16 length;
+	guint8 length;
 #define POSITION_PROPERTY_STACCATO 0x02
 	guint16 properties;
 	guint8 let_ring;
 	guint8 fermenta;
+	GList *linedatas;
 };
 
 #define STAFF_TYPE_BASS_KEY	0x10
@@ -167,16 +168,18 @@ struct ptb_staff {
 	guint8 extra_data;
 	guint8 highest_note;
 	guint8 lowest_note;
+	GList *positions;
+	GList *musicbars;
 };
 
 struct ptb_linedata {
 	guint8 tone;	
 #define LINEDATA_PROPERTIES_GHOST_NOTE 	0x01
 #define LINEDATA_PROPERTIES_MUTED		0x02
+#define LINEDATA_PROPERTIES_PULLOFF_FROM_NOWHERE	0x30
+#define LINEDATA_PROPERTIES_HAMMERON_FROM_NOWHERE	0x28
 	guint8 properties;
 	guint8 transcribe;
-#define CONN_TO_NEXT_SHIFT_SLIDE	0x01	
-#define CONN_TO_NEXT_LEGATO_SLIDE	0x02
 	guint8 conn_to_next;
 };
 
@@ -195,6 +198,9 @@ struct ptb_linedata {
 
 struct ptb_section {
 	char letter;
+	GList *staffs;
+	GList *chordtexts;
+	GList *rhythmslashes;
 	/* Number of times to repeat OR-ed with end mark type */
 	guint8 end_mark;
 	guint16 meter_type;
@@ -226,21 +232,17 @@ struct ptbf {
 	int fd;
 	char *filename;
 	struct ptb_hdr hdr;
+	struct {
+		GList *guitars;
+		GList *sections;
+		GList *guitarins;
+		GList *chorddiagrams;
+		GList *tempomarkers;
+		GList *dynamics;
+	} regular, bass;
 	off_t curpos;
-	GList *guitars;
 	GList *floatingtexts;
-	GList *tempomarkers;
-	GList *chorddiagrams;
-	GList *linedatas;
-	GList *chordtexts;
-	GList *guitarins;
-	GList *staffs;
-	GList *positions;
-	GList *sections;
-	GList *dynamics;
 	GList *sectionsymbols;
-	GList *musicbars;
-	GList *rhythmslashs;
 	GList *directions;
 	struct ptb_font *default_font;
 	struct ptb_font *chord_name_font;

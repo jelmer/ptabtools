@@ -27,13 +27,12 @@ ssize_t ptb_read_constant(struct ptbf *, unsigned char expected);
 ssize_t ptb_read_string(struct ptbf *, char **);
 ssize_t ptb_read(struct ptbf *, void *data, size_t len);
 ssize_t ptb_read_unknown(struct ptbf *, size_t len);
-ssize_t ptb_read_items(struct ptbf *bf);
+GList *ptb_read_items(struct ptbf *bf, const char *assumed_name);
 ssize_t ptb_read_font(struct ptbf *, struct ptb_font *);
-ssize_t ptb_read_stuff(struct ptbf *);
 
 struct ptb_section_handler {
 	char *name;
-	ssize_t (*handler) (struct ptbf *, const char *section);
+	void *(*handler) (struct ptbf *, const char *section);
 	int index;
 };
 
