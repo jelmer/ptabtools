@@ -130,7 +130,8 @@ xmlNodePtr xml_write_linedatas(GList *linedatas)
 		xmlNodePtr xlinedata = xmlNewNode(NULL, "linedata");
 		xmlAddChild(xlinedatas, xlinedata);
 
-		SMART_ADD_CHILD_INT(xlinedata, "tone", linedata->tone);
+		SMART_ADD_CHILD_INT(xlinedata, "string", linedata->detailed.string);
+		SMART_ADD_CHILD_INT(xlinedata, "fret", linedata->detailed.fret);
 		SMART_ADD_CHILD_INT(xlinedata, "properties", linedata->properties);
 		SMART_ADD_CHILD_INT(xlinedata, "transcribe", linedata->transcribe);
 		SMART_ADD_CHILD_INT(xlinedata, "conn_to_next", linedata->conn_to_next);

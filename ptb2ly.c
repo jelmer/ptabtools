@@ -96,12 +96,11 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 
 	while(gl) {
 		struct ptb_linedata *d = gl->data;
-		int string = d->tone / 0x20;
-		int note = d->tone % 0x20;
+		int note = d->detailed.fret;
 		int i;
 		int j;
 		
-		switch(string) {
+		switch(d->detailed.string) {
 		case 0: note+= 19; break;
 		case 1: note+= 14; break;
 		case 2: note+= 10; break;
@@ -119,7 +118,7 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 			for(i = 1; i < j; i++) fprintf(out, "'");
 		}
 
-		fprintf(out, "\\%d", string+1);
+		fprintf(out, "\\%d", d->detailed.string+1);
 		gl = gl->next;
 		if(gl) fprintf(out, " ");
 	}

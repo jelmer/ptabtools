@@ -205,7 +205,13 @@ struct ptb_staff {
 };
 
 struct ptb_linedata {
-	guint8 tone;	
+	union {
+		struct {
+			guint8 string:5;
+			guint8 fret:3;
+		} detailed;
+		guint8 tone; 
+	}; 
 #define LINEDATA_PROPERTY_TIE					0x01
 #define LINEDATA_PROPERTY_MUTED					0x02
 #define LINEDATA_PROPERTY_HAMMERON_FROM			0x08

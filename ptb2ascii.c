@@ -46,8 +46,8 @@ int ascii_write_position(FILE *out, struct ptb_position *pos, int string)
 	while(gl) {
 		struct ptb_linedata *d = gl->data;
 
-		if(string == (int)d->tone / 0x20) {
-			return fprintf(out, "%d", d->tone % 0x20);
+		if(string == (int)d->detailed.string) {
+			return fprintf(out, "%d", d->detailed.fret);
 		} 
 
 		gl = gl->next;
