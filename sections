@@ -1,10 +1,10 @@
 0180 CGuitar
 0380 CFloatingText
 0680 CChordDiagram
-0880 CSection
 1280 CGuitarIn
 1980 CDynamic
 1d80 CSectionSymbol
+??80 CSection
 2c80 CLineData (?)
 2d80
 2e80

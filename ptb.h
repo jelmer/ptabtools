@@ -161,6 +161,12 @@ struct ptb_section {
 struct ptb_sectionsymbol {
 };
 
+struct ptb_musicbar {
+};
+
+struct ptb_rhythmslash {
+};
+
 struct ptbf {
 	int fd;
 	char *filename;
@@ -178,6 +184,8 @@ struct ptbf {
 	GList *sections;
 	GList *dynamics;
 	GList *sectionsymbols;
+	GList *musicbars;
+	GList *rhythmslashs;
 };
 
 struct ptb_section_handler {

@@ -144,13 +144,81 @@ static int ptb_read_header(int fd, struct ptb_hdr *hdr)
 	return 0;
 }
 
+int ptb_read_item(struct ptbf *bf, struct ptb_section_handler *sections) {
+	int i;
+	guint16 unknownval;
+	guint16 l;
+	guint16 length;
+	guint16 header;
+	guint8 data = 0;
+	static section_index = 0;
+	guint16 nr_items;
+	char *sectionname;
+
+	read(bf->fd, &nr_items, 2);	
+	if(nr_items == 0x0) {
+		printf("Ignoring...\n");
+		return 0;
+	}
+		section_index++;
+
+	read(bf->fd, &header, 2);
+	fprintf(stderr, "Header: %04x\n", header);
+
+	/* Read section */
+	if(read(bf->fd, &unknownval, 2) < 2) {
+		fprintf(stderr, "Unexpected end of file\n");
+		return -1;
+	}
+
+	if(unknownval != 0x0001) {
+		fprintf(stderr, "Unknownval: %04x\n", unknownval);
+		return -1;
+	}
+
+	if(read(bf->fd, &length, 2) < 2) {
+		fprintf(stderr, "Unexpected end of file\n");
+		return -1;
+	}
+
+	sectionname = malloc(length + 1);
+	read(bf->fd, sectionname, length);
+	sectionname[length] = '\0';
+	fprintf(stderr, "---- %s ----: %d (%02x) \n", sectionname, nr_items, section_index);
+	section_index+= nr_items;
+
+	for(i = 0; sections[i].name; i++) {
+		if(!strcmp(sections[i].name, sectionname)) {
+			break;
+		}
+	}
+
+	if(!sections[i].handler) {
+		fprintf(stderr, "No handler for '%s'\n", sectionname);
+		return -1;
+	}
+
+	for(l = 0; l < nr_items; l++) {
+		char unknown[2];
+		if(sections[i].handler(bf, sectionname) != 0) {
+			fprintf(stderr, "Error parsing section '%s'\n", sectionname);
+		}
+
+		if(l < nr_items - 1) {
+			read(bf->fd, unknown, 2);
+			fprintf(stderr, "Seperators: %02x %02x\n", unknown[0], unknown[1]);
+		}
+	}
+	return 0;
+}
+
+
 struct ptbf *ptb_read_file(const char *file, struct ptb_section_handler *sections)
 {
 	struct ptbf *bf = calloc(sizeof(struct ptbf), 1);
 	char eof = 0;
-	int i;
 	bf->fd = open(file, O_RDONLY);
-	
+
 	bf->filename = strdup(file);
 
 	if(bf->fd < 0) return NULL;
@@ -167,65 +235,9 @@ struct ptbf *ptb_read_file(const char *file, struct ptb_section_handler *section
 	}
 
 	while(lseek(bf->fd, 0L, SEEK_CUR) < bf->st_buf.st_size) {
-		guint16 unknownval;
-		guint16 l;
-		guint16 length;
-		guint16 header;
-		guint8 data = 0;
-		guint16 nr_items;
-		char *sectionname;
-
-		read(bf->fd, &nr_items, 2);	
-		if(nr_items == 0x0) continue;
-
-		read(bf->fd, &header, 2);
-		fprintf(stderr, "Header: %04x\n", header);
-
-		/* Read section */
-		if(read(bf->fd, &unknownval, 2) < 2) {
-			fprintf(stderr, "Unexpected end of file\n");
-			return NULL;
-		}
-
-		if(unknownval != 0x0001) {
-			fprintf(stderr, "Unknownval: %04x\n", unknownval);
-			return NULL;
-		}
-		
-		if(read(bf->fd, &length, 2) < 2) {
-			fprintf(stderr, "Unexpected end of file\n");
-			return NULL;
-		}
-		
-		sectionname = malloc(length + 1);
-		read(bf->fd, sectionname, length);
-		sectionname[length] = '\0';
-		fprintf(stderr, "---- %s ----: %d \n", sectionname, nr_items);
-
-		for(i = 0; sections[i].name; i++) {
-			if(!strcmp(sections[i].name, sectionname)) {
-				break;
-			}
-		}
-
-		if(!sections[i].handler) {
-			fprintf(stderr, "No handler for '%s'\n", sectionname);
-			return NULL;
-		}
-
-		for(l = 0; l < nr_items; l++) {
-			char unknown[2];
-			if(sections[i].handler(bf, sectionname) != 0) {
-				fprintf(stderr, "Error parsing section '%s'\n", sectionname);
-			}
-
-			if(l < nr_items - 1) {
-				read(bf->fd, unknown, 2);
-				fprintf(stderr, "Seperators: %02x %02x\n", unknown[0], unknown[1]);
-			}
-		}
+		if(ptb_read_item(bf, sections) != 0) return NULL;
 	}
-	
+
 	close(bf->fd);
 	return bf;
 }

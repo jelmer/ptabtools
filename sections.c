@@ -152,7 +152,6 @@ int handle_CChordText (struct ptbf *bf, const char *section) {
 	read(bf->fd, unknown, 1); /* FIXME */
 	read(bf->fd, &chordtext->additions, 1);
 	read(bf->fd, &chordtext->alterations, 1);
-		
 	read(bf->fd, unknown, 1); /* FIXME */
 
 	return 0;
@@ -180,7 +179,7 @@ int handle_CStaff (struct ptbf *bf, const char *section) {
 	bf->staffs = g_list_append(bf->staffs, staff);
 
 	read(bf->fd, &staff->offset, 1);
-	read(bf->fd, unknown, 46); /* FIXME */
+	read(bf->fd, unknown, 6); /* FIXME */
 
 	return 0;
 }
@@ -194,7 +193,7 @@ int handle_CPosition (struct ptbf *bf, const char *section) {
 	bf->positions = g_list_append(bf->positions, position);
 
 	read(bf->fd, &position->offset, 1);
-	read(bf->fd, unknown, 9); /* FIXME */
+	read(bf->fd, unknown, 7); /* FIXME */
 
 	return 0;
 }
@@ -223,11 +222,27 @@ int handle_CSectionSymbol (struct ptbf *bf, const char *section) {
 }
 
 int handle_CMusicBar (struct ptbf *bf, const char *section) { 
-	return 0; 
+	char unknown[256];
+	struct ptb_musicbar *musicbar = calloc(sizeof(struct ptb_musicbar), 1);
 
+	bf->musicbars = g_list_append(bf->musicbars, musicbar);
+
+	read(bf->fd, unknown, 10); /* FIXME */
+
+	return 0; 
 }
 
-int handle_CRhythmSlash (struct ptbf *bf, const char *section) { return 0; }
+int handle_CRhythmSlash (struct ptbf *bf, const char *section) { 
+	char unknown[256];
+	struct ptb_rhythmslash *rhythmslash = calloc(sizeof(struct ptb_rhythmslash), 1);
+
+	bf->rhythmslashs = g_list_append(bf->rhythmslashs, rhythmslash);
+
+	read(bf->fd, unknown, 6); /* FIXME */
+
+	return 0; 
+}
+
 int handle_CDirection (struct ptbf *bf, const char *section) { return 0; }
 
 struct ptb_section_handler default_section_handlers[] = {
@@ -244,7 +259,7 @@ struct ptb_section_handler default_section_handlers[] = {
 	{"CDynamic", handle_CDynamic },
 	{"CSectionSymbol", handle_CSectionSymbol },
 	{"CMusicBar", handle_CMusicBar },
-/*	{"CRhythmSlash", handle_CRhythmSlash },
-	{"CDirection", handle_CDirection },*/
+	{"CRhythmSlash", handle_CRhythmSlash },
+/*	{"CDirection", handle_CDirection },*/
 	{ 0, handle_unknown}
 };
