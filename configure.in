@@ -30,9 +30,7 @@ fi
 PKG_CHECK_MODULES(LIBXSLT, libxslt, AC_DEFINE(HAVE_XSLT, 1, [whether libxslt is available]) , AC_MSG_WARN([libxslt not found: ptb2xml will not support musicxml]))
 
 if test "$MINGW32" = "yes"; then 
-	PROGS="$PROGS ptb.dll ptb.lib ptb.def" 
-	DLLFLAGS="-Wl,--out-implib,libptb.dll.a"
-	AC_CHECK_PROGS(DLLTOOL,i586-mingw32msvc-dlltool i386-mingw32-dlltool mingw-dlltool,false)
+	PROGS="$PROGS ptb.dll" 
 else
 	PROGS="$PROGS libptb.so.$PACKAGE_VERSION libptb.a"
 fi

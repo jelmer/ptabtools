@@ -10,14 +10,8 @@ ptb2xml.o: ptb2xml.c
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< 
 
-ptb.dll: $(PTBSO_OBJS)
-	$(CC) -shared $(CFLAGS) -o $@ $^ -Wl,--out-implib,$@.a
-
-ptb.lib: $(PTBSO_OBJS)
-	$(DLLTOOL) -l $@ $(PTBSO_OBJS)
-
-ptb.def: $(PTBSO_OBJS)
-	$(DLLTOOL) -e $@ $(PTBSO_OBJS)
+ptb.dll ptb.def ptb.dll.a: $(PTBSO_OBJS)
+	$(CC) -shared $(CFLAGS) -o $@ $^ -Wl,--out-implib,$@.a,--output-def,ptb.def
 
 libptb.so.$(VERSION): $(PTBSO_OBJS)
 	$(CC) -shared $(CFLAGS) -o $@ $^
