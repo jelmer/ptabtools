@@ -22,82 +22,165 @@
 
 int handle_unknown (struct ptbf *bf, const char *section) {
 	fprintf(stderr, "Unknown section '%s'\n", section);	
-	return -1; 
-}
+    while(!ptb_end_of_section(bf->fd)) {
+		lseek(bf->fd, 1, SEEK_CUR);
+    }
 
+	return 0; 
+}
 
 int handle_CGuitar (struct ptbf *bf, const char *section) {
 	char unknown[256];
-	struct ptb_track *prevtrack = NULL;
+	struct ptb_guitar *prevguitar = NULL;
 	
 	while(!ptb_end_of_section(bf->fd)) {
-		struct ptb_track *track = calloc(sizeof(struct ptb_track), 1);
+		struct ptb_guitar *guitar = calloc(sizeof(struct ptb_guitar), 1);
+		int i;
 	
-		if(bf->tracks) prevtrack->next = track;
-		else bf->tracks = track;
+		if(bf->guitars) prevguitar->next = guitar;
+		else bf->guitars = guitar;
 		
-		/* Track number */
-		read(bf->fd, &track->index, 1);
-		if(track->index == 0xff) return 0;
-		ptb_read_string(bf->fd, &track->title);
+		/* guitar number */
+		read(bf->fd, &guitar->index, 1);
+		ptb_read_string(bf->fd, &guitar->title);
 
-		read(bf->fd, &track->midi_instrument, 1);
-		read(bf->fd, &track->initial_volume, 1);
-		read(bf->fd, &track->pan, 1);
-		read(bf->fd, &track->reverb, 1);
-		read(bf->fd, &track->chorus, 1);
-		read(bf->fd, &track->tremolo, 1);
+		read(bf->fd, &guitar->midi_instrument, 1);
+		read(bf->fd, &guitar->initial_volume, 1);
+		read(bf->fd, &guitar->pan, 1);
+		read(bf->fd, &guitar->reverb, 1);
+		read(bf->fd, &guitar->chorus, 1);
+		read(bf->fd, &guitar->tremolo, 1);
 
 		read(bf->fd, unknown, 1);
-		fprintf(stderr, "%s %02x\n", bf->filename, unknown[0]);
-		read(bf->fd, &track->capo, 1);
+		read(bf->fd, &guitar->capo, 1);
 		
-		ptb_read_string(bf->fd, &track->type);
+		ptb_read_string(bf->fd, &guitar->type);
 
-		//FIXME
-		read(bf->fd, unknown, 1);
-		ptb_read_string(bf->fd, &track->tempo);
-		//FIXME
-		read(bf->fd, unknown, 2);
-
-		prevtrack = track;
+		read(bf->fd, &guitar->half_up, 1);
+		read(bf->fd, &guitar->nr_strings, 1);
+		guitar->strings = malloc(sizeof(guint8) * guitar->nr_strings);
+		for(i = 0; i < guitar->nr_strings; i++)
+			read(bf->fd, &guitar->strings[i], 1);
+		read(bf->fd, &guitar->rev_gtr, 1);
+		read(bf->fd, &guitar->string_12, 1);
+		
+		prevguitar = guitar;
 	}
 
 	return 0;
 }
 
 
-int handle_CFloatingText (struct ptbf *bf, const char *section) { return 0; }
+int handle_CFloatingText (struct ptbf *bf, const char *section) { 
+	struct ptb_floatingtext *prevfloatingtext = NULL;
+	char unknown[256];
+
+	while(!ptb_end_of_section(bf->fd)) {
+		struct ptb_floatingtext *text = calloc(sizeof(struct ptb_floatingtext), 1);
+
+		if(bf->floating_texts) prevfloatingtext->next = text;
+		else bf->floating_texts = text;
+
+		ptb_read_string(bf->fd, &text->text);
+
+		read(bf->fd, unknown, 17);
+
+		ptb_read_font(bf->fd, &text->font);
+
+		read(bf->fd, unknown, 16);
+		
+		prevfloatingtext = text;
+	}
+	return 0; 
+}
+
+int handle_CSection (struct ptbf *bf, const char *section) { 
+	return 0; 
+}
+
+int handle_CTempoMarker (struct ptbf *bf, const char *section) {
+	struct ptb_tempomarker *prevtempomarker = NULL;
+	char unknown[256];
+
+	while(!ptb_end_of_section(bf->fd)) {
+		struct ptb_tempomarker *tempomarker = calloc(sizeof(struct ptb_tempomarker), 1);
+
+		if(bf->tempomarkers) prevtempomarker->next = tempomarker;
+		else bf->tempomarkers = tempomarker;
+
+		read(bf->fd, unknown, 3);
+		read(bf->fd, &tempomarker->bpm, 1);
+		read(bf->fd, unknown, 3);
+		ptb_read_string(bf->fd, &tempomarker->description);
+		read(bf->fd, unknown, 2);
+
+		prevtempomarker = tempomarker;
+	}
+	return 0; 
+}
+
+
+int handle_CChordDiagram (struct ptbf *bf, const char *section) { 
+	char unknown[256];
+	struct ptb_chorddiagram *prevchorddiagram = NULL;
+
+	while(!ptb_end_of_section(bf->fd)) {
+		struct ptb_chorddiagram *chorddiagram = calloc(sizeof(struct ptb_chorddiagram), 1);
+		int i;
+
+		if(bf->chorddiagrams) prevchorddiagram->next = chorddiagram;
+		else bf->chorddiagrams = chorddiagram;
+
+		read(bf->fd, &chorddiagram->name, 1);
+		
+		/* FIXME: This appears to be the same value twice ? */
+		read(bf->fd, &chorddiagram->name, 1);
+		
+		read(bf->fd, unknown, 3);
+
+		read(bf->fd, &chorddiagram->type, 1);
+		read(bf->fd, &chorddiagram->frets, 1);
+		read(bf->fd, &chorddiagram->nr_strings, 1);
+		chorddiagram->tones = malloc(sizeof(guint8) * chorddiagram->nr_strings);
+		for(i = 0; i < chorddiagram->nr_strings; i++) {
+			read(bf->fd, &chorddiagram->tones[i], 1);
+		}
+
+		read(bf->fd, unknown, 2);
+
+		prevchorddiagram = chorddiagram;
+	}
+
+	
+	return 0; 
+}
 
 int handle_CGuitarIn (struct ptbf *bf, const char *section) { return 0; }
-int handle_CTempoMarker (struct ptbf *bf, const char *section) { return 0; }
 int handle_CDynamic (struct ptbf *bf, const char *section) { return 0; }
 int handle_CSectionSymbol (struct ptbf *bf, const char *section) { return 0; }
-int handle_CSection (struct ptbf *bf, const char *section) { return 0; }
 int handle_CChordText (struct ptbf *bf, const char *section) { return 0; }
 int handle_CStaff (struct ptbf *bf, const char *section) { return 0; }
 int handle_CPosition (struct ptbf *bf, const char *section) { return 0; }
 int handle_CLineData (struct ptbf *bf, const char *section) { return 0; }
 int handle_CMusicBar (struct ptbf *bf, const char *section) { return 0; }
-int handle_CChordDiagram (struct ptbf *bf, const char *section) { return 0; }
 int handle_CRhythmSlash (struct ptbf *bf, const char *section) { return 0; }
 int handle_CDirection (struct ptbf *bf, const char *section) { return 0; }
 
 struct ptb_section default_sections[] = {
 	{"CGuitar", handle_CGuitar },
 	{"CFloatingText", handle_CFloatingText },
-	{"CGuitarIn", handle_CGuitarIn },
+	{"CChordDiagram", handle_CChordDiagram },
 	{"CTempoMarker", handle_CTempoMarker},
+/*	{"CGuitarIn", handle_CGuitarIn },
+	{"CSection", handle_CSection },
 	{"CDynamic", handle_CDynamic },
 	{"CSectionSymbol", handle_CSectionSymbol },
-	{"CSection", handle_CSection },
 	{"CChordText", handle_CChordText },
 	{"CStaff", handle_CStaff },
 	{"CPosition", handle_CPosition },
 	{"CLineData", handle_CLineData },
 	{"CMusicBar", handle_CMusicBar },
-	{"CChordDiagram", handle_CChordDiagram },
 	{"CRhythmSlash", handle_CRhythmSlash },
-	{"CDirection", handle_CDirection },
+	{"CDirection", handle_CDirection },*/
 	{ 0, handle_unknown}
 };

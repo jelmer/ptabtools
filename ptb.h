@@ -22,6 +22,9 @@
 #include <sys/stat.h>
 #include <glib.h>
 
+typedef guint8 ptb_chord;
+typedef guint8 ptb_tone;
+
 struct ptb_hdr {
 	enum { CLASSIFICATION_SONG = 0, CLASSIFICATION_LESSON} classification;
 
@@ -83,11 +86,12 @@ struct ptb_chord {
 	struct ptb_chord *next;
 };
 
-struct ptb_track {
+struct ptb_guitar {
 	guint8 index;
 	char *title;
 	char *type;
-	char *tempo;
+	guint8 nr_strings;
+	guint8 *strings;
 	guint8 reverb;
 	guint8 chorus;
 	guint8 tremolo;
@@ -95,7 +99,36 @@ struct ptb_track {
 	guint8 capo;
 	guint8 initial_volume;
 	guint8 midi_instrument;
-	struct ptb_track *next;
+	guint8 half_up;
+	guint8 string_12;
+	guint8 rev_gtr;
+	struct ptb_guitar *next;
+};
+
+struct ptb_font {
+	guint8 size;
+	char *family;
+};
+
+struct ptb_floatingtext {
+	char *text;
+	struct ptb_font font;
+	struct ptb_floatingtext *next;
+};
+
+struct ptb_tempomarker {
+	char *description;
+	guint8 bpm;
+	struct ptb_tempomarker *next;
+};
+
+struct ptb_chorddiagram {
+	ptb_chord name;
+	guint8 frets;
+	guint8 nr_strings;
+	guint8 type;
+	ptb_tone *tones;
+	struct ptb_chorddiagram *next;
 };
 
 struct ptbf {
@@ -103,7 +136,10 @@ struct ptbf {
 	char *filename;
 	struct stat st_buf;
 	struct ptb_hdr hdr;
-	struct ptb_track *tracks;
+	struct ptb_guitar *guitars;
+	struct ptb_floatingtext *floating_texts;
+	struct ptb_tempomarker *tempomarkers;
+	struct ptb_chorddiagram *chorddiagrams;
 };
 
 struct ptb_section {
@@ -116,5 +152,7 @@ extern struct ptb_section default_sections[];
 struct ptbf *ptb_read_file(const char *ptb, struct ptb_section *sections);
 int ptb_read_string(int fd, char **);
 int ptb_end_of_section(int fd);
+
+extern int debugging;
 
 #endif /* __PTB_H__ */

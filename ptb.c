@@ -38,6 +38,12 @@ int ptb_end_of_section(int fd)
 	return 0;
 }
 
+int ptb_read_font(int fd, struct ptb_font *dest) {
+	int ret = ptb_read_string(fd, &dest->family);
+	read(fd, &dest->size, 1);
+	return ret + 1;
+}
+
 int ptb_read_string(int fd, char **dest) {
 	guint8 shortlength;
 	guint16 length;
@@ -76,7 +82,6 @@ static int ptb_read_header(int fd, struct ptb_hdr *hdr)
 	if(strcmp(id, "ptab")) return -1;
 
 	read(fd, &hdr->version, 2);
-
 	read(fd, &hdr->classification, 1);
 
 	switch(hdr->classification) {
@@ -122,7 +127,7 @@ static int ptb_read_header(int fd, struct ptb_hdr *hdr)
 	ptb_read_string(fd, &hdr->class_info.song.copyright);
 	ptb_read_string(fd, &hdr->guitar_notes);
 	ptb_read_string(fd, &hdr->bass_notes);
-	ptb_read_string(fd, &hdr->drum_notes);
+	read(fd, unknown, 2);
 	break;
 	case CLASSIFICATION_LESSON:
 	ptb_read_string(fd, &hdr->class_info.lesson.title);
@@ -161,12 +166,16 @@ struct ptbf *ptb_read_file(const char *file, struct ptb_section *sections)
 
 	if(fstat(bf->fd, &bf->st_buf) < 0) return NULL;
 
+	debugging = 1;
+
 	if(ptb_read_header(bf->fd, &bf->hdr) < 0) {
 		fprintf(stderr, "Error parsing header\n");	
 		return NULL;
+	} else if(debugging) {
+		fprintf(stderr, "Header parsed correctly\n");
 	}
 
-	while(lseek(bf->fd, 0, SEEK_CUR) < bf->st_buf.st_size) {
+	while(lseek(bf->fd, 0L, SEEK_CUR) < bf->st_buf.st_size) {
 		guint16 unknownval;
 		guint16 l;
 		guint16 length;
@@ -193,8 +202,7 @@ struct ptbf *ptb_read_file(const char *file, struct ptb_section *sections)
 		sectionname = malloc(length + 1);
 		read(bf->fd, sectionname, length);
 		sectionname[length] = '\0';
-
-		//fprintf(stderr, "%s: %02x %02x %02x %02x %02x %02x\n", bf->filename, unknown[0], unknown[1], unknown[2], unknown[3], unknown[4], unknown[5]);
+		printf("---- %s ---- \n", sectionname);
 
 		for(i = 0; sections[i].name; i++) {
 			if(!strcmp(sections[i].name, sectionname)) {

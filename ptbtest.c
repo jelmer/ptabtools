@@ -31,6 +31,8 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
+	debugging = 1;
+
 	for(i = 0; default_sections[i].name; i++) {
 		if(!strcmp(default_sections[i].name, argv[1])) {
 			struct ptbf *bf = calloc(sizeof(struct ptbf), 1);
