@@ -205,7 +205,7 @@ int ptb_read_items(struct ptbf *bf, struct ptb_section_handler *sections) {
 	}
 
 	for(l = 0; l < nr_items; l++) {
-		char unknown[2]; int j, tmp;
+		int j, tmp;
 		for(j = 0; j < level; j++) fputc(' ', stderr);
 		fprintf(stderr, "%02x ============= Handling %s (%d of %d) =============\n", sections[i].index, sections[i].name, l+1, nr_items);
 		section_index++;

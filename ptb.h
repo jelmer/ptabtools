@@ -123,6 +123,7 @@ struct ptb_floatingtext {
 
 struct ptb_tempomarker {
 	char *description;
+	guint16 type; 
 	guint8 bpm;
 };
 
@@ -146,6 +147,8 @@ struct ptb_position {
 	guint16 length;
 #define POSITION_PROPERTY_STACCATO 0x02
 	guint16 properties;
+	guint8 let_ring;
+	guint8 fermenta;
 };
 
 #define STAFF_TYPE_BASS_KEY	0x10
@@ -154,10 +157,15 @@ struct ptb_staff {
 	/* Number of strings OR-ed with some settings */
 	guint8 properties;
 	guint8 child_size;
+	guint8 extra_data;
 };
 
 struct ptb_linedata {
 	guint8 tone;	
+#define LINEDATA_PROPERTIES_GHOST_NOTE 	0x01
+#define LINEDATA_PROPERTIES_MUTED		0x02
+	guint8 properties;
+	guint8 transcribe;
 };
 
 
@@ -181,10 +189,12 @@ struct ptb_section {
 	guint8 beat_value;
 	guint8 metronome_pulses_per_measure;
 	guint8 child_size;
+	guint8 key_extra;
 	char *description;
 };
 
 struct ptb_sectionsymbol {
+	guint16 repeat_ending;
 };
 
 struct ptb_musicbar {

@@ -85,7 +85,9 @@ int handle_CSection (struct ptbf *bf, const char *sectionname) {
 	ret+=read(bf->fd, &section->child_size, 1);
 	ret+=read(bf->fd, unknown, 3);
 	ret+=read(bf->fd, &section->end_mark, 1);
-	ret+=read(bf->fd, unknown, 8);
+	ret+=read(bf->fd, unknown, 6);
+	ret+=read(bf->fd, &section->key_extra, 1);
+	ret+=read(bf->fd, unknown, 1);
 	ret+=read(bf->fd, &section->meter_type, 2);
 	ret+=read(bf->fd, &section->beat_value, 1);
 	ret+=read(bf->fd, &section->metronome_pulses_per_measure, 1);
@@ -111,7 +113,8 @@ int handle_CTempoMarker (struct ptbf *bf, const char *section) {
 
 	ret+=read(bf->fd, unknown, 3);
 	ret+=read(bf->fd, &tempomarker->bpm, 1);
-	ret+=read(bf->fd, unknown, 3);
+	ret+=read(bf->fd, unknown, 1);
+	ret+=read(bf->fd, &tempomarker->type, 2);
 	ret+=ptb_read_string(bf->fd, &tempomarker->description);
 
 	return ret;
@@ -147,7 +150,9 @@ int handle_CLineData (struct ptbf *bf, const char *section) {
 	bf->linedatas = g_list_append(bf->linedatas, linedata);
 
 	ret+=read(bf->fd, &linedata->tone, 1);
-	ret+=read(bf->fd, unknown, 3);
+	ret+=read(bf->fd, &linedata->properties, 1);
+	ret+=read(bf->fd, &linedata->transcribe, 1);
+	ret+=read(bf->fd, unknown, 1);
 
 	return ret;
 }
@@ -198,7 +203,8 @@ int handle_CStaff (struct ptbf *bf, const char *section) {
 
 	ret+=read(bf->fd, &staff->properties, 1);
 	ret+=read(bf->fd, &staff->child_size, 1);
-	ret+=read(bf->fd, unknown, 3); /* FIXME */
+	ret+=read(bf->fd, unknown, 2); /* FIXME */
+	ret+=read(bf->fd, &staff->extra_data, 1);
 
 //	while(cur < staff->child_size) { cur+=ptb_read_items(bf, default_section_handlers); }
 
@@ -220,8 +226,9 @@ int handle_CPosition (struct ptbf *bf, const char *section) {
 	ret+=read(bf->fd, &position->offset, 1);
 	ret+=read(bf->fd, &position->properties, 2); /* FIXME */
 	ret+=read(bf->fd, &position->length, 2);
-	ret+=read(bf->fd, unknown, 3);
-	fprintf(stderr, "%02x %02x %02x %02x %02x\n", unknown[0], unknown[1], unknown[2], unknown[3], unknown[4]);
+	ret+=read(bf->fd, &position->fermenta, 1);
+	ret+=read(bf->fd, &position->let_ring, 1);
+	ret+=read(bf->fd, unknown, 1);
 	
 	return ret + ptb_read_items(bf, default_section_handlers);
 }
@@ -246,7 +253,8 @@ int handle_CSectionSymbol (struct ptbf *bf, const char *section) {
 
 	bf->sectionsymbols = g_list_append(bf->sectionsymbols, sectionsymbol);
 
-	ret+=read(bf->fd, unknown, 7); /* FIXME */
+	ret+=read(bf->fd, unknown, 5); /* FIXME */
+	ret+=read(bf->fd, &sectionsymbol->repeat_ending, 2);
 
 	return ret;
 }
