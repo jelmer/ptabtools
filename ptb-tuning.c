@@ -82,7 +82,41 @@ struct ptb_tuning_dict *ptb_read_tuning_dict(const char *f)
 
 int ptb_write_tuning_dict(const char *f, struct ptb_tuning_dict *t)
 {
-	/* FIXME */
+	struct ptb_tuning_dict *ptbf = malloc_p(struct ptb_tuning_dict, 1);
+	char unknown[8];
+	int i;
+	int fd;
+
+	fd = open(f, O_WRONLY
+#ifdef O_BINARY
+						| O_BINARY
+#endif
+				   );
+
+	if (!fd) {
+		return -1;
+	}
+	
+	write(fd, &ptbf->nr_tunings, 1);
+	write(fd, unknown, 7);
+	write(fd, "CTuning", 7); /* Class name */
+
+	for (i = 0; i < ptbf->nr_tunings; i++) {
+		uint8_t name_len = strlen(ptbf->tunings[i].name);
+		uint32_t next = 0x8001;
+		write(fd, &name_len, 1);
+
+		write(fd, ptbf->tunings[i].name, name_len);
+
+		write(fd, &ptbf->tunings[i].capo, 1);
+		write(fd, &ptbf->tunings[i].nr_strings, 1);
+		write(fd, ptbf->tunings[i].strings, ptbf->tunings[i].nr_strings);
+
+		write(fd, &next, 2);
+	}
+
+	close(fd);
+
 	return 0;
 }
 
