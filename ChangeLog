@@ -2,13 +2,14 @@ All changes, unless specified otherwise, made by Jelmer Vernooij
 <jelmer@samba.org>.
 
 0.2:
+ * Better parsing of the structure
  * Add ptb2xml
  * Add ptb2musicxml
  * Add ptbinfo
  * Add support for some more properties
  * More asserts
  * Add chord name support
- * Don't append length of note if not necessary
+ * Don't append length of note if not necessary in ptb2ly
  * Fix chord handling
 
 0.1:

@@ -505,7 +505,7 @@ int main(int argc, const char **argv)
 	xmlDocPtr doc;
 	xmlNodePtr comment;
 	xmlNodePtr font;
-	int c, i;
+	int c, i, musicxml = 0;
 	int version = 0;
 	char *output = NULL;
 	poptContext pc;
@@ -513,6 +513,7 @@ int main(int argc, const char **argv)
 		POPT_AUTOHELP
 		{"debug", 'd', POPT_ARG_NONE, &debugging, 0, "Turn on debugging output" },
 		{"outputfile", 'o', POPT_ARG_STRING, &output, 0, "Write to specified file", "FILE" },
+		{"musicxml", 'm', POPT_ARG_NONE, &musicxml, 'm', "Output MusicXML" },
 		{"version", 'v', POPT_ARG_NONE, &version, 'v', "Show version information" },
 		POPT_TABLEEND
 	};
