@@ -26,7 +26,7 @@
 #include <libxml/parser.h>
 #include "ptb.h"
 
-#define SMART_ADD_CHILD_STRING(parent, name, contents) if(contents) { xmlNodePtr tmp = xmlNewNode(NULL, name); xmlNodeSetContent(tmp, contents); xmlAddChild(parent, tmp); }
+#define SMART_ADD_CHILD_STRING(parent, name, contents) xmlNewTextChild(parent, NULL, name, contents);
 #define SMART_ADD_CHILD_INT(parent, name, contents) { char tmpc[100]; xmlNodePtr tmp = xmlNewNode(NULL, name); g_snprintf(tmpc, 100, "%d", contents); xmlNodeSetContent(tmp, tmpc); xmlAddChild(parent, tmp); }
 #define SMART_ADD_CHILD_XINT(parent, name, contents) { char tmpc[100]; xmlNodePtr tmp = xmlNewNode(NULL, name); g_snprintf(tmpc, 100, "%x", contents); xmlNodeSetContent(tmp, tmpc); xmlAddChild(parent, tmp); }
 
@@ -559,9 +559,9 @@ int main(int argc, const char **argv)
 		if (!strcmp(input + strlen(input) - 4, ".ptb")) {
 			baselength -= 4;
 		}
-		output = malloc(baselength + 5);
+		output = malloc(baselength + 6);
 		strncpy(output, input, baselength);
-		strcpy(output + baselength, ".ly");
+		strcpy(output + baselength, ".xml");
 	}
 
 	if (!quiet) fprintf(stderr, "Building DOM tree...\n");
