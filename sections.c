@@ -28,7 +28,7 @@ int handle_unknown (struct ptbf *bf, const char *section) {
 int handle_CGuitar (struct ptbf *bf, const char *section) {
 	int i;
 	int ret = 0;
-	struct ptb_guitar *guitar = calloc(sizeof(struct ptb_guitar), 1);
+	struct ptb_guitar *guitar = g_new0(struct ptb_guitar, 1);
 
 
 	bf->guitars = g_list_append(bf->guitars, guitar);
@@ -50,7 +50,7 @@ int handle_CGuitar (struct ptbf *bf, const char *section) {
 
 	ret+=ptb_read(bf->fd, &guitar->half_up, 1);
 	ret+=ptb_read(bf->fd, &guitar->nr_strings, 1);
-	guitar->strings = malloc(sizeof(guint8) * guitar->nr_strings);
+	guitar->strings = g_new(guint8, guitar->nr_strings);
 	ret+=ptb_read(bf->fd, guitar->strings, guitar->nr_strings);
 	
 	return ret;
@@ -59,7 +59,7 @@ int handle_CGuitar (struct ptbf *bf, const char *section) {
 
 int handle_CFloatingText (struct ptbf *bf, const char *section) { 
 	int ret = 0;
-	struct ptb_floatingtext *text = calloc(sizeof(struct ptb_floatingtext), 1);
+	struct ptb_floatingtext *text = g_new0(struct ptb_floatingtext, 1);
 
 	bf->floatingtexts = g_list_append(bf->floatingtexts, text);
 
@@ -75,7 +75,7 @@ int handle_CFloatingText (struct ptbf *bf, const char *section) {
 int handle_CSection (struct ptbf *bf, const char *sectionname) { 
 	int ret = 0;
 	int cur = 0;
-	struct ptb_section *section = calloc(sizeof(struct ptb_section), 1);
+	struct ptb_section *section = g_new0(struct ptb_section, 1);
 
 	bf->sections = g_list_append(bf->sections, section);
 
@@ -103,7 +103,7 @@ int handle_CSection (struct ptbf *bf, const char *sectionname) {
 
 int handle_CTempoMarker (struct ptbf *bf, const char *section) {
 	int ret = 0;
-	struct ptb_tempomarker *tempomarker = calloc(sizeof(struct ptb_tempomarker), 1);
+	struct ptb_tempomarker *tempomarker = g_new0(struct ptb_tempomarker, 1);
 
 	bf->tempomarkers = g_list_append(bf->tempomarkers, tempomarker);
 
@@ -120,7 +120,7 @@ int handle_CTempoMarker (struct ptbf *bf, const char *section) {
 int handle_CChordDiagram (struct ptbf *bf, const char *section) { 
 	guint8 last;
 	int ret = 0;
-	struct ptb_chorddiagram *chorddiagram = calloc(sizeof(struct ptb_chorddiagram), 1);
+	struct ptb_chorddiagram *chorddiagram = g_new0(struct ptb_chorddiagram, 1);
 	int i;
 
 	bf->chorddiagrams = g_list_append(bf->chorddiagrams, chorddiagram);
@@ -130,14 +130,14 @@ int handle_CChordDiagram (struct ptbf *bf, const char *section) {
 	ret+=ptb_read(bf->fd, &chorddiagram->type, 1);
 	ret+=ptb_read(bf->fd, &chorddiagram->frets, 1);
 	ret+=ptb_read(bf->fd, &chorddiagram->nr_strings, 1);
-	chorddiagram->tones = malloc(sizeof(guint8) * chorddiagram->nr_strings);
+	chorddiagram->tones = g_new(guint8, chorddiagram->nr_strings);
 	ret+=ptb_read(bf->fd, chorddiagram->tones, chorddiagram->nr_strings);
 
 	return ret;
 }
 
 int handle_CLineData (struct ptbf *bf, const char *section) { 
-	struct ptb_linedata *linedata = calloc(sizeof(struct ptb_linedata), 1);
+	struct ptb_linedata *linedata = g_new0(struct ptb_linedata, 1);
 	int i;
 	int ret = 0;
 
@@ -155,7 +155,7 @@ int handle_CLineData (struct ptbf *bf, const char *section) {
 int handle_CChordText (struct ptbf *bf, const char *section) {
 	guint8 last;
 	int ret = 0;
-	struct ptb_chordtext *chordtext = calloc(sizeof(struct ptb_chordtext), 1);
+	struct ptb_chordtext *chordtext = g_new0(struct ptb_chordtext, 1);
 
 	bf->chordtexts = g_list_append(bf->chordtexts, chordtext);
 
@@ -173,7 +173,7 @@ int handle_CChordText (struct ptbf *bf, const char *section) {
 int handle_CGuitarIn (struct ptbf *bf, const char *section) { 
 	guint8 last;
 	int ret = 0;
-	struct ptb_guitarin *guitarin = calloc(sizeof(struct ptb_guitarin), 1);
+	struct ptb_guitarin *guitarin = g_new0(struct ptb_guitarin, 1);
 
 	bf->guitarins = g_list_append(bf->guitarins, guitarin);
 
@@ -188,7 +188,7 @@ int handle_CStaff (struct ptbf *bf, const char *section) {
 	guint8 last;
 	int ret = 0;
 	int cur = 0;
-	struct ptb_staff *staff = calloc(sizeof(struct ptb_staff), 1);
+	struct ptb_staff *staff = g_new0(struct ptb_staff, 1);
 
 	bf->staffs = g_list_append(bf->staffs, staff);
 
@@ -209,7 +209,7 @@ int handle_CStaff (struct ptbf *bf, const char *section) {
 int handle_CPosition (struct ptbf *bf, const char *section) { 
 	guint8 last;
 	int ret = 0;
-	struct ptb_position *position = calloc(sizeof(struct ptb_position), 1);
+	struct ptb_position *position = g_new0(struct ptb_position, 1);
 
 	bf->positions = g_list_append(bf->positions, position);
 
@@ -224,7 +224,7 @@ int handle_CPosition (struct ptbf *bf, const char *section) {
 }
 
 int handle_CDynamic (struct ptbf *bf, const char *section) { 
-	struct ptb_dynamic *dynamic = calloc(sizeof(struct ptb_dynamic), 1);
+	struct ptb_dynamic *dynamic = g_new0(struct ptb_dynamic, 1);
 	int ret = 0;
 
 	bf->dynamics = g_list_append(bf->dynamics, dynamic);
@@ -237,7 +237,7 @@ int handle_CDynamic (struct ptbf *bf, const char *section) {
 }
 int handle_CSectionSymbol (struct ptbf *bf, const char *section) {
 	int ret = 0;
-	struct ptb_sectionsymbol *sectionsymbol = calloc(sizeof(struct ptb_sectionsymbol), 1);
+	struct ptb_sectionsymbol *sectionsymbol = g_new0(struct ptb_sectionsymbol, 1);
 
 	bf->sectionsymbols = g_list_append(bf->sectionsymbols, sectionsymbol);
 
@@ -249,7 +249,7 @@ int handle_CSectionSymbol (struct ptbf *bf, const char *section) {
 
 int handle_CMusicBar (struct ptbf *bf, const char *section) { 
 	int ret = 0;
-	struct ptb_musicbar *musicbar = calloc(sizeof(struct ptb_musicbar), 1);
+	struct ptb_musicbar *musicbar = g_new0(struct ptb_musicbar, 1);
 
 	bf->musicbars = g_list_append(bf->musicbars, musicbar);
 
@@ -260,7 +260,7 @@ int handle_CMusicBar (struct ptbf *bf, const char *section) {
 
 int handle_CRhythmSlash (struct ptbf *bf, const char *section) { 
 	int ret = 0;
-	struct ptb_rhythmslash *rhythmslash = calloc(sizeof(struct ptb_rhythmslash), 1);
+	struct ptb_rhythmslash *rhythmslash = g_new0(struct ptb_rhythmslash, 1);
 
 	bf->rhythmslashs = g_list_append(bf->rhythmslashs, rhythmslash);
 
@@ -271,7 +271,7 @@ int handle_CRhythmSlash (struct ptbf *bf, const char *section) {
 
 int handle_CDirection (struct ptbf *bf, const char *section) { 
 	int ret = 0;
-	struct ptb_direction *direction = calloc(sizeof(struct ptb_direction), 1);
+	struct ptb_direction *direction = g_new0(struct ptb_direction, 1);
 
 	bf->directions = g_list_append(bf->directions, direction);
 

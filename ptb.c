@@ -62,9 +62,8 @@ int ptb_read_string(int fd, char **dest) {
 	}
 
 	if(length) {
-		data = malloc(length+1);
+		data = g_new0(char, length+1);
 		if(ptb_read(fd, data, length) < length) return -1;
-		data[length] = '\0';
 		if(debugging) fprintf(stderr, "Read string: %s\n", data);
 		*dest = data;
 	} else {
@@ -182,10 +181,8 @@ int ptb_read_items(struct ptbf *bf, struct ptb_section_handler *sections) {
 
 		ret+=ptb_read(bf->fd, &length, 2);
 
-		sectionname = malloc(length + 1);
+		sectionname = g_new0(char, length + 1);
 		ret+=ptb_read(bf->fd, sectionname, length);
-		sectionname[length] = '\0';
-
 
 		for(i = 0; sections[i].name; i++) {
 			if(!strcmp(sections[i].name, sectionname)) {
@@ -207,12 +204,19 @@ int ptb_read_items(struct ptbf *bf, struct ptb_section_handler *sections) {
 		}
 	} else { g_assert(0); }
 
+	if(!sections[i].handler) {
+		fprintf(stderr, "Unable to find handler for section %s\n", sectionname);
+		return ret;
+	}
+
 	for(l = 0; l < nr_items; l++) {
 		int j, tmp;
 		for(j = 0; j < level; j++) fputc(' ', stderr);
+
 		fprintf(stderr, "%02x ============= Handling %s (%d of %d) =============\n", sections[i].index, sections[i].name, l+1, nr_items);
 		section_index++;
 		tmp = sections[i].handler(bf, sections[i].name);
+
 		if(tmp < 0) {
 			fprintf(stderr, "Error parsing section '%s'\n", sections[i].name);
 		}
@@ -233,11 +237,11 @@ int ptb_read_items(struct ptbf *bf, struct ptb_section_handler *sections) {
 
 struct ptbf *ptb_read_file(const char *file, struct ptb_section_handler *sections)
 {
-	struct ptbf *bf = calloc(sizeof(struct ptbf), 1);
+	struct ptbf *bf = g_new0(struct ptbf, 1);
 	char eof = 0;
 	bf->fd = open(file, O_RDONLY);
 
-	bf->filename = strdup(file);
+	bf->filename = g_strdup(file);
 
 	if(bf->fd < 0) return NULL;
 
