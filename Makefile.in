@@ -1,5 +1,5 @@
 CC = @CC@
-prefix = /usr/local
+prefix = @prefix@
 bindir = $(prefix)/bin
 mandir = $(prefix)/share/man
 libdir = $(prefix)/lib
