@@ -49,6 +49,18 @@ static void ly_write_header(FILE *out, struct gpf *gpf)
 	fprintf(out, "}\n\n");
 }
 
+static void ly_write_lyrics(FILE *out, struct gpf *gpf)
+{
+	int i;
+	for (i = 0; i < gpf->num_lyrics; i++)
+	{
+		if (!gpf->lyrics[i].data || !strlen(gpf->lyrics[i].data)) continue;
+		fprintf(out, "lyrics%c = \\lyrics {\n", 'a' + gpf->lyrics[i].bar);
+		fprintf(out, "\t%s\n", gpf->lyrics[i].data);
+		fprintf(out, "}\n");
+	}
+}
+
 int main(int argc, const char **argv) 
 {
 	FILE *out;
@@ -122,6 +134,8 @@ int main(int argc, const char **argv)
 	fprintf(out, "\\version \""LILYPOND_VERSION"\"\n");
 
 	ly_write_header(out, ret);
+
+	ly_write_lyrics(out, ret);
 		
 	fprintf(out, "\n\\score { << \n");
 

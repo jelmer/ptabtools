@@ -42,6 +42,7 @@ void ascii_write_header(FILE *out, struct ptbf *ret)
 		if(ret->hdr.class_info.lesson.author) fprintf(out, "  Transcribed By: %s\n", ret->hdr.class_info.lesson.author);
 		if(ret->hdr.class_info.lesson.copyright) fprintf(out, "  Copyright: %s\n", ret->hdr.class_info.lesson.copyright);
 	}
+	fprintf(out, "\n");
 }
 
 int ascii_write_position(FILE *out, struct ptb_position *pos, int string)
@@ -237,7 +238,6 @@ int main(int argc, const char **argv)
 		fprintf(out, "\n\n");
 		gl = gl->next;
 	}
-
 
 	if(output)fclose(out);
 	
