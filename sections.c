@@ -94,7 +94,7 @@ int handle_CFloatingText (struct ptbf *bf, const char *section) {
 
 		ptb_read_font(bf->fd, &text->font);
 
-		read(bf->fd, unknown, 11);
+		read(bf->fd, unknown, 6);
 		
 		prevfloatingtext = text;
 	}
