@@ -126,7 +126,11 @@ struct ptb_font {
 struct ptb_floatingtext {
 	char *text;
 	guint8 beginpos;
-	enum { ALIGN_LEFT = 1, ALIGN_CENTER, ALIGN_RIGHT } alignment;
+#define ALIGN_LEFT		1
+#define ALIGN_CENTER	2
+#define ALIGN_RIGHT		3
+#define ALIGN_TIMESTAMP	8
+	guint8 alignment;
 	struct ptb_font font;
 };
 
@@ -200,9 +204,10 @@ struct ptb_linedata {
 	guint8 tone;	
 #define LINEDATA_PROPERTY_TIE					0x01
 #define LINEDATA_PROPERTY_MUTED					0x02
+#define LINEDATA_PROPERTY_UNKNOWN				0x08 /* Something to do with hammeron ? */
 #define LINEDATA_PROPERTY_PULLOFF				0x10
 #define LINEDATA_PROPERTY_HAMMERON				0x20
-#define LINEDATA_PROPERTY_UNKNOWN				0x08 /* Something to do with hammeron ? */
+#define LINEDATA_PROPERTY_NATURAL_HARMONIC		0x40
 #define LINEDATA_PROPERTY_GHOST_NOTE 			0x80
 	guint8 properties;
 	guint8 transcribe;

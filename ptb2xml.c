@@ -262,6 +262,8 @@ xmlNodePtr xml_write_guitars(GList *guitars)
 			SMART_ADD_CHILD_INT(strings, "string", gtr->strings[i]);
 		}
 
+		SMART_ADD_CHILD_STRING(xgtr, "title", gtr->title);
+		SMART_ADD_CHILD_STRING(xgtr, "type", gtr->type);
 		SMART_ADD_CHILD_INT(xgtr, "reverb", gtr->reverb);
 		SMART_ADD_CHILD_INT(xgtr, "chorus", gtr->chorus);
 		SMART_ADD_CHILD_INT(xgtr, "tremolo", gtr->tremolo);

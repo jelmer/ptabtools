@@ -424,7 +424,10 @@ void *handle_CFloatingText (struct ptbf *bf, const char *section) {
 	ptb_read(bf, &text->beginpos, 1);
 	ptb_read_unknown(bf, 15);
 	ptb_read(bf, &text->alignment, 1);
-	ptb_assert(bf, text->alignment == ALIGN_LEFT || text->alignment == ALIGN_CENTER || text->alignment == ALIGN_RIGHT);
+	ptb_debug("Align: %x", text->alignment);
+	ptb_assert(bf, (text->alignment &~ ALIGN_TIMESTAMP) == ALIGN_LEFT || 
+			   	   (text->alignment &~ ALIGN_TIMESTAMP) == ALIGN_CENTER || 
+				   (text->alignment &~ ALIGN_TIMESTAMP) == ALIGN_RIGHT);
 	ptb_read_font(bf, &text->font);
 	
 	return text;
@@ -499,6 +502,7 @@ void *handle_CLineData (struct ptbf *bf, const char *section) {
 			   & ~LINEDATA_PROPERTY_PULLOFF
 			   & ~LINEDATA_PROPERTY_HAMMERON
 			   & ~LINEDATA_PROPERTY_TIE
+			   & ~LINEDATA_PROPERTY_NATURAL_HARMONIC
 			   & ~LINEDATA_PROPERTY_MUTED);
 	ptb_read(bf, &linedata->transcribe, 1);
 	ptb_assert(bf, linedata->transcribe == LINEDATA_TRANSCRIBE_8VA 
