@@ -26,7 +26,7 @@
 #include <glib.h>
 
 #define ptb_assert(ptb, expr) \
-	if (!(expr)) { g_log(G_LOG_DOMAIN, G_LOG_LEVEL_ERROR, "file: %s, line: %d (%s): assertion failed: %s. Current position: 0x%lx", __FILE__, __LINE__, __PRETTY_FUNCTION__, #expr, ptb->curpos); ptb_print_section_list(ptb); }
+	if (!(expr)) { ptb_debug("file: %s, line: %d (%s): assertion failed: %s. Current position: 0x%lx", __FILE__, __LINE__, __PRETTY_FUNCTION__, #expr, ptb->curpos); ptb_print_section_list(ptb); abort(); }
 
 struct ptb_section_handler {
 	char *name;
@@ -44,11 +44,12 @@ int section_index = 0;
 
 static void ptb_print_section_index(gpointer key, gpointer value, gpointer user_data)
 {
-	ptb_debug("%d: %s\n", GPOINTER_TO_INT(key), ptb_section_handlers[GPOINTER_TO_INT(value)].name);
+	ptb_debug("%02x: %s", GPOINTER_TO_INT(key), value);
 }
 
 static void ptb_print_section_list(struct ptbf *f) 
 {
+	ptb_debug("Sections + numbers:");
 	g_hash_table_foreach(f->section_indices, ptb_print_section_index, NULL);
 }
 
@@ -262,7 +263,6 @@ GList *ptb_read_items(struct ptbf *bf, const char *assumed_type) {
 		my_section_name = g_new0(char, length + 1);
 		ret+=ptb_read(bf, my_section_name, length);
 
-		printf("Inserting: %d: %s\n", section_index, my_section_name);
 		g_hash_table_insert(bf->section_indices, GINT_TO_POINTER(section_index), g_strdup(my_section_name));
 
 		my_section_index = section_index;
@@ -294,14 +294,14 @@ GList *ptb_read_items(struct ptbf *bf, const char *assumed_type) {
 		if(assumed_type && strcmp(assumed_type, my_section_name)) {
 			ptb_debug("Expected: %s, got: %s (%d)\n", assumed_type, my_section_name, my_section_index);
 
-			g_assert(0);
+			ptb_assert(bf, 0);
 		}
 		section_index++;
 		debug_level++;
 		tmp = ptb_section_handlers[i].handler(bf, ptb_section_handlers[i].name);
 		debug_level--;
 
-		ptb_debug("%02x ============= END Handling %s =============", my_section_index, ptb_section_handlers[i].name);
+		ptb_debug("%02x ============= END Handling %s (%d of %d) =============", my_section_index, ptb_section_handlers[i].name, l+1, nr_items);
 
 		if(!tmp) {
 			fprintf(stderr, "Error parsing section '%s'\n", ptb_section_handlers[i].name);
@@ -529,6 +529,7 @@ void *handle_CStaff (struct ptbf *bf, const char *section) {
 	ptb_read_unknown(bf, 2); /* FIXME */
 
 	staff->positions1 = ptb_read_items(bf, "CPosition");
+	staff->positions2 = ptb_read_items(bf, "CPosition");
 	staff->musicbars = ptb_read_items(bf, "CMusicBar");
 	return staff;
 }

@@ -26,13 +26,13 @@ libptb-$(PTB_VERSION).so: $(PTBSO_OBJS)
 	$(CC) -shared $(CFLAGS) -o $@ $(PTBSO_OBJS) `pkg-config --libs glib-2.0`
 	
 ptb2musicxml: $(PTB2MUSICXML_OBJS)
-	$(CC) $(CFLAGS) -o $@ $? `pkg-config --libs glib-2.0 libxml-2.0` -lpopt
+	$(CC) $(CFLAGS) -o $@ $(PTB2MUSICXML_OBJS) `pkg-config --libs glib-2.0 libxml-2.0` -lpopt
 
 ptb2ascii: $(PTB2ASCII_OBJS)
-	$(CC) $(CFLAGS) -o $@ $? `pkg-config --libs glib-2.0` -lpopt
+	$(CC) $(CFLAGS) -o $@ $(PTB2ASCII_OBJS) `pkg-config --libs glib-2.0` -lpopt
 
 ptb2ly: $(PTB2LY_OBJS)
-	$(CC) $(CFLAGS) -o $@ $? `pkg-config --libs glib-2.0` -lpopt
+	$(CC) $(CFLAGS) -o $@ $(PTB2LY_OBJS) `pkg-config --libs glib-2.0` -lpopt
 
 install: all
 	$(INSTALL) ptb2ly $(DESTDIR)$(bindir)
