@@ -20,7 +20,7 @@
 #include <errno.h>
 #include <string.h>
 #include <popt.h>
-#include <sys/time.h>
+//#include <sys/time.h>
 #include <time.h>
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>

@@ -23,6 +23,12 @@
 #include <glib.h>
 #include <stdlib.h>
 
+#define PTB_VERSION "0.4"
+
+#if defined(_WIN32) && !defined(PTB_CORE)
+#pragma comment(lib,"ptb.lib")
+#endif
+
 typedef guint8 ptb_chord;
 typedef guint8 ptb_tone;
 typedef guint8 ptb_note;
@@ -53,6 +59,7 @@ struct ptb_hdr {
 					guint16 year;
 				} bootleg;
 				struct {
+					char empty;
 				} unreleased;
 			} release_info;
 			guint8 is_original_author_unknown;

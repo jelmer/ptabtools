@@ -18,18 +18,23 @@
  */
 
 #include <stdio.h>
+#ifndef _WIN32
 #include <unistd.h>
+#else
+#include <io.h>
+typedef int ssize_t;
+#endif
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <string.h>
+#define PTB_CORE
 #include "ptb.h"
-#include <glib.h>
 
 int assert_is_fatal = 0;
 
 #define ptb_assert(ptb, expr) \
 	if (!(expr)) { ptb_debug("---------------------------------------------"); \
-		ptb_debug("file: %s, line: %d (%s): assertion failed: %s. Current position: 0x%lx", __FILE__, __LINE__, __PRETTY_FUNCTION__, #expr, ptb->curpos); \
+		ptb_debug("file: %s, line: %d (%s): assertion failed: %s. Current position: 0x%lx", __FILE__, __LINE__, G_GNUC_PRETTY_FUNCTION, #expr, ptb->curpos); \
 		if(assert_is_fatal) abort(); \
 	}
 
@@ -46,12 +51,10 @@ extern struct ptb_section_handler ptb_section_handlers[];
 
 void ptb_debug(const char *fmt, ...);
 
-#define read DONT_USE_READ
-
 int debugging = 0;
 
-ssize_t ptb_read(struct ptbf *f, void *data, size_t length){
-#undef read
+ssize_t ptb_read(struct ptbf *f, void *data, size_t length)
+{
 	ssize_t ret = read(f->fd, data, length);
 #define read DONT_USE_READ
 
@@ -82,7 +85,7 @@ ssize_t ptb_read_unknown(struct ptbf *f, size_t length) {
 	char unknown[255];
 	ssize_t ret;
 	off_t oldpos = f->curpos;
-	int i;
+	size_t i;
 
 	ret = ptb_read(f, unknown, length);
 	if(debugging) {

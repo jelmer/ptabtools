@@ -22,7 +22,7 @@
 #include <string.h>
 #include "ptb.h"
 
-#define LILYPOND_VERSION "2.4"
+#define LILYPOND_VERSION "0.4"
 
 const char *num_to_string(int num, char *data)
 {
@@ -44,7 +44,7 @@ const char *num_to_string(int num, char *data)
 const char *get_staff_name(int sec_num, int staff_num)
 {
 	static char name[30], num[2][30];
-	snprintf(name, sizeof(name), "staff%sx%s", num_to_string(sec_num, num[0]), num_to_string(staff_num, num[1]));
+	g_snprintf(name, sizeof(name), "staff%sx%s", num_to_string(sec_num, num[0]), num_to_string(staff_num, num[1]));
 	return name;
 }
 
@@ -167,11 +167,11 @@ void ly_write_chordtext(FILE *out, struct ptb_section *section, struct ptb_chord
 		ly_write_chordtext_helper(out, name, length);
 }
 
-static float previous = 0.0;
+static double previous = 0.0;
 
 void ly_write_position(FILE *out, struct ptb_position *pos)
 {
-	float this = 0.0;
+	double this = 0.0;
 	char print_length = 0;
 	GList *gl = pos->linedatas;
 	int l = g_list_length(pos->linedatas);

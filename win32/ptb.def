@@ -1,0 +1,7 @@
+EXPORTS
+	ptb_read_file
+	ptb_set_debug
+	ptb_set_asserts_fatal
+	ptb_get_tone
+	ptb_get_tone_full
+	ptb_get_position_difference
