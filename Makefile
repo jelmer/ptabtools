@@ -68,3 +68,6 @@ tags: *.c *.h
 
 clean: 
 	rm -f *.o core $(TARGETS)
+
+realclean:
+	rm -f Makefile.settings configure
