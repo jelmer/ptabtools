@@ -60,7 +60,7 @@ install: all
 	$(INSTALL) -m 644 ptbxml2musicxml.xsl $(DESTDIR)$(datadir)
 
 test:
-	$(MAKE) -C test
+	$(MAKE) -C tests
 
 ctags: tags
 tags: *.c *.h
