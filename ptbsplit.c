@@ -24,6 +24,7 @@
 int write_section(struct ptbf *bf, const char *sectionname)
 {
 	int efd;
+	char byte = 0x0;
 	char *outname = g_strdup_printf("%s_%s", bf->filename, sectionname);
 	efd = creat(outname, 0755);
 	if(efd < 0) {
@@ -31,11 +32,12 @@ int write_section(struct ptbf *bf, const char *sectionname)
 		return -1;
 	}
 
-	while(!ptb_end_of_section(bf->fd)) {
-		char byte;
+	while(byte != 0xff) {
 		if(read(bf->fd, &byte, 1) < 1) perror("read");
 		if(write(efd, &byte, 1) < 1) perror("write");
 	}
+
+	read(bf->fd, &byte, 1); 
 
 	close(efd);
 	return 0;

@@ -1,4 +1,4 @@
-PROGS = ptb2ly ptbsplit ptbtest
+PROGS = ptb2ly ptbtest
 
 PTB2LY_OBJS = ptb2ly.o ptb.o sections.o
 PTBSPLIT_OBJS = ptb.o ptbsplit.o

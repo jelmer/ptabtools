@@ -27,179 +27,115 @@ int handle_unknown (struct ptbf *bf, const char *section) {
 
 int handle_CGuitar (struct ptbf *bf, const char *section) {
 	char unknown[256];
-	struct ptb_guitar *prevguitar = NULL;
 	int i;
+	struct ptb_guitar *guitar = calloc(sizeof(struct ptb_guitar), 1);
 
-	for(i = 0; i < bf->hdr.nr_guitars; i++) {
-		struct ptb_guitar *guitar = calloc(sizeof(struct ptb_guitar), 1);
+
+	bf->guitars = g_list_append(bf->guitars, guitar);
+		
+	read(bf->fd, &guitar->index, 1);
+	ptb_read_string(bf->fd, &guitar->title);
+
+	read(bf->fd, &guitar->midi_instrument, 1);
+	read(bf->fd, &guitar->initial_volume, 1);
+	read(bf->fd, &guitar->pan, 1);
+	read(bf->fd, &guitar->reverb, 1);
+	read(bf->fd, &guitar->chorus, 1);
+	read(bf->fd, &guitar->tremolo, 1);
+
+	read(bf->fd, &guitar->simulate, 1);
+	read(bf->fd, &guitar->capo, 1);
+		
+	ptb_read_string(bf->fd, &guitar->type);
+
+	read(bf->fd, &guitar->half_up, 1);
+	read(bf->fd, &guitar->nr_strings, 1);
+	guitar->strings = malloc(sizeof(guint8) * guitar->nr_strings);
+	read(bf->fd, guitar->strings, guitar->nr_strings);
 	
-		if(bf->guitars) prevguitar->next = guitar;
-		else bf->guitars = guitar;
-		
-		/* guitar number */
-		read(bf->fd, &guitar->index, 1);
-		ptb_read_string(bf->fd, &guitar->title);
-
-		read(bf->fd, &guitar->midi_instrument, 1);
-		read(bf->fd, &guitar->initial_volume, 1);
-		read(bf->fd, &guitar->pan, 1);
-		read(bf->fd, &guitar->reverb, 1);
-		read(bf->fd, &guitar->chorus, 1);
-		read(bf->fd, &guitar->tremolo, 1);
-
-		read(bf->fd, unknown, 1); /* FIXME */
-		read(bf->fd, &guitar->capo, 1);
-		
-		ptb_read_string(bf->fd, &guitar->type);
-
-		read(bf->fd, &guitar->half_up, 1);
-		read(bf->fd, &guitar->nr_strings, 1);
-		guitar->strings = malloc(sizeof(guint8) * guitar->nr_strings);
-		read(bf->fd, guitar->strings, guitar->nr_strings);
-		read(bf->fd, &guitar->rev_gtr, 1);
-		read(bf->fd, &guitar->string_12, 1);
-		
-		prevguitar = guitar;
-	}
-
-	/* FIXME: */
-	while(unknown[0] != 0xff) {
-		read(bf->fd, unknown, 1);
-		fprintf(stderr, "x: %02x\n", unknown[0]);
-	}
-	read(bf->fd, unknown, 1);
-
 	return 0;
 }
 
 
 int handle_CFloatingText (struct ptbf *bf, const char *section) { 
-	struct ptb_floatingtext *prevfloatingtext = NULL;
 	char unknown[256];
+	struct ptb_floatingtext *text = calloc(sizeof(struct ptb_floatingtext), 1);
 
-	while(!ptb_end_of_section(bf->fd)) {
-		struct ptb_floatingtext *text = calloc(sizeof(struct ptb_floatingtext), 1);
+	bf->floatingtexts = g_list_append(bf->floatingtexts, text);
 
-		if(bf->floatingtexts) prevfloatingtext->next = text;
-		else bf->floatingtexts = text;
-
-		ptb_read_string(bf->fd, &text->text);
-
-		read(bf->fd, &text->beginpos, 1);
-
-		read(bf->fd, unknown, 15);
-
-		ptb_read_font(bf->fd, &text->font);
-
-		read(bf->fd, unknown, 6);
-		
-		prevfloatingtext = text;
-	}
+	ptb_read_string(bf->fd, &text->text);
+	read(bf->fd, &text->beginpos, 1);
+	read(bf->fd, unknown, 15);
+	ptb_read_font(bf->fd, &text->font);
+	read(bf->fd, unknown, 6);
+	
 	return 0; 
 }
 
-int handle_CSection (struct ptbf *bf, const char *section) { 
-	struct ptb_section *prevsection = NULL;
+int handle_CSection (struct ptbf *bf, const char *sectionname) { 
 	char unknown[256];
+	struct ptb_section *section = calloc(sizeof(struct ptb_section), 1);
 
-	while(!ptb_end_of_section(bf->fd)) {
-		struct ptb_section *section = calloc(sizeof(struct ptb_section), 1);
+	bf->sections = g_list_append(bf->sections, section);
 
-		if(bf->sections) prevsection->next = section;
-		else bf->sections = section;
-
-		read(bf->fd, unknown, 29);
-		read(bf->fd, &section->letter, 1);
-		ptb_read_string(bf->fd, &section->description);
-		read(bf->fd, unknown, 8);
-
-		prevsection = section;
-	}
+	read(bf->fd, unknown, 29);
+	read(bf->fd, &section->letter, 1);
+	ptb_read_string(bf->fd, &section->description);
+	read(bf->fd, unknown, 8);
 
 	return 0; 
 }
 
 int handle_CTempoMarker (struct ptbf *bf, const char *section) {
-	struct ptb_tempomarker *prevtempomarker = NULL;
 	char unknown[256];
+	struct ptb_tempomarker *tempomarker = calloc(sizeof(struct ptb_tempomarker), 1);
 
-	while(!ptb_end_of_section(bf->fd)) {
-		struct ptb_tempomarker *tempomarker = calloc(sizeof(struct ptb_tempomarker), 1);
+	bf->tempomarkers = g_list_append(bf->tempomarkers, tempomarker);
 
-		if(bf->tempomarkers) prevtempomarker->next = tempomarker;
-		else bf->tempomarkers = tempomarker;
+	read(bf->fd, unknown, 3);
+	read(bf->fd, &tempomarker->bpm, 1);
+	read(bf->fd, unknown, 3);
+	ptb_read_string(bf->fd, &tempomarker->description);
+	read(bf->fd, unknown, 2);
 
-		read(bf->fd, unknown, 3);
-		read(bf->fd, &tempomarker->bpm, 1);
-		read(bf->fd, unknown, 3);
-		ptb_read_string(bf->fd, &tempomarker->description);
-		read(bf->fd, unknown, 2);
-
-		prevtempomarker = tempomarker;
-	}
 	return 0; 
 }
 
 
 int handle_CChordDiagram (struct ptbf *bf, const char *section) { 
 	char unknown[256];
-	struct ptb_chorddiagram *prevchorddiagram = NULL;
+	guint8 last;
+	struct ptb_chorddiagram *chorddiagram = calloc(sizeof(struct ptb_chorddiagram), 1);
+	int i;
 
-	while(!ptb_end_of_section(bf->fd)) {
-		guint8 last;
-		struct ptb_chorddiagram *chorddiagram = calloc(sizeof(struct ptb_chorddiagram), 1);
-		int i;
+	bf->chorddiagrams = g_list_append(bf->chorddiagrams, chorddiagram);
 
-		if(bf->chorddiagrams) prevchorddiagram->next = chorddiagram;
-		else bf->chorddiagrams = chorddiagram;
-
-		read(bf->fd, chorddiagram->name, 2);
+	read(bf->fd, chorddiagram->name, 2);
 		
-		read(bf->fd, unknown, 3);
+	read(bf->fd, unknown, 3);
 
-		read(bf->fd, &chorddiagram->type, 1);
-		read(bf->fd, &chorddiagram->frets, 1);
-		read(bf->fd, &chorddiagram->nr_strings, 1);
-		chorddiagram->tones = malloc(sizeof(guint8) * chorddiagram->nr_strings);
-		for(i = 0; i < chorddiagram->nr_strings; i++) {
-			read(bf->fd, &chorddiagram->tones[i], 1);
-		}
+	read(bf->fd, &chorddiagram->type, 1);
+	read(bf->fd, &chorddiagram->frets, 1);
+	read(bf->fd, &chorddiagram->nr_strings, 1);
+	chorddiagram->tones = malloc(sizeof(guint8) * chorddiagram->nr_strings);
+	read(bf->fd, chorddiagram->tones, chorddiagram->nr_strings);
 
-		read(bf->fd, unknown, 1);
-
-		read(bf->fd, &last, 1);
-		if(last == 0) break;
-		else if(last == 0x80) {} /* Ok */
-		else fprintf(stderr, "Unknown value %02x at end of chord\n", last);
-
-		prevchorddiagram = chorddiagram;
-	}
-
-	read(bf->fd, unknown, 2);
-	
-	return !ptb_end_of_section(bf->fd); 
+	return 0;
 }
 
 int handle_CLineData (struct ptbf *bf, const char *section) { 
 	char unknown[256];
-	struct ptb_linedata *prevlinedata = NULL;
+	struct ptb_linedata *linedata = calloc(sizeof(struct ptb_linedata), 1);
+	int i;
 
 	read(bf->fd, unknown, 1);
 
-	while(!ptb_end_of_section(bf->fd)) {
-		struct ptb_linedata *linedata = calloc(sizeof(struct ptb_linedata), 1);
-		int i;
+	bf->linedatas = g_list_append(bf->linedatas, linedata);
 
-		if(bf->linedatas) prevlinedata->next = linedata;
-		else bf->linedatas = linedata;
-
-		read(bf->fd, unknown, 3);
-		read(bf->fd, unknown, 5);
+	read(bf->fd, unknown, 3);
+	read(bf->fd, unknown, 5);
 
 //		fprintf(stderr, "%02x %02x %02x %02x %02x\n", unknown[0], unknown[1], unknown[2], unknown[3], unknown[4]);
-
-		prevlinedata = linedata;
-	}
 
 	return 0; 
 }
@@ -208,112 +144,61 @@ int handle_CLineData (struct ptbf *bf, const char *section) {
 int handle_CChordText (struct ptbf *bf, const char *section) {
 	char unknown[256];
 	guint8 last;
-	struct ptb_chordtext *prevchordtext = NULL;
+	struct ptb_chordtext *chordtext = calloc(sizeof(struct ptb_chordtext), 1);
 
+	bf->chordtexts = g_list_append(bf->chordtexts, chordtext);
 
-	while(!ptb_end_of_section(bf->fd)) {
-		struct ptb_chordtext *chordtext = calloc(sizeof(struct ptb_chordtext), 1);
+	read(bf->fd, &chordtext->offset, 1);
+	read(bf->fd, chordtext->name, 2);
 
-		if(bf->chordtexts) prevchordtext->next = chordtext;
-		else bf->chordtexts = chordtext;
-
-		read(bf->fd, &chordtext->offset, 1);
-		read(bf->fd, chordtext->name, 2);
-
-		read(bf->fd, unknown, 1); /* FIXME */
-		read(bf->fd, &chordtext->additions, 1);
-		read(bf->fd, &chordtext->alterations, 1);
+	read(bf->fd, unknown, 1); /* FIXME */
+	read(bf->fd, &chordtext->additions, 1);
+	read(bf->fd, &chordtext->alterations, 1);
 		
-		read(bf->fd, unknown, 2); /* FIXME */
+	read(bf->fd, unknown, 1); /* FIXME */
 
-		read(bf->fd, &last, 1);
-		if(last == 0x80) {} /* Ok */
-		else if(last == 0x0) break;
-		else fprintf(stderr, "unknown end of item character: %02x\n", last);
-
-		prevchordtext = chordtext;
-	}
-
-	read(bf->fd, unknown, 2);
-
-	return !ptb_end_of_section(bf->fd); 
+	return 0;
 }
 
 int handle_CGuitarIn (struct ptbf *bf, const char *section) { 
 	char unknown[256];
 	guint8 last;
-	struct ptb_guitarin *prevguitarin = NULL;
+	struct ptb_guitarin *guitarin = calloc(sizeof(struct ptb_guitarin), 1);
 
-	while(!ptb_end_of_section(bf->fd)) {
-		struct ptb_guitarin *guitarin = calloc(sizeof(struct ptb_guitarin), 1);
+	bf->guitarins = g_list_append(bf->guitarins, guitarin);
 
-		if(bf->guitarins) prevguitarin->next = guitarin;
-		else bf->guitarins = guitarin;
+	read(bf->fd, &guitarin->offset, 1);
+	read(bf->fd, unknown, 5); /* FIXME */
 
-		read(bf->fd, &guitarin->offset, 1);
-		read(bf->fd, unknown, 6); /* FIXME */
-
-		read(bf->fd, &last, 1);
-		if(last == 0x80) {} /* Ok */
-		else if(last == 0x0) break;
-		else fprintf(stderr, "unknown end of item character: %02x\n", last);
-
-		prevguitarin = guitarin;
-	}
-
-	return !ptb_end_of_section(bf->fd); 
+	return 0;
 }
 
 
 int handle_CStaff (struct ptbf *bf, const char *section) { 
 	char unknown[256];
 	guint8 last;
-	struct ptb_staff *prevstaff = NULL;
+	struct ptb_staff *staff = calloc(sizeof(struct ptb_staff), 1);
 
-	while(!ptb_end_of_section(bf->fd)) {
-		struct ptb_staff *staff = calloc(sizeof(struct ptb_staff), 1);
+	bf->staffs = g_list_append(bf->staffs, staff);
 
-		if(bf->staffs) prevstaff->next = staff;
-		else bf->staffs = staff;
+	read(bf->fd, &staff->offset, 1);
+	read(bf->fd, unknown, 46); /* FIXME */
 
-		read(bf->fd, &staff->offset, 1);
-		read(bf->fd, unknown, 47); /* FIXME */
-
-		read(bf->fd, &last, 1);
-		if(last == 0x80) {} /* Ok */
-		else if(last == 0x0) break;
-		else fprintf(stderr, "unknown end of item character: %02x\n", last);
-
-		prevstaff = staff;
-	}
-
-	return !ptb_end_of_section(bf->fd); 
+	return 0;
 }
 
 
 int handle_CPosition (struct ptbf *bf, const char *section) { 
 	char unknown[256];
 	guint8 last;
-	struct ptb_position *prevposition = NULL;
+	struct ptb_position *position = calloc(sizeof(struct ptb_position), 1);
 
-	while(!ptb_end_of_section(bf->fd)) {
-		struct ptb_position *position = calloc(sizeof(struct ptb_position), 1);
+	bf->positions = g_list_append(bf->positions, position);
 
-		if(bf->positions) prevposition->next = position;
-		else bf->positions = position;
+	read(bf->fd, &position->offset, 1);
+	read(bf->fd, unknown, 9); /* FIXME */
 
-		read(bf->fd, &position->offset, 1);
-		read(bf->fd, unknown, 10); /* FIXME */
-
-		read(bf->fd, &last, 1);
-		if(last == 0x80) {} /* Ok */
-		else if(last == 0x0) break;
-		else fprintf(stderr, "unknown end of item character: %02x\n", last);
-
-		prevposition = position;
-	}
-
-	return !ptb_end_of_section(bf->fd); 
+	return 0;
 }
 
 int handle_CDynamic (struct ptbf *bf, const char *section) { return 0; }

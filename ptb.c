@@ -141,10 +141,6 @@ static int ptb_read_header(int fd, struct ptb_hdr *hdr)
 
 	}
 
-	read(fd, &hdr->nr_guitars, 1);
-
-	read(fd, unknown, 1); /* FIXME: Appears to be always zero */
-
 	return 0;
 }
 
@@ -163,7 +159,6 @@ struct ptbf *ptb_read_file(const char *file, struct ptb_section_handler *section
 
 	debugging = 1;
 
-
 	if(ptb_read_header(bf->fd, &bf->hdr) < 0) {
 		fprintf(stderr, "Error parsing header\n");	
 		return NULL;
@@ -177,9 +172,12 @@ struct ptbf *ptb_read_file(const char *file, struct ptb_section_handler *section
 		guint16 length;
 		guint16 header;
 		guint8 data = 0;
+		guint16 nr_items;
 		char *sectionname;
 
-		/* This should be 0xffff, ending the header */
+		read(bf->fd, &nr_items, 2);	
+		if(nr_items == 0x0) continue;
+
 		read(bf->fd, &header, 2);
 		fprintf(stderr, "Header: %04x\n", header);
 
@@ -202,7 +200,7 @@ struct ptbf *ptb_read_file(const char *file, struct ptb_section_handler *section
 		sectionname = malloc(length + 1);
 		read(bf->fd, sectionname, length);
 		sectionname[length] = '\0';
-		fprintf(stderr, "---- %s ---- \n", sectionname);
+		fprintf(stderr, "---- %s ----: %d \n", sectionname, nr_items);
 
 		for(i = 0; sections[i].name; i++) {
 			if(!strcmp(sections[i].name, sectionname)) {
@@ -215,8 +213,16 @@ struct ptbf *ptb_read_file(const char *file, struct ptb_section_handler *section
 			return NULL;
 		}
 
-		if(sections[i].handler(bf, sectionname) != 0) {
-			fprintf(stderr, "Error parsing section '%s'\n", sectionname);
+		for(l = 0; l < nr_items; l++) {
+			char unknown[2];
+			if(sections[i].handler(bf, sectionname) != 0) {
+				fprintf(stderr, "Error parsing section '%s'\n", sectionname);
+			}
+
+			if(l < nr_items - 1) {
+				read(bf->fd, unknown, 2);
+				fprintf(stderr, "Seperators: %02x %02x\n", unknown[0], unknown[1]);
+			}
 		}
 	}
 	

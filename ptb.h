@@ -78,7 +78,6 @@ struct ptb_hdr {
 	char *guitar_notes;
 	char *bass_notes;
 	char *drum_notes;
-	guint8 nr_guitars;
 	guint16 version;
 };
 
@@ -96,14 +95,11 @@ struct ptb_guitar {
 	guint8 initial_volume;
 	guint8 midi_instrument;
 	guint8 half_up;
-	guint8 string_12;
-	guint8 rev_gtr;
-	struct ptb_guitar *next;
+	guint8 simulate;
 };
 
 struct ptb_guitarin {
 	guint8 offset;	
-	struct ptb_guitarin *next;
 };
 
 struct ptb_font {
@@ -119,13 +115,11 @@ struct ptb_floatingtext {
 	char *text;
 	guint8 beginpos;
 	struct ptb_font font;
-	struct ptb_floatingtext *next;
 };
 
 struct ptb_tempomarker {
 	char *description;
 	guint8 bpm;
-	struct ptb_tempomarker *next;
 };
 
 struct ptb_chorddiagram {
@@ -134,7 +128,6 @@ struct ptb_chorddiagram {
 	guint8 nr_strings;
 	guint8 type;
 	ptb_tone *tones;
-	struct ptb_chorddiagram *next;
 };
 
 struct ptb_chordtext {
@@ -142,28 +135,23 @@ struct ptb_chordtext {
 	guint8 offset;
 	guint8 additions;
 	guint8 alterations;
-	struct ptb_chordtext *next;
 };
 
 struct ptb_position {
 	guint8 offset;
-	struct ptb_position *next;
 };
 
 struct ptb_staff {
 	guint8 offset;
-	struct ptb_staff *next;
 };
 
 struct ptb_linedata {
 	
-	struct ptb_linedata *next;
 };
 
 struct ptb_section {
 	char letter;
 	char *description;
-	struct ptb_section *next;
 };
 
 struct ptbf {
@@ -171,16 +159,16 @@ struct ptbf {
 	char *filename;
 	struct stat st_buf;
 	struct ptb_hdr hdr;
-	struct ptb_guitar *guitars;
-	struct ptb_floatingtext *floatingtexts;
-	struct ptb_tempomarker *tempomarkers;
-	struct ptb_chorddiagram *chorddiagrams;
-	struct ptb_linedata *linedatas;
-	struct ptb_chordtext *chordtexts;
-	struct ptb_guitarin *guitarins;
-	struct ptb_staff *staffs;
-	struct ptb_position *positions;
-	struct ptb_section *sections;
+	GList *guitars;
+	GList *floatingtexts;
+	GList *tempomarkers;
+	GList *chorddiagrams;
+	GList *linedatas;
+	GList *chordtexts;
+	GList *guitarins;
+	GList *staffs;
+	GList *positions;
+	GList *sections;
 };
 
 struct ptb_section_handler {
