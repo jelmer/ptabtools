@@ -57,12 +57,6 @@ int ascii_write_position(FILE *out, struct ptb_position *pos, int string)
 }
 
 
-const char *get_basechord_name(guint8 id) {
-	const char *chords[] = { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", NULL };
-	if(sizeof(chords) < id) return "_UNKNOWN_CHORD_";
-	return chords[id];
-}
-
 void ascii_write_chordtext(FILE *out, struct ptb_chordtext *name) {
 	if(name->properties & CHORDTEXT_PROPERTY_NOCHORD) {
 		fprintf(out, "N.C.");
@@ -75,10 +69,10 @@ void ascii_write_chordtext(FILE *out, struct ptb_chordtext *name) {
 	if(!(name->properties & CHORDTEXT_PROPERTY_NOCHORD) | 
 	   (name->properties & CHORDTEXT_PROPERTY_COMBINED_CHORD)) {
 		if(name->name[0] == name->name[1]) {
-			fprintf(out, "%s", get_basechord_name(name->name[0]));
+			fprintf(out, "%s", ptb_get_tone(name->name[0]));
 		} else { 
-			fprintf(out, "%s/%s", get_basechord_name(name->name[0]),
-						get_basechord_name(name->name[1]));
+			fprintf(out, "%s/%s", ptb_get_tone(name->name[0]),
+						ptb_get_tone(name->name[1]));
 		}
 	}
 

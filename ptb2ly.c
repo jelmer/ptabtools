@@ -46,12 +46,6 @@ void ly_write_header(FILE *out, struct ptbf *ret)
 	fprintf(out, "}\n");
 }
 
-const char *get_basechord_name(guint8 id) {
-	const char *chords[] = { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "c", "cis", "d", "dis", "e", "f", "fis", "g", "gis", "a", "ais", "b", NULL };
-	if(sizeof(chords) < id) return "_UNKNOWN_CHORD_";
-	return chords[id];
-}
-
 void ly_write_chordtext(FILE *out, struct ptb_chordtext *name)
 {
 	if(name->properties & CHORDTEXT_PROPERTY_NOCHORD) {
@@ -65,11 +59,11 @@ void ly_write_chordtext(FILE *out, struct ptb_chordtext *name)
 	if(!(name->properties & CHORDTEXT_PROPERTY_NOCHORD) || 
 	   (name->properties & CHORDTEXT_PROPERTY_COMBINED_CHORD)) { 
 		if(name->name[0] == name->name[1]) 
-			fprintf(out, "%s", get_basechord_name(name->name[0]));
+			fprintf(out, "%s", ptb_get_tone(name->name[0]));
 		else 
 			fprintf(out, "%s/%s",
-				get_basechord_name(name->name[0]), 
-				get_basechord_name(name->name[1]));
+				ptb_get_tone(name->name[0]), 
+				ptb_get_tone(name->name[1]));
 	}
 
 	if(name->properties & CHORDTEXT_PROPERTY_COMBINED_CHORD) {

@@ -25,6 +25,7 @@
 
 typedef guint8 ptb_chord;
 typedef guint8 ptb_tone;
+typedef guint8 ptb_note;
 
 struct ptb_hdr {
 	enum { CLASSIFICATION_SONG = 0, CLASSIFICATION_LESSON} classification;
@@ -259,5 +260,8 @@ struct ptbf *ptb_read_file(const char *ptb);
 
 void ptb_set_debug(int level);
 void ptb_set_asserts_fatal(int yes);
+
+const char *ptb_get_note(struct ptb_guitar *guitar, ptb_note);
+const char *ptb_get_tone(ptb_tone);
 
 #endif /* __PTB_H__ */

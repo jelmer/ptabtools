@@ -621,3 +621,10 @@ struct ptb_section_handler ptb_section_handlers[] = {
 	{"CDirection", handle_CDirection },
 	{ 0, handle_unknown}
 };
+
+const char *ptb_get_tone(ptb_tone id)
+{
+	const char *chords[] = { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", NULL };
+	if(sizeof(chords) < id) return "_UNKNOWN_CHORD_";
+	return chords[id];
+}

@@ -27,6 +27,7 @@
 
 #define SMART_ADD_CHILD_STRING(parent, name, contents) if(contents) { xmlNodePtr tmp = xmlNewNode(NULL, name); xmlNodeSetContent(tmp, contents); xmlAddChild(parent, tmp); }
 #define SMART_ADD_CHILD_INT(parent, name, contents) { char tmpc[100]; xmlNodePtr tmp = xmlNewNode(NULL, name); g_snprintf(tmpc, 100, "%d", contents); xmlNodeSetContent(tmp, tmpc); xmlAddChild(parent, tmp); }
+#define SMART_ADD_CHILD_XINT(parent, name, contents) { char tmpc[100]; xmlNodePtr tmp = xmlNewNode(NULL, name); g_snprintf(tmpc, 100, "%x", contents); xmlNodeSetContent(tmp, tmpc); xmlAddChild(parent, tmp); }
 
 xmlNodePtr xml_write_font(struct ptb_font *font)
 {
@@ -81,8 +82,8 @@ xmlNodePtr xml_write_chordtexts(GList *chordtexts)
 		xmlNodePtr xchordtext = xmlNewNode(NULL, "chordtext");
 		xmlAddChild(xchordtexts, xchordtext);
 
-		SMART_ADD_CHILD_INT(xchordtext, "note1", chordtext->name[0]);
-		SMART_ADD_CHILD_INT(xchordtext, "note2", chordtext->name[1]);
+		SMART_ADD_CHILD_STRING(xchordtext, "note1", ptb_get_tone(chordtext->name[0]));
+		SMART_ADD_CHILD_STRING(xchordtext, "note2", ptb_get_tone(chordtext->name[1]));
 		SMART_ADD_CHILD_INT(xchordtext, "offset", chordtext->offset);
 		SMART_ADD_CHILD_INT(xchordtext, "additions", chordtext->additions);
 		SMART_ADD_CHILD_INT(xchordtext, "alterations", chordtext->alterations);
@@ -350,8 +351,8 @@ xmlNodePtr xml_write_chorddiagrams(GList *chorddiagrams)
 		xmlAddChild(xchorddiagrams, xchorddiagram);
 		xmlAddChild(xchorddiagram, strings);
 		
-		SMART_ADD_CHILD_INT(xchorddiagram, "note1", chorddiagram->name[0]);
-		SMART_ADD_CHILD_INT(xchorddiagram, "note2", chorddiagram->name[1]);
+		SMART_ADD_CHILD_STRING(xchorddiagram, "note1", ptb_get_tone(chorddiagram->name[0]));
+		SMART_ADD_CHILD_STRING(xchorddiagram, "note2", ptb_get_tone(chorddiagram->name[1]));
 		SMART_ADD_CHILD_INT(xchorddiagram, "frets", chorddiagram->frets);
 		SMART_ADD_CHILD_INT(xchorddiagram, "type", chorddiagram->type);
 

@@ -5,13 +5,14 @@ libdir = $(prefix)/lib
 includedir = $(prefix)/include
 pkgconfigdir = $(libdir)/pkgconfig
 PTB_VERSION=0.2
-PROGS = ptb2ly ptb2ascii $(shell pkg-config --exists libxml-2.0 && echo ptb2xml ptb2musicxml)
+PROGS = ptb2ly ptb2ascii ptbinfo $(shell pkg-config --exists libxml-2.0 && echo ptb2xml ptb2musicxml)
 LIBS = libptb-$(PTB_VERSION).so 
 PROGS_MANPAGES = $(patsubst %,%.1,$(PROGS))
 INSTALL = install
 CFLAGS = -g -Wall -DPTB_VERSION=\"$(PTB_VERSION)\" 
 
 PTB2LY_OBJS = ptb2ly.o ptb.o
+PTBINFO_OBJS = ptbinfo.o ptb.o
 PTB2ASCII_OBJS = ptb2ascii.o ptb.o
 PTB2MUSICXML_OBJS = ptb2musicxml.o ptb.o
 PTB2XML_OBJS = ptb2xml.o ptb.o
@@ -42,6 +43,9 @@ ptb2ascii: $(PTB2ASCII_OBJS)
 
 ptb2ly: $(PTB2LY_OBJS)
 	$(CC) $(CFLAGS) -o $@ $(PTB2LY_OBJS) `pkg-config --libs glib-2.0` -lpopt
+
+ptbinfo: $(PTBINFO_OBJS)
+	$(CC) $(CFLAGS) -o $@ $(PTBINFO_OBJS) `pkg-config --libs glib-2.0` -lpopt
 
 install: all
 	$(INSTALL) $(PROGS) $(DESTDIR)$(bindir)
