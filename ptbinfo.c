@@ -65,7 +65,8 @@ void write_song_info(struct ptb_hdr *hdr)
 	COND_PRINTF("Arranged By", hdr->class_info.song.arranged_by);
 	COND_PRINTF("Guitar Transcribed By", hdr->class_info.song.guitar_transcribed_by);
 	COND_PRINTF("Bass Transcribed By", hdr->class_info.song.bass_transcribed_by);
-	COND_PRINTF("Lyrics", hdr->class_info.song.lyrics);
+	if(hdr->class_info.song.lyrics) 
+		printf("Lyrics\n----------\n%s\n\n", hdr->class_info.song.lyrics);
 	COND_PRINTF("Copyright", hdr->class_info.song.copyright);
 
 	printf("Release type: ");
@@ -156,6 +157,14 @@ int main(int argc, const char **argv)
 		printf("Unknown\n");
 		break;
 	}
+
+	printf("Number of sections: \tRegular: %d Bass: %d\n", 
+		   g_list_length(ret->instrument[0].sections),
+		   g_list_length(ret->instrument[1].sections)
+		   );
+	printf("Number of guitars: \tRegular: %d Bass: %d\n", 
+		   g_list_length(ret->instrument[0].guitars),
+		   g_list_length(ret->instrument[1].guitars));
 
 	return (ret?0:1);
 }
