@@ -118,21 +118,18 @@ void ly_write_chordtext(FILE *out, struct ptb_section *section, struct ptb_chord
 	 *  - We've got our length!
 	 */
 
-	if(next) {
-		int bars, length, i;
-		ptb_get_position_difference(section, name->offset, next->offset, &bars, &length);
-		for(i = 0; i < bars; i++) 
-			ly_write_chordtext_helper(out, name, 1);
-		if(length)
-			ly_write_chordtext_helper(out, name, length);
-	} else {
-		ly_write_chordtext_helper(out, name, 0);
-	}
+	int bars, length, i;
+	ptb_get_position_difference(section, name->offset, next?next->offset:0xffff, &bars, &length);
+	for(i = 0; i < bars; i++) 
+		ly_write_chordtext_helper(out, name, 1);
+	if(length)
+		ly_write_chordtext_helper(out, name, length);
 }
+
+static float previous = 0.0;
 
 void ly_write_position(FILE *out, struct ptb_position *pos)
 {
-	static float previous = 0.0;
 	float this = 0.0;
 	char print_length = 0;
 	GList *gl = pos->linedatas;
@@ -219,6 +216,7 @@ void ly_write_staff(FILE *out, struct ptb_staff *s)
 			"\t\t\t\t\\clef \"G_8\"\n");
 	fprintf(out, "\t\t\t\t\\notes {\n");
 	fprintf(out, "\t\t\t\t\t\t");
+	previous = 0.0;
 	for(i = 0; i < 2; i++) {
 		gl = s->positions[i];
 		while(gl) {
@@ -253,16 +251,22 @@ void ly_write_section(FILE *out, struct ptb_section *s)
 	GList *gl;
 
 	fprintf(out, "\t\\score { \\simultaneous { \n");
-	fprintf(out, "\t\t\\context ChordNames \\chords {\n");
-	fprintf(out, "\t\t\t");
 	gl = s->chordtexts;
-	while(gl) {
-		ly_write_chordtext(out, s, (struct ptb_chordtext *)gl->data, (struct ptb_chordtext *)gl->next?gl->next->data:NULL);
-		gl = gl->next;
+	if(gl) {
+		int bars, length, i;
+		fprintf(out, "\t\t\\context ChordNames \\chords {\n");
+		fprintf(out, "\t\t\t");
+		ptb_get_position_difference(s, 0, ((struct ptb_chordtext *)gl->data)->offset, &bars, &length);
+		for(i = 0; i < bars; i++) fprintf(out, "r1 ");
+		if(length) fprintf(out, "r%d ", length);
+
+		while(gl) {
+			ly_write_chordtext(out, s, (struct ptb_chordtext *)gl->data, (struct ptb_chordtext *)gl->next?gl->next->data:NULL);
+			gl = gl->next;
+		}
+
+		fprintf(out, "\n\t\t}\n");
 	}
-
-
-	fprintf(out, "\n\t\t}\n");
 
 	gl = s->staffs;
 	
