@@ -262,6 +262,11 @@ struct ptb_musicbar {
 };
 
 struct ptb_rhythmslash {
+#define RHYTHMSLASH_PROPERTY_FIRST_IN_BEAM	0x04
+	guint8 properties;
+	guint8 offset;
+	guint8 dotted;
+	guint8 length;
 };
 
 struct ptb_direction {

@@ -279,12 +279,12 @@ GList *ptb_read_items(struct ptbf *bf, const char *assumed_type) {
 		void *tmp;
 		guint16 next_thing;
 
-		ptb_debug("%02x/%04x ============= Handling %s (%d of %d) =============", bf->curpos, assumed_type, l+1, nr_items);
+		ptb_debug("%04x ============= Handling %s (%d of %d) =============", bf->curpos, assumed_type, l+1, nr_items);
 		debug_level++;
 		tmp = ptb_section_handlers[i].handler(bf, ptb_section_handlers[i].name);
 		debug_level--;
 
-		ptb_debug("%02x/%04x ============= END Handling %s (%d of %d) =============", bf->curpos, ptb_section_handlers[i].name, l+1, nr_items);
+		ptb_debug("%04x ============= END Handling %s (%d of %d) =============", bf->curpos, ptb_section_handlers[i].name, l+1, nr_items);
 
 		if(!tmp) {
 			fprintf(stderr, "Error parsing section '%s'\n", ptb_section_handlers[i].name);
@@ -636,8 +636,14 @@ void *handle_CMusicBar (struct ptbf *bf, const char *section) {
 
 void *handle_CRhythmSlash (struct ptbf *bf, const char *section) { 
 	struct ptb_rhythmslash *rhythmslash = g_new0(struct ptb_rhythmslash, 1);
-
-	ptb_read_unknown(bf, 6); /* FIXME */
+	
+	ptb_read(bf, &rhythmslash->offset, 1);
+	ptb_read(bf, &rhythmslash->properties, 1);
+	ptb_assert_0(bf, rhythmslash->properties & ~RHYTHMSLASH_PROPERTY_FIRST_IN_BEAM);
+	ptb_read(bf, &rhythmslash->dotted, 1);
+	ptb_read_constant(bf, 0);
+	ptb_read(bf, &rhythmslash->length, 1);
+	ptb_read_constant(bf, 0);
 
 	return rhythmslash;
 }
