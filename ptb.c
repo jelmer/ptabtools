@@ -38,6 +38,8 @@ int assert_is_fatal = 0;
 		if(assert_is_fatal) abort(); \
 	}
 
+#define GET_ITEM(bf, dest, type)  ((bf)->mode == O_WRONLY?*(dest):g_new0(type, 1))
+
 #define ptb_assert_0(ptb, expr) \
 	if(expr) ptb_debug("%s == 0x%x!", #expr, expr); \
 /*	ptb_assert(ptb, (expr) == 0); */
@@ -61,6 +63,8 @@ static ssize_t ptb_read(struct ptbf *f, void *data, size_t length)
 	if(ret == -1) { 
 		perror("read"); 
 		ptb_assert(f, 0);
+	} else if (ret != length) {
+		ptb_debug("Expected read of %d bytes, got %d\n", length, ret);
 	}
 
 	f->curpos+=ret;
@@ -88,8 +92,8 @@ static ssize_t ptb_data(struct ptbf *f, void *data, size_t length)
 	switch (f->mode) {
 	case O_RDONLY: return ptb_read(f, data, length);
 	case O_WRONLY: return ptb_write(f, data, length);
-	default: ptb_assert(f, 0);
 	}
+	ptb_assert(f, 0);
 	return 0;
 }
 
@@ -122,12 +126,13 @@ static ssize_t ptb_data_constant_string(struct ptbf *f, const char *expected, in
 	return ret;
 }
 
-static ssize_t ptb_read_unknown(struct ptbf *f, size_t length) {
+static ssize_t ptb_data_unknown(struct ptbf *f, size_t length) {
 	char unknown[255];
 	ssize_t ret;
 	off_t oldpos = f->curpos;
 	size_t i;
 
+	memset(unknown, 0, length);
 	ret = ptb_data(f, unknown, length);
 	if(debugging) {
 		for(i = 0; i < length; i++) 
@@ -204,12 +209,12 @@ static ssize_t ptb_data_font(struct ptbf *f, struct ptb_font *dest) {
 	int ret = 0;
 	ret+=ptb_data_string(f, &dest->family);
 	ret+=ptb_data(f, &dest->size, 1);
-	ret+=ptb_read_unknown(f, 5);
+	ret+=ptb_data_unknown(f, 5);
 	ret+=ptb_data(f, &dest->thickness, 1);
-	ret+=ptb_read_unknown(f, 2);
+	ret+=ptb_data_unknown(f, 2);
 	ret+=ptb_data(f, &dest->italic, 1);
 	ret+=ptb_data(f, &dest->underlined, 1);
-	ret+=ptb_read_unknown(f, 4);
+	ret+=ptb_data_unknown(f, 4);
 	return ret;
 }
 
@@ -222,7 +227,7 @@ static ssize_t ptb_data_header(struct ptbf *f, struct ptb_hdr *hdr)
 
 	switch(hdr->classification) {
 	case CLASSIFICATION_SONG:
-		ptb_read_unknown(f, 1); /* FIXME */
+		ptb_data_unknown(f, 1); /* FIXME */
 		ptb_data_string(f, &hdr->class_info.song.title);
 		ptb_data_string(f, &hdr->class_info.song.artist);
 
@@ -400,6 +405,7 @@ static gboolean ptb_write_items(struct ptbf *bf, const char *assumed_type, GList
 
 	ret+=ptb_data(bf, &nr_items, 2);	
 	if(nr_items == 0x0) return TRUE; 
+
 	ret+=ptb_data(bf, &header, 2);
 
 	ptb_debug("Going to write %d items", nr_items);
@@ -436,11 +442,12 @@ static gboolean ptb_write_items(struct ptbf *bf, const char *assumed_type, GList
 		ptb_section_handlers[i].handler(bf, ptb_section_handlers[i].name, &gl->data);
 		debug_level--;
 
-		if(!gl->next) {
+		if(gl->next) {
 			guint16 next_thing;
 			next_thing = 0x8000 | 0; /* FIXME */
 			ret+=ptb_data(bf, &next_thing, 2);
 		}
+		gl = gl->next;
 	}
 
 	return TRUE;
@@ -493,8 +500,7 @@ static ssize_t ptb_data_file(struct ptbf *bf)
 	ptb_data_font(bf, &bf->chord_name_font);
 	ptb_data_font(bf, &bf->default_font);
 
-	ptb_read_unknown(bf, 12);
-	ptb_data_constant(bf, 0);
+	ptb_data_unknown(bf, 12);
 	return 0;
 }
 
@@ -522,7 +528,7 @@ struct ptbf *ptb_read_file(const char *file)
 int ptb_write_file(const char *file, struct ptbf *bf)
 {
 	bf->mode = O_WRONLY;
-	bf->fd = open(file, bf->mode | O_CREAT);
+	bf->fd = creat(file, 0644);
 
 	strncpy(bf->data, "abc", 3);
 
@@ -545,7 +551,7 @@ static gboolean handle_unknown (struct ptbf *bf, const char *section, void **des
 }
 
 static gboolean handle_CGuitar (struct ptbf *bf, const char *section, void **dest) {
-	struct ptb_guitar *guitar = g_new0(struct ptb_guitar, 1);
+	struct ptb_guitar *guitar = GET_ITEM(bf, dest, struct ptb_guitar);
 
 	ptb_data(bf, &guitar->index, 1);
 	ptb_data_string(bf, &guitar->title);
@@ -564,7 +570,11 @@ static gboolean handle_CGuitar (struct ptbf *bf, const char *section, void **des
 
 	ptb_data(bf, &guitar->half_up, 1);
 	ptb_data(bf, &guitar->nr_strings, 1);
-	guitar->strings = g_new(guint8, guitar->nr_strings);
+
+	if (bf->mode == O_RDONLY) {
+		guitar->strings = g_new(guint8, guitar->nr_strings);
+	}
+
 	ptb_data(bf, guitar->strings, guitar->nr_strings);
 
 	*dest = guitar;
@@ -574,11 +584,11 @@ static gboolean handle_CGuitar (struct ptbf *bf, const char *section, void **des
 
 
 static gboolean handle_CFloatingText (struct ptbf *bf, const char *section, void **dest) { 
-	struct ptb_floatingtext *text = g_new0(struct ptb_floatingtext, 1);
+	struct ptb_floatingtext *text = GET_ITEM(bf, dest, struct ptb_floatingtext);
 
 	ptb_data_string(bf, &text->text);
 	ptb_data(bf, &text->beginpos, 1);
-	ptb_read_unknown(bf, 15);
+	ptb_data_unknown(bf, 15);
 	ptb_data(bf, &text->alignment, 1);
 	ptb_debug("Align: %x", text->alignment);
 	ptb_assert(bf, (text->alignment &~ ALIGN_TIMESTAMP) == ALIGN_LEFT || 
@@ -592,20 +602,20 @@ static gboolean handle_CFloatingText (struct ptbf *bf, const char *section, void
 }
 
 static gboolean handle_CSection (struct ptbf *bf, const char *sectionname, void **dest) { 
-	struct ptb_section *section = g_new0(struct ptb_section, 1);
+	struct ptb_section *section = GET_ITEM(bf, dest, struct ptb_section);
 
 	ptb_data_constant(bf, 0x32);
-	ptb_read_unknown(bf, 11);
+	ptb_data_unknown(bf, 11);
 	ptb_data(bf, &section->properties, 2);
-	ptb_read_unknown(bf, 2);
+	ptb_data_unknown(bf, 2);
 	ptb_data(bf, &section->end_mark, 1);
 	ptb_assert(bf, (section->end_mark &~ END_MARK_TYPE_NORMAL 
 			   & ~END_MARK_TYPE_DOUBLELINE
 			   & ~END_MARK_TYPE_REPEAT) < 24);
 	ptb_data(bf, &section->position_width, 1);
-	ptb_read_unknown(bf, 5);
+	ptb_data_unknown(bf, 5);
 	ptb_data(bf, &section->key_extra, 1);
-	ptb_read_unknown(bf, 1);
+	ptb_data_unknown(bf, 1);
 	ptb_data(bf, &section->meter_type, 2);
 	ptb_data(bf, &section->beat_info, 1);
 	ptb_data(bf, &section->metronome_pulses_per_measure, 1);
@@ -622,7 +632,7 @@ static gboolean handle_CSection (struct ptbf *bf, const char *sectionname, void 
 }
 
 static gboolean handle_CTempoMarker (struct ptbf *bf, const char *section, void **dest) {
-	struct ptb_tempomarker *tempomarker = g_new0(struct ptb_tempomarker, 1);
+	struct ptb_tempomarker *tempomarker = GET_ITEM(bf, dest, struct ptb_tempomarker);
 
 	ptb_data(bf, &tempomarker->section, 1);
 	ptb_data_constant(bf, 0);
@@ -638,10 +648,10 @@ static gboolean handle_CTempoMarker (struct ptbf *bf, const char *section, void 
 
 
 static gboolean handle_CChordDiagram (struct ptbf *bf, const char *section, void **dest) { 
-	struct ptb_chorddiagram *chorddiagram = g_new0(struct ptb_chorddiagram, 1);
+	struct ptb_chorddiagram *chorddiagram = GET_ITEM(bf, dest, struct ptb_chorddiagram);
 
 	ptb_data(bf, chorddiagram->name, 2);
-	ptb_read_unknown(bf, 3);
+	ptb_data_unknown(bf, 3);
 	ptb_data(bf, &chorddiagram->type, 1);
 	ptb_data(bf, &chorddiagram->frets, 1);
 	ptb_data(bf, &chorddiagram->nr_strings, 1);
@@ -653,7 +663,7 @@ static gboolean handle_CChordDiagram (struct ptbf *bf, const char *section, void
 }
 
 static gboolean handle_CLineData (struct ptbf *bf, const char *section, void **dest) { 
-	struct ptb_linedata *linedata = g_new0(struct ptb_linedata, 1);
+	struct ptb_linedata *linedata = GET_ITEM(bf, dest, struct ptb_linedata);
 
 	ptb_data(bf, &linedata->tone, 1);
 	ptb_data(bf, &linedata->properties, 1);
@@ -684,7 +694,7 @@ static gboolean handle_CLineData (struct ptbf *bf, const char *section, void **d
 
 
 static gboolean handle_CChordText (struct ptbf *bf, const char *section, void **dest) {
-	struct ptb_chordtext *chordtext = g_new0(struct ptb_chordtext, 1);
+	struct ptb_chordtext *chordtext = GET_ITEM(bf, dest, struct ptb_chordtext);
 
 	ptb_data(bf, &chordtext->offset, 1);
 	ptb_data(bf, chordtext->name, 2);
@@ -708,7 +718,7 @@ static gboolean handle_CChordText (struct ptbf *bf, const char *section, void **
 }
 
 static gboolean handle_CGuitarIn (struct ptbf *bf, const char *section, void **dest) { 
-	struct ptb_guitarin *guitarin = g_new0(struct ptb_guitarin, 1);
+	struct ptb_guitarin *guitarin = GET_ITEM(bf, dest, struct ptb_guitarin);
 
 	ptb_data(bf, &guitarin->section, 1);
 	ptb_data_constant(bf, 0x0); /* FIXME */
@@ -724,33 +734,30 @@ static gboolean handle_CGuitarIn (struct ptbf *bf, const char *section, void **d
 
 static gboolean handle_CStaff (struct ptbf *bf, const char *section, void **dest) { 
 	guint16 next;
-	guint8 datasize;
-	struct ptb_staff *staff = g_new0(struct ptb_staff, 1);
+	struct ptb_staff *staff = GET_ITEM(bf, dest, struct ptb_staff);
 
 	ptb_data(bf, &staff->properties, 1);
 	ptb_debug("Properties: %02x", staff->properties);
 	ptb_data(bf, &staff->highest_note, 1);
 	ptb_data(bf, &staff->lowest_note, 1);
-	ptb_data(bf, &datasize, 1);
-	ptb_debug("Datasize: %d", datasize);
-	ptb_read_unknown(bf, 1);
+	ptb_data_unknown(bf, 2);
 
-	staff->positions[1] = NULL;
 	/* FIXME! */
 	ptb_data_items(bf, "CPosition", &staff->positions[0]);
 	/* This is ugly, but at least it works... */
-	{
+	if (bf->mode == O_RDONLY) {
 		ptb_data(bf, &next, 2);
 		lseek(bf->fd, -2, SEEK_CUR); bf->curpos-=2;
 		if(next & 0x8000) {
 			*dest = staff;
+			staff->positions[1] = NULL;
 			return TRUE;
 		}
 	}
 
 	ptb_data_items(bf, "CPosition", &staff->positions[1]);
 	/* This is ugly, but at least it works... */
-	{
+	if (bf->mode == O_RDONLY) {
 		ptb_data(bf, &next, 2);
 		lseek(bf->fd, -2, SEEK_CUR);bf->curpos-=2;
 		if(next & 0x8000) {
@@ -767,7 +774,7 @@ static gboolean handle_CStaff (struct ptbf *bf, const char *section, void **dest
 
 
 static gboolean handle_CPosition (struct ptbf *bf, const char *section, void **dest) { 
-	struct ptb_position *position = g_new0(struct ptb_position, 1);
+	struct ptb_position *position = GET_ITEM(bf, dest, struct ptb_position);
 
 	ptb_data(bf, &position->offset, 1);
 	ptb_data(bf, &position->properties, 2); 
@@ -795,7 +802,7 @@ static gboolean handle_CPosition (struct ptbf *bf, const char *section, void **d
 	/* FIXME 
 	if(position->conn_to_next) { 
 		ptb_debug("Conn to next!: %02x", position->conn_to_next);
-		ptb_read_unknown(bf, 4*position->conn_to_next);
+		ptb_data_unknown(bf, 4*position->conn_to_next);
 	}*/
 	if(position->conn_to_next) {
 		guint8 covers, start, end;
@@ -803,7 +810,7 @@ static gboolean handle_CPosition (struct ptbf *bf, const char *section, void **d
 		ptb_data(bf, &start, 1);
 		ptb_data(bf, &end, 1);
 		ptb_data(bf, &covers, 1);
-		ptb_read_unknown(bf, 1);
+		ptb_data_unknown(bf, 1);
 	}
 
 	ptb_data_items(bf, "CLineData", &position->linedatas);
@@ -813,11 +820,11 @@ static gboolean handle_CPosition (struct ptbf *bf, const char *section, void **d
 }
 
 static gboolean handle_CDynamic (struct ptbf *bf, const char *section, void **dest) { 
-	struct ptb_dynamic *dynamic = g_new0(struct ptb_dynamic, 1);
+	struct ptb_dynamic *dynamic = GET_ITEM(bf, dest, struct ptb_dynamic);
 
 	ptb_data(bf, &dynamic->offset, 1);
 	ptb_data(bf, &dynamic->staff, 1);
-	ptb_read_unknown(bf, 3); /* FIXME */
+	ptb_data_unknown(bf, 3); /* FIXME */
 	ptb_data(bf, &dynamic->volume, 1);
 
 	*dest = dynamic;
@@ -825,9 +832,9 @@ static gboolean handle_CDynamic (struct ptbf *bf, const char *section, void **de
 }
 
 static gboolean handle_CSectionSymbol (struct ptbf *bf, const char *section, void **dest) {
-	struct ptb_sectionsymbol *sectionsymbol = g_new0(struct ptb_sectionsymbol, 1);
+	struct ptb_sectionsymbol *sectionsymbol = GET_ITEM(bf, dest, struct ptb_sectionsymbol);
 
-	ptb_read_unknown(bf, 5); /* FIXME */
+	ptb_data_unknown(bf, 5); /* FIXME */
 	ptb_data(bf, &sectionsymbol->repeat_ending, 2);
 
 	*dest = sectionsymbol;
@@ -835,9 +842,9 @@ static gboolean handle_CSectionSymbol (struct ptbf *bf, const char *section, voi
 }
 
 static gboolean handle_CMusicBar (struct ptbf *bf, const char *section, void **dest) { 
-	struct ptb_musicbar *musicbar = g_new0(struct ptb_musicbar, 1);
-
-	ptb_read_unknown(bf, 8); /* FIXME */
+	struct ptb_musicbar *musicbar = GET_ITEM(bf, dest, struct ptb_musicbar);
+											 
+	ptb_data_unknown(bf, 8); /* FIXME */
 	ptb_data(bf, &musicbar->letter, 1);
 	ptb_data_string(bf, &musicbar->description);
 
@@ -846,7 +853,7 @@ static gboolean handle_CMusicBar (struct ptbf *bf, const char *section, void **d
 }
 
 static gboolean handle_CRhythmSlash (struct ptbf *bf, const char *section, void **dest) { 
-	struct ptb_rhythmslash *rhythmslash = g_new0(struct ptb_rhythmslash, 1);
+	struct ptb_rhythmslash *rhythmslash = GET_ITEM(bf, dest, struct ptb_rhythmslash);
 	
 	ptb_data(bf, &rhythmslash->offset, 1);
 	ptb_data(bf, &rhythmslash->properties, 1);
@@ -861,9 +868,9 @@ static gboolean handle_CRhythmSlash (struct ptbf *bf, const char *section, void 
 }
 
 static gboolean handle_CDirection (struct ptbf *bf, const char *section, void **dest) { 
-	struct ptb_direction *direction = g_new0(struct ptb_direction, 1);
+	struct ptb_direction *direction = GET_ITEM(bf, dest, struct ptb_direction);
 
-	ptb_read_unknown(bf, 4); /* FIXME */
+	ptb_data_unknown(bf, 4); /* FIXME */
 
 	*dest = direction;
 	return TRUE;
