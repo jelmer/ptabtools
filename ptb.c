@@ -335,6 +335,11 @@ struct ptbf *ptb_read_file(const char *file)
 	ptb_read_font(bf, &bf->chord_name_font);
 	ptb_read_font(bf, &bf->default_font);
 
+	ptb_read_unknown(bf, 12);
+
+	/* This should be the end of the file */
+	g_assert(ptb_read(bf, &i, 1) == 0);
+
 	close(bf->fd);
 	return bf;
 }
