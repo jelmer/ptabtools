@@ -324,15 +324,15 @@ struct ptbf {
 	struct ptb_font tablature_font;
 };
 
-struct ptbf *ptb_read_file(const char *ptb);
+extern struct ptbf *ptb_read_file(const char *ptb);
 
-void ptb_set_debug(int level);
-void ptb_set_asserts_fatal(int yes);
+extern void ptb_set_debug(int level);
+extern void ptb_set_asserts_fatal(int yes);
 
-const char *ptb_get_note(struct ptb_guitar *guitar, ptb_note);
-const char *ptb_get_tone(ptb_tone);
-const char *ptb_get_tone_full(ptb_tone);
+extern const char *ptb_get_note(struct ptb_guitar *guitar, ptb_note);
+extern const char *ptb_get_tone(ptb_tone);
+extern const char *ptb_get_tone_full(ptb_tone);
 
-void ptb_get_position_difference(struct ptb_section *, int start, int end, int *bars, int *length);
+extern void ptb_get_position_difference(struct ptb_section *, int start, int end, int *bars, int *length);
 
 #endif /* __PTB_H__ */
