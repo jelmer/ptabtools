@@ -1,0 +1,51 @@
+Summary: ptabtools
+Name: ptabtools
+Version: @PACKAGE_VERSION@
+Release: 0
+License: GPL
+Group: Applications/Internet
+Source: http://jelmer.vernstok.nl/releases/ptabtools-%{version}.tar.gz
+Url: http://jelmer.vernstok.nl/oss/ptabtools/
+Packager: Jelmer Vernooij <jelmer@vernstok.nl>
+BuildRoot: /var/tmp/%{name}-buildroot
+
+%description
+This package contains a utilities for using PowerTab and GuitarPro files
+on Linux. It includes utilities for converting PowerTab files to 
+to GNU LilyPond files, plain ASCII files and MusicXML files. 
+It also contains a library that can be used by other programs 
+for reading PowerTab and GuitarPro files.
+
+%prep
+%setup -q
+
+%build
+%configure
+make
+
+%install
+[ -d "$RPM_BUILD_ROOT" -a "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+mkdir $RPM_BUILD_ROOT
+%makeinstall \
+   mandir=$RPM_BUILD_ROOT/usr/share/man \
+   man1dir=$RPM_BUILD_ROOT/usr/share/man/man1 \
+   man5dir=$RPM_BUILD_ROOT/usr/share/man/man5 \
+   man7dir=$RPM_BUILD_ROOT/usr/share/man/man7 \
+   docdir=$RPM_BUILD_ROOT/usr/share/doc/ctrlproxy-%{version} \
+   modulesdir=$RPM_BUILD_ROOT/usr/lib/ctrlproxy \
+   moddir=$RPM_BUILD_ROOT/usr/lib/ctrlproxy
+
+%clean
+[ -d "$RPM_BUILD_ROOT" -a "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+%files
+%defattr(-,root,root)
+%doc AUTHORS COPYING TODO README ChangeLog
+%dir /usr/bin
+/usr/bin/*
+%dir /usr/share/man
+/usr/share/man/*
+%dir /usr/include
+/usr/include/*
+
+%changelog
