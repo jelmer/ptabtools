@@ -403,7 +403,7 @@ struct ptbf *ptb_read_file(const char *file)
 int ptb_write_file(const char *file, struct ptbf *bf)
 {
 	bf->mode = O_WRONLY;
-	bf->fd = open(file, bf->mode);
+	bf->fd = open(file, bf->mode | O_CREAT);
 
 	strncpy(bf->data, "abc", 3);
 

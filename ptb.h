@@ -324,6 +324,7 @@ struct ptbf {
 };
 
 extern struct ptbf *ptb_read_file(const char *ptb);
+extern int ptb_write_file(const char *ptb, struct ptbf *);
 
 extern void ptb_set_debug(int level);
 extern void ptb_set_asserts_fatal(int yes);
