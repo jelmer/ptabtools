@@ -194,15 +194,10 @@ ssize_t handle_CStaff (struct ptbf *bf, const char *section) {
 	bf->staffs = g_list_append(bf->staffs, staff);
 
 	ret+=ptb_read(bf, &staff->properties, 1);
-	ret+=ptb_read(bf, &staff->child_size, 1);
-	ret+=ptb_read_unknown(bf, 6); /* FIXME */
+	ret+=ptb_read_unknown(bf, 3); /* FIXME */
 	ret+=ptb_read(bf, &staff->extra_data, 1);
-
-//	while(cur < staff->child_size) { cur+=ptb_read_items(bf, default_section_handlers); }
-
-//	printf("Expect: %d, got: %d\n", staff->child_size, cur);
-//	g_assert(cur == staff->child_size);
-
+	ret+=ptb_read_items(bf);
+	ret+=ptb_read_unknown(bf, staff->extra_data);
 	return ret;
 }
 

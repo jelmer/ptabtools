@@ -35,6 +35,8 @@ struct ptb_section_handler {
 
 extern struct ptb_section_handler ptb_section_handlers[];
 
+void ptb_debug(const char *fmt, ...);
+
 #define read DONT_USE_READ
 
 #endif /* __PTB_H__ */

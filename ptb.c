@@ -46,9 +46,8 @@ ssize_t ptb_read_unknown(struct ptbf *f, size_t length) {
 	ssize_t ret = ptb_read(f, unknown, length);
 	int i;
 	if(debugging) {
-		fprintf(stderr, "Unknown[%04x]: ", f->curpos);
-		for(i = 0; i < length; i++) fprintf(stderr, "%02x ", unknown[i]);
-		fprintf(stderr, "\n");
+		for(i = 0; i < length; i++) 
+			ptb_debug("Unknown[%04x]: %02x", f->curpos + i, unknown[i]);
 	}
 	return ret;
 }
@@ -82,10 +81,10 @@ ssize_t ptb_read_string(struct ptbf *f, char **dest) {
 	if(length) {
 		data = g_new0(char, length+1);
 		if(ptb_read(f, data, length) < length) return -1;
-		if(debugging) fprintf(stderr, "Read string: %s\n", data);
+		ptb_debug("Read string: %s", data);
 		*dest = data;
 	} else {
-		if(debugging) fprintf(stderr, "Empty string\n");
+		ptb_debug("Empty string");
 		*dest = NULL;
 	}
 
@@ -165,11 +164,32 @@ static ssize_t ptb_read_header(struct ptbf *f, struct ptb_hdr *hdr)
 	return 0;
 }
 
+int debug_level = 0;
+
+void ptb_debug(const char *fmt, ...) 
+{
+	va_list ap;
+	int i;
+	char *newfmt, *tmp;
+	if(debugging == 0) return;
+
+	/* Add spaces */
+	tmp = g_new0(char, debug_level+1);
+	for(i = 0; i < debug_level; i++) tmp[i] = ' ';
+	newfmt = g_strdup_printf("%s%s\n", tmp, fmt);
+	free(tmp);
+
+	va_start(ap, fmt);
+	vfprintf(stderr, newfmt, ap);
+	va_end(ap);
+
+	free(newfmt);
+}
+
 int ptb_read_items(struct ptbf *bf) {
 	int i;
 	guint16 unknownval;
 	guint16 l;
-	static int level = 0;
 	guint16 length;
 	guint16 header;
 	static int section_index = 0;
@@ -178,9 +198,9 @@ int ptb_read_items(struct ptbf *bf) {
 	char *sectionname;
 
 	ret+=ptb_read(bf, &nr_items, 2);	
+	if(nr_items == 0x0) { ptb_debug("Embedded"); return ret; }
 	if(ret == 0) return 0;
-	if(nr_items == 0x0) { fprintf(stderr, "Embedded\n"); return ret; }
-	level++;
+	debug_level++;
 	section_index++;
 
 	ret+=ptb_read(bf, &header, 2);
@@ -229,14 +249,13 @@ int ptb_read_items(struct ptbf *bf) {
 	}
 
 	for(l = 0; l < nr_items; l++) {
-		int j, tmp;
-		for(j = 0; j < level; j++) fputc(' ', stderr);
+		int tmp;
 
-		fprintf(stderr, "%02x ============= Handling %s (%d of %d) =============\n", ptb_section_handlers[i].index, ptb_section_handlers[i].name, l+1, nr_items);
+		ptb_debug("%02x ============= Handling %s (%d of %d) =============", ptb_section_handlers[i].index, ptb_section_handlers[i].name, l+1, nr_items);
 		section_index++;
 		tmp = ptb_section_handlers[i].handler(bf, ptb_section_handlers[i].name);
 
-		fprintf(stderr, "%02x ============= END Handling %s =============\n", ptb_section_handlers[i].index, ptb_section_handlers[i].name);
+		ptb_debug("%02x ============= END Handling %s =============", ptb_section_handlers[i].index, ptb_section_handlers[i].name);
 
 		if(tmp < 0) {
 			fprintf(stderr, "Error parsing section '%s'\n", ptb_section_handlers[i].name);
@@ -250,7 +269,7 @@ int ptb_read_items(struct ptbf *bf) {
 			g_assert(seperators[1] == 0x80);
 		}
 	}
-	level--;
+	debug_level--;
 
 	return ret;
 }
