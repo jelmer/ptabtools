@@ -273,8 +273,6 @@ GList *ptb_read_items(struct ptbf *bf, const char *assumed_type) {
 		my_section_name = g_new0(char, length + 1);
 		ret+=ptb_read(bf, my_section_name, length);
 
-		g_hash_table_insert(bf->section_indices, GINT_TO_POINTER(section_index), g_strdup(my_section_name));
-
 		my_section_index = section_index;
 	} else if(header & 0x8000) {
 		my_section_index=header-0x8000;
@@ -286,6 +284,10 @@ GList *ptb_read_items(struct ptbf *bf, const char *assumed_type) {
 		ptb_assert(bf, 0);
 		return NULL;
 	}
+
+	g_hash_table_insert(bf->section_indices, GINT_TO_POINTER(section_index), g_strdup(my_section_name));
+
+	my_section_name = assumed_type;
 
 	for(i = 0; ptb_section_handlers[i].name; i++) {
 		if(!strcmp(ptb_section_handlers[i].name, my_section_name)) {
@@ -305,7 +307,6 @@ GList *ptb_read_items(struct ptbf *bf, const char *assumed_type) {
 		ptb_debug("%02x/%04x ============= Handling %s (%d of %d) ============= (%x)", my_section_index, bf->curpos, my_section_name, l+1, nr_items, section_index);
 		if(assumed_type && strcmp(assumed_type, my_section_name)) {
 			ptb_debug("Expected: %s, got: %s (%d)\n", assumed_type, my_section_name, my_section_index);
-
 			ptb_assert(bf, 0);
 		}
 		section_index++;
@@ -443,9 +444,9 @@ void *handle_CSection (struct ptbf *bf, const char *sectionname) {
 	ptb_read_unknown(bf, 2);
 	ptb_read(bf, &section->end_mark, 1);
 	ptb_debug("Bla: %x", section->end_mark);
-	ptb_assert(bf, section->end_mark == END_MARK_TYPE_NORMAL 
-			   || section->end_mark == END_MARK_TYPE_DOUBLELINE
-			   || section->end_mark == END_MARK_TYPE_REPEAT);
+	ptb_assert(bf, (section->end_mark &~ END_MARK_TYPE_NORMAL 
+			   & ~END_MARK_TYPE_DOUBLELINE
+			   & ~END_MARK_TYPE_REPEAT) < 24);
 	ptb_read(bf, &section->position_width, 1);
 	ptb_read_unknown(bf, 5);
 	ptb_read(bf, &section->key_extra, 1);
@@ -538,7 +539,8 @@ void *handle_CChordText (struct ptbf *bf, const char *section) {
 			   & ~CHORDTEXT_PROPERTY_FORMULA_MAJ7);
 	ptb_read(bf, &chordtext->additions, 1);
 	ptb_read(bf, &chordtext->alterations, 1);
-	ptb_read_constant(bf, 0); /* FIXME */
+	ptb_read(bf, &chordtext->VII, 1);
+	ptb_assert_0(bf, chordtext->VII & ~CHORDTEXT_VII);
 
 	return chordtext;
 }

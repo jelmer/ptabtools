@@ -160,6 +160,8 @@ struct ptb_chordtext {
 	guint8 offset;
 	guint8 additions;
 	guint8 alterations;
+#define CHORDTEXT_VII						0x08
+	guint8 VII;
 };
 
 struct ptb_position {
