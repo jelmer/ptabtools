@@ -143,6 +143,7 @@ struct ptb_chordtext {
 
 struct ptb_position {
 	guint8 offset;
+	guint8 length;
 };
 
 struct ptb_staff {
@@ -150,7 +151,7 @@ struct ptb_staff {
 };
 
 struct ptb_linedata {
-	
+	guint8 tone;	
 };
 
 struct ptb_section {
@@ -165,6 +166,9 @@ struct ptb_musicbar {
 };
 
 struct ptb_rhythmslash {
+};
+
+struct ptb_direction {
 };
 
 struct ptbf {
@@ -186,6 +190,10 @@ struct ptbf {
 	GList *sectionsymbols;
 	GList *musicbars;
 	GList *rhythmslashs;
+	GList *directions;
+	struct ptb_font *default_font;
+	struct ptb_font *chord_name_font;
+	struct ptb_font *tablature_font;
 };
 
 struct ptb_section_handler {
@@ -198,7 +206,7 @@ extern struct ptb_section_handler default_section_handlers[];
 
 struct ptbf *ptb_read_file(const char *ptb, struct ptb_section_handler *sections);
 int ptb_read_string(int fd, char **);
-int ptb_read_item(struct ptbf *bf, struct ptb_section_handler *sections);
+int ptb_read_items(struct ptbf *bf, struct ptb_section_handler *sections);
 
 extern int debugging;
 

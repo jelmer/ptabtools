@@ -67,6 +67,7 @@ int handle_CFloatingText (struct ptbf *bf, const char *section) {
 	read(bf->fd, &text->beginpos, 1);
 	read(bf->fd, unknown, 15);
 	ptb_read_font(bf->fd, &text->font);
+	read(bf->fd, unknown, 4);
 	
 	return 0; 
 }
@@ -81,12 +82,7 @@ int handle_CSection (struct ptbf *bf, const char *sectionname) {
 	read(bf->fd, &section->letter, 1);
 	ptb_read_string(bf->fd, &section->description);
 
-	ptb_read_item(bf, default_section_handlers);
-	ptb_read_item(bf, default_section_handlers);
-	ptb_read_item(bf, default_section_handlers);
-	ptb_read_item(bf, default_section_handlers);
-	ptb_read_item(bf, default_section_handlers);
-	ptb_read_item(bf, default_section_handlers);
+	while(ptb_read_items(bf, default_section_handlers) > 0);
 
 	return 0; 
 }
@@ -132,11 +128,9 @@ int handle_CLineData (struct ptbf *bf, const char *section) {
 	struct ptb_linedata *linedata = calloc(sizeof(struct ptb_linedata), 1);
 	int i;
 
-	read(bf->fd, unknown, 1);
-
 	bf->linedatas = g_list_append(bf->linedatas, linedata);
 
-	read(bf->fd, unknown, 3);
+	read(bf->fd, &linedata->tone, 1);
 	read(bf->fd, unknown, 5);
 
 //		fprintf(stderr, "%02x %02x %02x %02x %02x\n", unknown[0], unknown[1], unknown[2], unknown[3], unknown[4]);
@@ -199,10 +193,9 @@ int handle_CPosition (struct ptbf *bf, const char *section) {
 	bf->positions = g_list_append(bf->positions, position);
 
 	read(bf->fd, &position->offset, 1);
-	read(bf->fd, unknown, 7); /* FIXME */
-	ptb_read_item(bf, default_section_handlers);
-	ptb_read_item(bf, default_section_handlers);
-	ptb_read_item(bf, default_section_handlers);
+	read(bf->fd, &position->length, 1);
+	read(bf->fd, unknown, 6); /* FIXME */
+	while(ptb_read_items(bf, default_section_handlers) > 0);
 
 	return 0;
 }
@@ -252,7 +245,16 @@ int handle_CRhythmSlash (struct ptbf *bf, const char *section) {
 	return 0; 
 }
 
-int handle_CDirection (struct ptbf *bf, const char *section) { return 0; }
+int handle_CDirection (struct ptbf *bf, const char *section) { 
+	char unknown[256];
+	struct ptb_direction *direction = calloc(sizeof(struct ptb_direction), 1);
+
+	bf->directions = g_list_append(bf->directions, direction);
+
+	read(bf->fd, unknown, 4); /* FIXME */
+
+	return 0; 
+}
 
 struct ptb_section_handler default_section_handlers[] = {
 	{"CGuitar", handle_CGuitar },
@@ -269,6 +271,6 @@ struct ptb_section_handler default_section_handlers[] = {
 	{"CSectionSymbol", handle_CSectionSymbol },
 	{"CMusicBar", handle_CMusicBar },
 	{"CRhythmSlash", handle_CRhythmSlash },
-/*	{"CDirection", handle_CDirection },*/
+	{"CDirection", handle_CDirection },
 	{ 0, handle_unknown}
 };

@@ -144,7 +144,7 @@ static int ptb_read_header(int fd, struct ptb_hdr *hdr)
 	return 0;
 }
 
-int ptb_read_item(struct ptbf *bf, struct ptb_section_handler *sections) {
+int ptb_read_items(struct ptbf *bf, struct ptb_section_handler *sections) {
 	int i;
 	guint16 unknownval;
 	guint16 l;
@@ -162,39 +162,52 @@ int ptb_read_item(struct ptbf *bf, struct ptb_section_handler *sections) {
 	read(bf->fd, &header, 2);
 	fprintf(stderr, "Header: %04x\n", header);
 
-	/* Read section */
-	if(read(bf->fd, &unknownval, 2) < 2) {
-		fprintf(stderr, "Unexpected end of file\n");
-		return -1;
-	}
+	if(header == 0xffff) { /* New section */
 
-	if(unknownval != 0x0001) {
-		fprintf(stderr, "Unknownval: %04x\n", unknownval);
-		return -1;
-	}
-
-	if(read(bf->fd, &length, 2) < 2) {
-		fprintf(stderr, "Unexpected end of file\n");
-		return -1;
-	}
-
-	sectionname = malloc(length + 1);
-	read(bf->fd, sectionname, length);
-	sectionname[length] = '\0';
-	fprintf(stderr, "---- %s ----: %d (%02x) \n", sectionname, nr_items, section_index);
-	
-
-	for(i = 0; sections[i].name; i++) {
-		if(!strcmp(sections[i].name, sectionname)) {
-			break;
+		/* Read section */
+		if(read(bf->fd, &unknownval, 2) < 2) {
+			fprintf(stderr, "Unexpected end of file\n");
+			return -1;
 		}
-	}
 
-	sections[i].index = section_index;
+		if(unknownval != 0x0001) {
+			fprintf(stderr, "Unknownval: %04x\n", unknownval);
+			return -1;
+		}
 
-	if(!sections[i].handler) {
-		fprintf(stderr, "No handler for '%s'\n", sectionname);
-		return -1;
+		if(read(bf->fd, &length, 2) < 2) {
+			fprintf(stderr, "Unexpected end of file\n");
+			return -1;
+		}
+
+		sectionname = malloc(length + 1);
+		read(bf->fd, sectionname, length);
+		sectionname[length] = '\0';
+		fprintf(stderr, "---- %s ----: %d (%02x) \n", sectionname, nr_items, section_index);
+
+
+		for(i = 0; sections[i].name; i++) {
+			if(!strcmp(sections[i].name, sectionname)) {
+				break;
+			}
+		}
+
+		sections[i].index = section_index;
+
+		if(!sections[i].handler) {
+			fprintf(stderr, "No handler for '%s'\n", sectionname);
+			return -1;
+		}
+	} else {
+		g_assert(header & 0x8000);
+
+		header-=0x8000;
+
+		for(i = 0; sections[i].name; i++) {
+			if(sections[i].index == header) break;
+		}
+
+		printf("%d means %s\n", i, sections[i].name);
 	}
 
 	for(l = 0; l < nr_items; l++) {
@@ -212,7 +225,7 @@ int ptb_read_item(struct ptbf *bf, struct ptb_section_handler *sections) {
 	}
 
 	fprintf(stderr, "------ End of %s ------ \n", sectionname);
-	return 0;
+	return nr_items;
 }
 
 
@@ -238,8 +251,12 @@ struct ptbf *ptb_read_file(const char *file, struct ptb_section_handler *section
 	}
 
 	while(lseek(bf->fd, 0L, SEEK_CUR) < bf->st_buf.st_size) {
-		if(ptb_read_item(bf, sections) != 0) return NULL;
+		if(ptb_read_items(bf, sections) < 0) return NULL;
 	}
+
+	ptb_read_font(bf->fd, bf->tablature_font);
+	ptb_read_font(bf->fd, bf->chord_name_font);
+	ptb_read_font(bf->fd, bf->default_font);
 
 	close(bf->fd);
 	return bf;
