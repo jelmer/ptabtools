@@ -98,6 +98,10 @@ struct ptb_guitar {
 	guint8 simulate;
 };
 
+struct ptb_dynamic {
+	guint8 offset;
+};
+
 struct ptb_guitarin {
 	guint8 offset;	
 };
@@ -154,6 +158,9 @@ struct ptb_section {
 	char *description;
 };
 
+struct ptb_sectionsymbol {
+};
+
 struct ptbf {
 	int fd;
 	char *filename;
@@ -169,6 +176,8 @@ struct ptbf {
 	GList *staffs;
 	GList *positions;
 	GList *sections;
+	GList *dynamics;
+	GList *sectionsymbols;
 };
 
 struct ptb_section_handler {

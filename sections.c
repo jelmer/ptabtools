@@ -67,7 +67,6 @@ int handle_CFloatingText (struct ptbf *bf, const char *section) {
 	read(bf->fd, &text->beginpos, 1);
 	read(bf->fd, unknown, 15);
 	ptb_read_font(bf->fd, &text->font);
-	read(bf->fd, unknown, 6);
 	
 	return 0; 
 }
@@ -96,7 +95,6 @@ int handle_CTempoMarker (struct ptbf *bf, const char *section) {
 	read(bf->fd, &tempomarker->bpm, 1);
 	read(bf->fd, unknown, 3);
 	ptb_read_string(bf->fd, &tempomarker->description);
-	read(bf->fd, unknown, 2);
 
 	return 0; 
 }
@@ -201,9 +199,34 @@ int handle_CPosition (struct ptbf *bf, const char *section) {
 	return 0;
 }
 
-int handle_CDynamic (struct ptbf *bf, const char *section) { return 0; }
-int handle_CSectionSymbol (struct ptbf *bf, const char *section) { return 0; }
-int handle_CMusicBar (struct ptbf *bf, const char *section) { return 0; }
+int handle_CDynamic (struct ptbf *bf, const char *section) { 
+	char unknown[256];
+	struct ptb_dynamic *dynamic = calloc(sizeof(struct ptb_dynamic), 1);
+
+	bf->dynamics = g_list_append(bf->dynamics, dynamic);
+
+	read(bf->fd, &dynamic->offset, 1);
+	read(bf->fd, unknown, 5); /* FIXME */
+
+	return 0; 
+
+}
+int handle_CSectionSymbol (struct ptbf *bf, const char *section) {
+	char unknown[256];
+	struct ptb_sectionsymbol *sectionsymbol = calloc(sizeof(struct ptb_sectionsymbol), 1);
+
+	bf->sectionsymbols = g_list_append(bf->sectionsymbols, sectionsymbol);
+
+	read(bf->fd, unknown, 7); /* FIXME */
+
+	return 0; 
+}
+
+int handle_CMusicBar (struct ptbf *bf, const char *section) { 
+	return 0; 
+
+}
+
 int handle_CRhythmSlash (struct ptbf *bf, const char *section) { return 0; }
 int handle_CDirection (struct ptbf *bf, const char *section) { return 0; }
 
@@ -218,10 +241,10 @@ struct ptb_section_handler default_section_handlers[] = {
 	{"CStaff", handle_CStaff },
 	{"CPosition", handle_CPosition },
 	{"CSection", handle_CSection },
-/*	{"CDynamic", handle_CDynamic },
+	{"CDynamic", handle_CDynamic },
 	{"CSectionSymbol", handle_CSectionSymbol },
 	{"CMusicBar", handle_CMusicBar },
-	{"CRhythmSlash", handle_CRhythmSlash },
+/*	{"CRhythmSlash", handle_CRhythmSlash },
 	{"CDirection", handle_CDirection },*/
 	{ 0, handle_unknown}
 };
