@@ -88,7 +88,9 @@ int handle_CFloatingText (struct ptbf *bf, const char *section) {
 
 		ptb_read_string(bf->fd, &text->text);
 
-		read(bf->fd, unknown, 16);
+		read(bf->fd, &text->beginpos, 1);
+
+		read(bf->fd, unknown, 15);
 
 		ptb_read_font(bf->fd, &text->font);
 
@@ -181,7 +183,7 @@ int handle_CLineData (struct ptbf *bf, const char *section) {
 		read(bf->fd, unknown, 3);
 		read(bf->fd, unknown, 5);
 
-		fprintf(stderr, "%02x %02x %02x %02x %02x\n", unknown[0], unknown[1], unknown[2], unknown[3], unknown[4]);
+//		fprintf(stderr, "%02x %02x %02x %02x %02x\n", unknown[0], unknown[1], unknown[2], unknown[3], unknown[4]);
 
 		prevlinedata = linedata;
 	}
@@ -224,11 +226,85 @@ int handle_CChordText (struct ptbf *bf, const char *section) {
 	return !ptb_end_of_section(bf->fd); 
 }
 
-int handle_CGuitarIn (struct ptbf *bf, const char *section) { return 0; }
+int handle_CGuitarIn (struct ptbf *bf, const char *section) { 
+	char unknown[256];
+	guint8 last;
+	struct ptb_guitarin *prevguitarin = NULL;
+
+	while(!ptb_end_of_section(bf->fd)) {
+		struct ptb_guitarin *guitarin = calloc(sizeof(struct ptb_guitarin), 1);
+
+		if(bf->guitarins) prevguitarin->next = guitarin;
+		else bf->guitarins = guitarin;
+
+		read(bf->fd, &guitarin->offset, 1);
+		read(bf->fd, unknown, 6); /* FIXME */
+
+		read(bf->fd, &last, 1);
+		if(last == 0x80) {} /* Ok */
+		else if(last == 0x0) break;
+		else fprintf(stderr, "unknown end of item character: %02x\n", last);
+
+		prevguitarin = guitarin;
+	}
+
+	return !ptb_end_of_section(bf->fd); 
+}
+
+
+int handle_CStaff (struct ptbf *bf, const char *section) { 
+	char unknown[256];
+	guint8 last;
+	struct ptb_staff *prevstaff = NULL;
+
+	while(!ptb_end_of_section(bf->fd)) {
+		struct ptb_staff *staff = calloc(sizeof(struct ptb_staff), 1);
+
+		if(bf->staffs) prevstaff->next = staff;
+		else bf->staffs = staff;
+
+		read(bf->fd, &staff->offset, 1);
+		read(bf->fd, unknown, 47); /* FIXME */
+
+		read(bf->fd, &last, 1);
+		if(last == 0x80) {} /* Ok */
+		else if(last == 0x0) break;
+		else fprintf(stderr, "unknown end of item character: %02x\n", last);
+
+		prevstaff = staff;
+	}
+
+	return !ptb_end_of_section(bf->fd); 
+}
+
+
+int handle_CPosition (struct ptbf *bf, const char *section) { 
+	char unknown[256];
+	guint8 last;
+	struct ptb_position *prevposition = NULL;
+
+	while(!ptb_end_of_section(bf->fd)) {
+		struct ptb_position *position = calloc(sizeof(struct ptb_position), 1);
+
+		if(bf->positions) prevposition->next = position;
+		else bf->positions = position;
+
+		read(bf->fd, &position->offset, 1);
+		read(bf->fd, unknown, 10); /* FIXME */
+
+		read(bf->fd, &last, 1);
+		if(last == 0x80) {} /* Ok */
+		else if(last == 0x0) break;
+		else fprintf(stderr, "unknown end of item character: %02x\n", last);
+
+		prevposition = position;
+	}
+
+	return !ptb_end_of_section(bf->fd); 
+}
+
 int handle_CDynamic (struct ptbf *bf, const char *section) { return 0; }
 int handle_CSectionSymbol (struct ptbf *bf, const char *section) { return 0; }
-int handle_CStaff (struct ptbf *bf, const char *section) { return 0; }
-int handle_CPosition (struct ptbf *bf, const char *section) { return 0; }
 int handle_CMusicBar (struct ptbf *bf, const char *section) { return 0; }
 int handle_CRhythmSlash (struct ptbf *bf, const char *section) { return 0; }
 int handle_CDirection (struct ptbf *bf, const char *section) { return 0; }
@@ -240,12 +316,12 @@ struct ptb_section default_sections[] = {
 	{"CTempoMarker", handle_CTempoMarker},
 	{"CLineData", handle_CLineData },
 	{"CChordText", handle_CChordText },
-/*	{"CGuitarIn", handle_CGuitarIn },
-	{"CSection", handle_CSection },
-	{"CDynamic", handle_CDynamic },
-	{"CSectionSymbol", handle_CSectionSymbol },
+	{"CGuitarIn", handle_CGuitarIn },
 	{"CStaff", handle_CStaff },
 	{"CPosition", handle_CPosition },
+/*	{"CSection", handle_CSection },
+	{"CDynamic", handle_CDynamic },
+	{"CSectionSymbol", handle_CSectionSymbol },
 	{"CMusicBar", handle_CMusicBar },
 	{"CRhythmSlash", handle_CRhythmSlash },
 	{"CDirection", handle_CDirection },*/

@@ -132,8 +132,8 @@ static int ptb_read_header(int fd, struct ptb_hdr *hdr)
 	ptb_read_string(fd, &hdr->class_info.song.arranged_by);
 	ptb_read_string(fd, &hdr->class_info.song.guitar_transcribed_by);
 	ptb_read_string(fd, &hdr->class_info.song.bass_transcribed_by);
-	ptb_read_string(fd, &hdr->class_info.song.lyrics);
 	ptb_read_string(fd, &hdr->class_info.song.copyright);
+	ptb_read_string(fd, &hdr->class_info.song.lyrics);
 	ptb_read_string(fd, &hdr->guitar_notes);
 	ptb_read_string(fd, &hdr->bass_notes);
 	break;
@@ -155,8 +155,7 @@ static int ptb_read_header(int fd, struct ptb_hdr *hdr)
 
 	read(fd, &hdr->nr_guitars, 1);
 
-	read(fd, unknown, 1); /* FIXME */
-	fprintf(stderr, "Unknwo: %02x\n", unknown[0]);
+	read(fd, unknown, 1); /* FIXME: Appears to be always zero */
 
 	/* This should be 0xffff, ending the header */
 	read(fd, &header_end, 2);

@@ -101,6 +101,11 @@ struct ptb_guitar {
 	struct ptb_guitar *next;
 };
 
+struct ptb_guitarin {
+	guint8 offset;	
+	struct ptb_guitarin *next;
+};
+
 struct ptb_font {
 	guint8 size;
 	enum { ALIGN_LEFT = 1, ALIGN_CENTER, ALIGN_RIGHT } alignment;
@@ -112,6 +117,7 @@ struct ptb_font {
 
 struct ptb_floatingtext {
 	char *text;
+	guint8 beginpos;
 	struct ptb_font font;
 	struct ptb_floatingtext *next;
 };
@@ -139,6 +145,16 @@ struct ptb_chordtext {
 	struct ptb_chordtext *next;
 };
 
+struct ptb_position {
+	guint8 offset;
+	struct ptb_position *next;
+};
+
+struct ptb_staff {
+	guint8 offset;
+	struct ptb_staff *next;
+};
+
 struct ptb_linedata {
 	
 	struct ptb_linedata *next;
@@ -155,6 +171,9 @@ struct ptbf {
 	struct ptb_chorddiagram *chorddiagrams;
 	struct ptb_linedata *linedatas;
 	struct ptb_chordtext *chordtexts;
+	struct ptb_guitarin *guitarins;
+	struct ptb_staff *staffs;
+	struct ptb_position *positions;
 };
 
 struct ptb_section {
