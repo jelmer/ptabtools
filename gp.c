@@ -561,3 +561,9 @@ struct gpf *gp_read_file(const char *filename)
 
 	return gpf;
 }
+
+void gp_free(struct gpf *ret)
+{
+	/* FIXME */
+	free(ret);
+}
