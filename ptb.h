@@ -282,6 +282,7 @@ struct ptb_rhythmslash {
 };
 
 struct ptb_direction {
+	char dummy; /* FIXME */
 };
 
 struct ptbf {
