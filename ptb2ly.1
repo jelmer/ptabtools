@@ -19,15 +19,26 @@ Tablature editor and generates a GNU LilyPond based on it.
 Show all available options.
 .IP "-d"
 Run in debug mode. This will generate a lot of output to stderr.
+.IP "-r"
+Write tabs for regular guitar.
+.IP "-b"
+Write tabs for bass guitar.
 .IP "-o \fIoutput-file\fP"
 Filename of the LilyPond file that should be generated. If this is not 
 specified, the Lilypond file will be written to stdout.
 .SH "SEE ALSO"
 .BR lilypond(1)
+.PP
 .BR http://jelmer.vernstok.nl/
+.PP
 .BR http://www.power-tab.net/
 
 .SH BUGS
+.PP
+Only default tuning is supported
+.PP
+Special effects not support
+.PP
 Please report any bugs to Jelmer Vernooij at \fBjelmer@samba.org\fP.
 .SH LICENSE
 This program is free software; you can redistribute it and/or modify
