@@ -145,6 +145,11 @@ struct ptb_chorddiagram {
 
 struct ptb_chordtext {
 	ptb_chord name[2];
+#define CHORDTEXT_PROPERTY_NOCHORD 			0x10
+#define CHORDTEXT_PROPERTY_COMBINED_CHORD	0x20
+#define CHORDTEXT_PROPERTY_UNKNOWN_1		0x40
+#define CHORDTEXT_PROPERTY_UNKNOWN_2		0x80
+	guint8 properties;
 	guint8 offset;
 	guint8 additions;
 	guint8 alterations;

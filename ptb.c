@@ -482,7 +482,7 @@ void *handle_CChordText (struct ptbf *bf, const char *section) {
 	ptb_read(bf, &chordtext->offset, 1);
 	ptb_read(bf, chordtext->name, 2);
 
-	ptb_read_unknown(bf, 1); /* FIXME */
+	ptb_read(bf, &chordtext->properties, 1);
 	ptb_read(bf, &chordtext->additions, 1);
 	ptb_read(bf, &chordtext->alterations, 1);
 	ptb_read_unknown(bf, 1); /* FIXME */
