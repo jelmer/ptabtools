@@ -27,8 +27,21 @@
 #include "ptb.h"
 
 #define SMART_ADD_CHILD_STRING(parent, name, contents) xmlNewTextChild(parent, NULL, name, contents);
-#define SMART_ADD_CHILD_INT(parent, name, contents) { char tmpc[100]; xmlNodePtr tmp = xmlNewNode(NULL, name); g_snprintf(tmpc, 100, "%d", contents); xmlNodeSetContent(tmp, tmpc); xmlAddChild(parent, tmp); }
-#define SMART_ADD_CHILD_XINT(parent, name, contents) { char tmpc[100]; xmlNodePtr tmp = xmlNewNode(NULL, name); g_snprintf(tmpc, 100, "%x", contents); xmlNodeSetContent(tmp, tmpc); xmlAddChild(parent, tmp); }
+#define SMART_ADD_CHILD_INT(parent, name, contents) { \
+	char tmpc[100]; \
+	xmlNodePtr tmp = xmlNewNode(NULL, name); \
+	g_snprintf(tmpc, 100, "%d", contents); \
+	xmlNodeSetContent(tmp, tmpc); \
+	xmlAddChild(parent, tmp); \
+}
+
+#define SMART_ADD_CHILD_XINT(parent, name, contents) { \
+	char tmpc[100]; \
+	xmlNodePtr tmp = xmlNewNode(NULL, name); \
+	g_snprintf(tmpc, 100, "%x", contents); \
+	xmlNodeSetContent(tmp, tmpc); \
+	xmlAddChild(parent, tmp); \
+}
 
 xmlNodePtr xml_write_font(struct ptb_font *font)
 {
@@ -603,7 +616,7 @@ int main(int argc, const char **argv)
 
 	if (!quiet) fprintf(stderr, "Writing output to %s...\n", output);
 
-	if (xmlSaveFormatFileEnc(output, doc, "UTF-8", 1) < 0) {
+	if (xmlSaveFormatFile(output, doc, 1) < 0) {
 		return -1;
 	}
 

@@ -1,4 +1,8 @@
 
+ptb2xml:
+ - convert to UTF-8 before calling libxml
+
+finish ptb2musicxml
 
 ptb2ly:
  - 8VA, 15MA, etc
