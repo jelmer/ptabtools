@@ -26,7 +26,12 @@
 #include <libxml/parser.h>
 #include "ptb.h"
 
-#define SMART_ADD_CHILD_STRING(parent, name, contents) xmlNewTextChild(parent, NULL, name, contents);
+#ifdef HAVE_XSLT
+#  include <libxslt/xslt.h>
+#  include <libxslt/transform.h>
+#endif
+
+#define SMART_ADD_CHILD_STRING(parent, name, contents) xmlNewTextChild(parent, NULL, name, contents)
 #define SMART_ADD_CHILD_INT(parent, name, contents) { \
 	char tmpc[100]; \
 	xmlNodePtr tmp = xmlNewNode(NULL, name); \
@@ -43,9 +48,9 @@
 	xmlAddChild(parent, tmp); \
 }
 
-xmlNodePtr xml_write_font(struct ptb_font *font)
+xmlNodePtr xml_write_font(const char *name, struct ptb_font *font)
 {
-	xmlNodePtr xfont = xmlNewNode(NULL, "font");
+	xmlNodePtr xfont = xmlNewNode(NULL, name);
 	char tmp[100];
 	g_snprintf(tmp, 100, "%d", font->size); xmlSetProp(xfont, "size", tmp);
 	g_snprintf(tmp, 100, "%d", font->thickness); xmlSetProp(xfont, "thickness", tmp);
@@ -79,6 +84,7 @@ xmlNodePtr xml_write_rhythmslashes(GList *rhythmslashs)
 		struct ptb_rhythmslash *rhythmslash = gl->data;
 		xmlNodePtr xrhythmslash = xmlNewNode(NULL, "rhythmslash");
 		xmlAddChild(xrhythmslashs, xrhythmslash);
+		SMART_ADD_CHILD_INT(xrhythmslash, "properties", rhythmslash->properties);
 		SMART_ADD_CHILD_INT(xrhythmslash, "offset", rhythmslash->offset);
 		SMART_ADD_CHILD_INT(xrhythmslash, "dotted", rhythmslash->dotted);
 		SMART_ADD_CHILD_INT(xrhythmslash, "length", rhythmslash->length);
@@ -105,6 +111,7 @@ xmlNodePtr xml_write_chordtexts(GList *chordtexts)
 		SMART_ADD_CHILD_INT(xchordtext, "additions", chordtext->additions);
 		SMART_ADD_CHILD_INT(xchordtext, "alterations", chordtext->alterations);
 		SMART_ADD_CHILD_INT(xchordtext, "properties", chordtext->properties);
+		SMART_ADD_CHILD_INT(xchordtext, "VII", chordtext->VII);
 
 		gl = gl->next;
 	}
@@ -118,19 +125,13 @@ xmlNodePtr xml_write_musicbars(GList *musicbars)
 
 	while(gl) {
 		struct ptb_musicbar *musicbar = gl->data;
-		xmlChar *tmp;
-		xmlNodePtr xmusicbar = xmlNewNode(NULL, "musicbar");
-		xmlAddChild(xmusicbars, xmusicbar);
+		xmlNodePtr xmusicbar = SMART_ADD_CHILD_STRING(xmusicbars, "musicbar", musicbar->description);
 
 		if(musicbar->letter != 0x7f) {
 			char tmp[100];
 			g_snprintf(tmp, 100, "%c", musicbar->letter);
 			xmlSetProp(xmusicbar, "letter", tmp);
 		}
-
-		tmp = xmlEncodeEntitiesReentrant(NULL, musicbar->description);
-		xmlNodeSetContent(xmusicbar, tmp);
-		xmlFree(tmp);
 
 		gl = gl->next;
 	}
@@ -333,18 +334,12 @@ xmlNodePtr xml_write_tempomarkers(GList *tempomarkers)
 	
 	while(gl) {
 		struct ptb_tempomarker *tempomarker = gl->data;
-		xmlChar *tmp;
-		xmlNodePtr xtempomarker = xmlNewNode(NULL, "tempomarker");
-		xmlAddChild(xtempomarkers, xtempomarker);
+		xmlNodePtr xtempomarker = SMART_ADD_CHILD_STRING(xtempomarkers, "tempomarker", tempomarker->description);
 		
 		SMART_ADD_CHILD_INT(xtempomarker, "type", tempomarker->type);
 		SMART_ADD_CHILD_INT(xtempomarker, "section", tempomarker->section);
 		SMART_ADD_CHILD_INT(xtempomarker, "offset", tempomarker->offset);
 		SMART_ADD_CHILD_INT(xtempomarker, "bpm", tempomarker->bpm);
-
-		tmp = xmlEncodeEntitiesReentrant(NULL, tempomarker->description);
-		xmlNodeSetContent(xtempomarker, tmp);
-		xmlFree(tmp);
 
 		gl = gl->next;
 	}
@@ -423,9 +418,7 @@ xmlNodePtr xml_write_floatingtexts(GList *floatingtexts)
 	
 	while(gl) {
 		struct ptb_floatingtext *floatingtext = gl->data;
-		xmlChar *tmp;
-		xmlNodePtr xfloatingtext = xmlNewNode(NULL, "floatingtext");
-		xmlAddChild(xfloatingtexts, xfloatingtext);
+		xmlNodePtr xfloatingtext = SMART_ADD_CHILD_STRING(xfloatingtexts, "floatingtext", floatingtext->text);
 		
 		SMART_ADD_CHILD_INT(xfloatingtext, "beginpos", floatingtext->beginpos);
 
@@ -441,11 +434,7 @@ xmlNodePtr xml_write_floatingtexts(GList *floatingtexts)
 			break;
 		}
 
-		tmp = xmlEncodeEntitiesReentrant(NULL, floatingtext->text);
-		xmlNodeSetContent(xfloatingtext, tmp);
-		xmlFree(tmp);
-
-		xmlAddChild(xfloatingtext, xml_write_font(&floatingtext->font));
+		xmlAddChild(xfloatingtext, xml_write_font("font", &floatingtext->font));
 
 		gl = gl->next;
 	}
@@ -533,18 +522,20 @@ int main(int argc, const char **argv)
 	xmlNodePtr root_node;
 	xmlDocPtr doc;
 	xmlNodePtr comment;
-	xmlNodePtr font;
+	xmlNodePtr fonts;
 	int c, i, musicxml = 0;
 	int version = 0;
 	const char *input = NULL;
 	char *output = NULL;
 	poptContext pc;
 	int quiet = 0;
+	int format_output = 0;
 	struct poptOption options[] = {
 		POPT_AUTOHELP
 		{"debug", 'd', POPT_ARG_NONE, &debugging, 0, "Turn on debugging output" },
 		{"outputfile", 'o', POPT_ARG_STRING, &output, 0, "Write to specified file", "FILE" },
 		{"musicxml", 'm', POPT_ARG_NONE, &musicxml, 'm', "Output MusicXML" },
+		{"format", 'f', POPT_ARG_NONE, &format_output, 1, "Format output" },
 		{"quiet", 'q', POPT_ARG_NONE, &quiet, 1, "Be quiet (no output to stderr)" },
 		{"version", 'v', POPT_ARG_NONE, &version, 'v', "Show version information" },
 		POPT_TABLEEND
@@ -605,18 +596,28 @@ int main(int argc, const char **argv)
 		xmlAddChild(root_node, xml_write_instrument(ret, i));
 	}
 
-	font = xmlNewNode(NULL, "default_font"); xmlAddChild(root_node, font);
-	xmlAddChild(font, xml_write_font(&ret->default_font));
+	fonts = xmlNewNode( NULL, "fonts"); xmlAddChild(root_node, fonts);
 
-	font = xmlNewNode(NULL, "chord_name_font"); xmlAddChild(root_node, font);
-	xmlAddChild(font, xml_write_font(&ret->chord_name_font));
+	xmlAddChild(fonts, xml_write_font("default_font", &ret->default_font));
+	xmlAddChild(fonts, xml_write_font("chord_name_font", &ret->chord_name_font));
+	xmlAddChild(fonts, xml_write_font("tablature_font", &ret->tablature_font));
 
-	font = xmlNewNode(NULL, "tablature_font"); xmlAddChild(root_node, font);
-	xmlAddChild(font, xml_write_font(&ret->tablature_font));
+	if (musicxml)
+	{
+		if (!quiet) fprintf(stderr, "Converting to MusicXML...\n");
+#ifdef HAVE_XSLT
+		xsltStylesheetPtr stylesheet = xsltParseStylesheetFile(MUSICXMLSTYLESHEET);
+		doc = xsltApplyStylesheet(stylesheet, doc, NULL);
+		xsltFreeStylesheet(stylesheet);
+#else
+		fprintf(stderr, "Conversion to MusicXML not possible in this version: libxslt not compiled in\n");
+		return -1;
+#endif
+	}
 
 	if (!quiet) fprintf(stderr, "Writing output to %s...\n", output);
 
-	if (xmlSaveFormatFile(output, doc, 1) < 0) {
+	if (xmlSaveFormatFile(output, doc, format_output) < 0) {
 		return -1;
 	}
 

@@ -7,6 +7,7 @@ All changes, unless specified otherwise, made by Jelmer Vernooij
  writing to stdout.
  * More diagnostic messages
  * (ptb2xml) Escape ampersands in output
+ * (ptb2xml) Add -f option
 
 0.3:
  * Put chords at the right place
