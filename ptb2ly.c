@@ -22,7 +22,7 @@
 #include "ptb.h"
 
 char *note_names[12] = {
-	"a", "ais", "b", "c", "cis", "d", "dis", "e", "f", "fis", "g", "gis"
+	 "a", "ais", "b", "c", "cis", "d", "dis", "e", "f", "fis", "g", "gis"
 };
 
 char *ly_escape(char *data)
@@ -159,25 +159,25 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 		struct ptb_linedata *d = gl->data;
 		int note = d->detailed.fret;
 		int i;
-		int j;
+		int octave;
+#define DEFAULT_OCTAVE 4
 		
 		switch(d->detailed.string) {
-		case 0: note+= 19; break;
-		case 1: note+= 14; break;
-		case 2: note+= 10; break;
-		case 3: note+= 5; break;
-		case 4: note+= 0; break;
-		case 5: note+= -7; break;
+		case 0: note+= 64; break;
+		case 1: note+= 59; break;
+		case 2: note+= 55; break;
+		case 3: note+= 50; break;
+		case 4: note+= 45; break;
+		case 5: note+= 40; break;
+		default:fprintf(stderr, "Unknown string %d", d->detailed.string);
 		}
 		
-		fprintf(out, "%s", note_names[abs(note)%12]);
+		fprintf(out, "%s", note_names[(note+3)%12]);
 
-		j = abs((note+9) / 12);
-		if(note < 0) {
-			for(i = j; i < 1; i++) fprintf(out, ",");
-		} else if(note > 0) {
-			for(i = 1; i < j; i++) fprintf(out, "'");
-		}
+		octave = note / 12;
+
+		for(i = octave; i < DEFAULT_OCTAVE; i++) fprintf(out, ",");
+		for(i = DEFAULT_OCTAVE; i < octave; i++) fprintf(out, "'");
 
 		if(pos->palm_mute & POSITION_STACCATO) 
 			fprintf(out, "-.");

@@ -7,6 +7,7 @@ All changes, unless specified otherwise, made by Jelmer Vernooij
  * Keep beaming information
  * Escape invalid lilypond stuff
  * Generate MusicXML using XSL script
+ * Fix a couple of problems with notes in lower strings
  * Various other improvements
 
 0.2:
