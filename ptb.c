@@ -455,7 +455,9 @@ void *handle_CSection (struct ptbf *bf, const char *sectionname) {
 void *handle_CTempoMarker (struct ptbf *bf, const char *section) {
 	struct ptb_tempomarker *tempomarker = g_new0(struct ptb_tempomarker, 1);
 
-	ptb_read_unknown(bf, 3);
+	ptb_read(bf, &tempomarker->section, 1);
+	ptb_read_unknown(bf, 1);
+	ptb_read(bf, &tempomarker->offset, 1);
 	ptb_read(bf, &tempomarker->bpm, 1);
 	ptb_read_unknown(bf, 1);
 	ptb_read(bf, &tempomarker->type, 2);

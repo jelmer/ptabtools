@@ -134,6 +134,8 @@ struct ptb_tempomarker {
 	char *description;
 	guint16 type; 
 	guint8 bpm;
+	guint8 section;
+	guint8 offset;
 };
 
 struct ptb_chorddiagram {
@@ -159,7 +161,10 @@ struct ptb_chordtext {
 struct ptb_position {
 	guint8 offset;
 	guint8 length;
-#define POSITION_PROPERTY_STACCATO 0x02
+#define POSITION_PROPERTY_STACCATO 		0x0002
+#define POSITION_PROPERTY_FIRST_IN_BIND	0x0004
+#define POSITION_PROPERTY_IN_BIND		0x0001
+#define POSITION_PROPERTY_LAST_IN_BIND	0x0021
 	guint16 properties;
 	guint8 let_ring;
 	guint8 fermenta;

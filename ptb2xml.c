@@ -311,6 +311,8 @@ xmlNodePtr xml_write_tempomarkers(GList *tempomarkers)
 		xmlAddChild(xtempomarkers, xtempomarker);
 		
 		SMART_ADD_CHILD_INT(xtempomarker, "type", tempomarker->type);
+		SMART_ADD_CHILD_INT(xtempomarker, "section", tempomarker->section);
+		SMART_ADD_CHILD_INT(xtempomarker, "offset", tempomarker->offset);
 		SMART_ADD_CHILD_INT(xtempomarker, "bpm", tempomarker->bpm);
 		xmlNodeSetContent(xtempomarker, tempomarker->description);
 
