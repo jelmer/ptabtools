@@ -77,7 +77,7 @@ void ptb_debug(const char *fmt, ...);
 
 int debugging = 0;
 
-static ssize_t ptb_read(struct ptbf *f, void *data, size_t length)
+static ssize_t ptb_read(struct ptbf *f, void *data, ssize_t length)
 {
 	ssize_t ret = read(f->fd, data, length);
 #define read DONT_USE_READ
@@ -1042,9 +1042,9 @@ static void ptb_free_staff(struct ptb_staff *staff)
 static void ptb_free_section(struct ptb_section *section)
 {
 	FREE_LIST(section->staffs, ptb_free_staff(tmp), struct ptb_staff *);
-	FREE_LIST(section->chordtexts, , struct ptb_chordtext *);
-	FREE_LIST(section->rhythmslashes, , struct ptb_rhythmslash *);
-	FREE_LIST(section->directions, , struct ptb_direction *);
+	FREE_LIST(section->chordtexts, {} , struct ptb_chordtext *);
+	FREE_LIST(section->rhythmslashes, {}, struct ptb_rhythmslash *);
+	FREE_LIST(section->directions, {}, struct ptb_direction *);
 }
 
 void ptb_free(struct ptbf *bf)
@@ -1087,7 +1087,7 @@ void ptb_free(struct ptbf *bf)
 
 		FREE_LIST(
 			bf->instrument[i].sectionsymbols,
-			,
+		{},
 			struct ptb_sectionsymbol *);
 	}
 	

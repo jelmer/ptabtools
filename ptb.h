@@ -27,10 +27,14 @@
 #pragma comment(lib,"ptb.lib")
 #endif
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned long uint32_t;
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 typedef uint8_t ptb_chord;
@@ -369,5 +373,9 @@ extern const char *ptb_get_tone(ptb_tone);
 extern const char *ptb_get_tone_full(ptb_tone);
 
 extern void ptb_get_position_difference(struct ptb_section *, int start, int end, int *bars, int *length);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __PTB_H__ */

@@ -1,5 +1,8 @@
 EXPORTS
 	ptb_read_file
+	ptb_write_file
+	gp_read_file
+	ptb_free
 	ptb_set_debug
 	ptb_set_asserts_fatal
 	ptb_get_tone
