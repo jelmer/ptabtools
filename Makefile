@@ -1,32 +1,8 @@
-CC = @CC@
-prefix = @prefix@
-bindir = $(prefix)/bin
-mandir = $(prefix)/share/man
-libdir = $(prefix)/lib
-includedir = $(prefix)/include
-pkgconfigdir = $(libdir)/pkgconfig
-datadir = $(prefix)/share/ptabtools
-VERSION = @PACKAGE_VERSION@
-LDFLAGS = @LDFLAGS@
-
-LIBXML_CFLAGS = @LIBXML_CFLAGS@
-LIBXML_LIBS = @LIBXML_LIBS@
-
-LIBXSLT_CFLAGS = @LIBXSLT_CFLAGS@
-LIBXSLT_LIBS = @LIBXSLT_LIBS@
-
-PROGS = @PROGS@
-LIBS = libptb.so.$(VERSION) libptb.a
-PROGS_MANPAGES = $(patsubst %,%.1,$(PROGS))
-INSTALL = @INSTALL@
-CFLAGS = @CFLAGS@ -g -Wall 
-CFLAGS += -DHAVE_CONFIG_H=
-POPT_LIBS = -lpopt
-XSLT_DEFINE = -DMUSICXMLSTYLESHEET=\"$(datadir)/ptbxml2musicxml.xsl\"
+-include Makefile.settings
 
 PTBSO_OBJS = ptb.o gp.o
 
-all: $(PROGS) $(LIBS)
+all: $(PROGS)
 
 ptb2xml.o: ptb2xml.c
 	$(CC) $(CFLAGS) -c $< $(LIBXSLT_CFLAGS) $(LIBXML_CFLAGS) $(XSLT_DEFINE)
@@ -34,28 +10,31 @@ ptb2xml.o: ptb2xml.c
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< 
 
+ptb.dll: $(PTBSO_OBJS)
+	$(CC) -shared $(CFLAGS) -o $@ $^
+
 libptb.so.$(VERSION): $(PTBSO_OBJS)
 	$(CC) -shared $(CFLAGS) -o $@ $^
 
 libptb.a: $(PTBSO_OBJS)
 	$(AR) rs $@ $^
 
-ptb2xml: ptb2xml.o ptb.o
+ptb2xml$(EXEEXT): ptb2xml.o ptb.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(POPT_LIBS) $(LIBXML_LIBS) $(LIBXSLT_LIBS)
 	
-ptb2ascii: ptb2ascii.o ptb.o
+ptb2ascii$(EXEEXT): ptb2ascii.o ptb.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(POPT_LIBS)
 
-ptb2ptb: ptb2ptb.o ptb.o
+ptb2ptb$(EXEEXT): ptb2ptb.o ptb.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(POPT_LIBS)
 
-ptb2ly: ptb2ly.o ptb.o
+ptb2ly$(EXEEXT): ptb2ly.o ptb.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(POPT_LIBS)
 
-gp2ly: gp2ly.o gp.o
+gp2ly$(EXEEXT): gp2ly.o gp.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(POPT_LIBS)
 
-ptbinfo: ptbinfo.o ptb.o
+ptbinfo$(EXEEXT): ptbinfo.o ptb.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(POPT_LIBS)
 
 install: all
