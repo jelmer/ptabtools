@@ -1,4 +1,5 @@
 prefix = /usr/local
+MKDIR = mkdir
 bindir = $(prefix)/bin
 mandir = $(prefix)/share/man
 libdir = $(prefix)/lib
@@ -42,11 +43,16 @@ ptbinfo: $(PTBINFO_OBJS)
 
 install: all
 	$(INSTALL) $(PROGS) $(DESTDIR)$(bindir)
+	$(MKDIR) -p $(DESTDIR)$(mandir)/man1
 	$(INSTALL) -m 644 $(PROGS_MANPAGES) $(DESTDIR)$(mandir)/man1
+	$(MKDIR) -p $(DESTDIR)$(libdir)
 	$(INSTALL) $(LIBS) $(DESTDIR)$(libdir)
+	$(MKDIR) -p $(DESTDIR)$(includedir)
 	$(INSTALL) -m 644 ptb.h $(DESTDIR)$(includedir)
+	$(MKDIR) -p $(DESTDIR)$(pkgconfigdir)
 	$(INSTALL) -m 644 ptabtools.pc $(DESTDIR)$(pkgconfigdir)
 
+ctags: tags
 tags: *.c *.h
 	ctags *.c *.h
 

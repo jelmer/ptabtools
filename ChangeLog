@@ -1,6 +1,9 @@
 All changes, unless specified otherwise, made by Jelmer Vernooij
 <jelmer@samba.org>.
 
+0.4:
+
+
 0.3:
  * Put chords at the right place
  * Support dots
