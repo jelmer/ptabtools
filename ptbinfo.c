@@ -19,12 +19,17 @@
 #include <stdio.h>
 #include <errno.h>
 #include <popt.h>
-#include "ptb.h"
 #include "dlinklist.h"
 
-#ifndef HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #  include "config.h"
 #endif
+
+#ifdef HAVE_STDINT_H
+#  include <stdint.h>
+#endif
+
+#include "ptb.h"
 
 #define COND_PRINTF(desc,field) if(field) printf("%s: %s\n", desc, field);
 

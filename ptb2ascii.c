@@ -20,11 +20,17 @@
 #include <errno.h>
 #include <popt.h>
 #include <string.h>
-#include "ptb.h"
 
-#ifndef HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #  include "config.h"
 #endif
+
+#ifdef HAVE_STDINT_H
+#  include <stdint.h>
+#endif
+
+#include "ptb.h"
+
 
 void ascii_write_header(FILE *out, struct ptbf *ret) 
 {

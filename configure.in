@@ -21,7 +21,7 @@ AC_SUBST(PROGS)
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_TIME
-AC_CHECK_HEADERS([stdlib.h string.h unistd.h popt.h sys/time.h])
+AC_CHECK_HEADERS([stdlib.h string.h unistd.h popt.h sys/time.h ctype.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST

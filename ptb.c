@@ -18,23 +18,33 @@
  */
 
 #include <stdio.h>
-#ifndef _WIN32
-#include <unistd.h>
-#else
-#include <io.h>
-typedef int ssize_t;
-#endif
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <string.h>
 #include <stdarg.h>
-#define PTB_CORE
-#include "ptb.h"
 #include "dlinklist.h"
 
 #ifndef __PRETTY_FUNCTION__
 #define __PRETTY_FUNCTION__ ""
 #endif
+
+#ifdef HAVE_CONFIG_H
+#  include "config.h"
+#endif
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#else
+#include <io.h>
+typedef int ssize_t;
+#endif
+
+#ifdef HAVE_STDINT_H
+#  include <stdint.h>
+#endif
+
+#define PTB_CORE
+#include "ptb.h"
 
 int assert_is_fatal = 0;
 

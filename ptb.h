@@ -22,7 +22,6 @@
 
 #include <sys/stat.h>
 #include <stdlib.h>
-#include <stdint.h>
 
 #if defined(_WIN32) && !defined(PTB_CORE)
 #pragma comment(lib,"ptb.lib")

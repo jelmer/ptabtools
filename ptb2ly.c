@@ -20,12 +20,17 @@
 #include <errno.h>
 #include <popt.h>
 #include <string.h>
-#include "ptb.h"
 #include "dlinklist.h"
 
 #ifndef HAVE_CONFIG
 #  include "config.h"
 #endif
+
+#ifdef HAVE_STDINT_H
+#  include <stdint.h>
+#endif
+
+#include "ptb.h"
 
 #define LILYPOND_VERSION "2.4"
 

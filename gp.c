@@ -26,9 +26,21 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <string.h>
-#include "gp.h"
-#include <ctype.h>
 #include <assert.h>
+
+#ifndef HAVE_CONFIG
+#  include "config.h"
+#endif
+
+#ifdef HAVE_STDINT_H
+#  include <stdint.h>
+#endif
+
+#ifdef HAVE_CTYPE_H
+#  include <ctype.h>
+#endif
+
+#include "gp.h"
 
 #define malloc_p(t, n) (t *) calloc(sizeof(t), n)
 

@@ -23,11 +23,16 @@
 #include <time.h>
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>
-#include "ptb.h"
 
-#ifndef HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #  include "config.h"
 #endif
+
+#ifdef HAVE_STDINT_H
+#  include <stdint.h>
+#endif
+
+#include "ptb.h"
 
 #ifdef HAVE_XSLT
 #  include <libxslt/xslt.h>

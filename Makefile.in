@@ -19,6 +19,7 @@ LIBS = libptb.so.$(VERSION) libptb-$(VERSION).a
 PROGS_MANPAGES = $(patsubst %,%.1,$(PROGS))
 INSTALL = @INSTALL@
 CFLAGS = @CFLAGS@ -g -Wall 
+CFLAGS += -DHAVE_CONFIG_H=
 POPT_LIBS = -lpopt
 XSLT_DEFINE = -DMUSICXMLSTYLESHEET=\"$(datadir)/ptbxml2musicxml.xsl\"
 

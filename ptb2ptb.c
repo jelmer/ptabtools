@@ -20,11 +20,17 @@
 #include <errno.h>
 #include <popt.h>
 #include <string.h>
-#include "ptb.h"
 
 #ifndef HAVE_CONFIG
 #  include "config.h"
 #endif
+
+#ifdef HAVE_STDINT_H
+#  include <stdint.h>
+#endif
+
+#include "ptb.h"
+
 
 int main(int argc, const char **argv) 
 {
