@@ -1,4 +1,5 @@
 /*
+   Parser library for the PowerTab (PTB) file format
    (c) 2004: Jelmer Vernooij <jelmer@samba.org>
 
    This program is free software; you can redistribute it and/or modify
@@ -81,19 +82,6 @@ ssize_t ptb_read_unknown(struct ptbf *f, size_t length) {
 	return ret;
 }
 
-ssize_t ptb_read_font(struct ptbf *f, struct ptb_font *dest) {
-	int ret = 0;
-	ret+=ptb_read_string(f, &dest->family);
-	ret+=ptb_read(f, &dest->size, 1);
-	ret+=ptb_read_unknown(f, 5);
-	ret+=ptb_read(f, &dest->thickness, 1);
-	ret+=ptb_read_unknown(f, 2);
-	ret+=ptb_read(f, &dest->italic, 1);
-	ret+=ptb_read(f, &dest->underlined, 1);
-	ret+=ptb_read_unknown(f, 4);
-	return ret;
-}
-
 ssize_t ptb_read_string(struct ptbf *f, char **dest) {
 	guint8 shortlength;
 	guint16 length;
@@ -118,6 +106,19 @@ ssize_t ptb_read_string(struct ptbf *f, char **dest) {
 	}
 
 	return length;
+}
+
+ssize_t ptb_read_font(struct ptbf *f, struct ptb_font *dest) {
+	int ret = 0;
+	ret+=ptb_read_string(f, &dest->family);
+	ret+=ptb_read(f, &dest->size, 1);
+	ret+=ptb_read_unknown(f, 5);
+	ret+=ptb_read(f, &dest->thickness, 1);
+	ret+=ptb_read_unknown(f, 2);
+	ret+=ptb_read(f, &dest->italic, 1);
+	ret+=ptb_read(f, &dest->underlined, 1);
+	ret+=ptb_read_unknown(f, 4);
+	return ret;
 }
 
 static ssize_t ptb_read_header(struct ptbf *f, struct ptb_hdr *hdr)
