@@ -202,12 +202,19 @@ struct ptb_chordtext {
 #define CHORDTEXT_PROPERTY_FORMULA_M7B5		0x0D
 	uint8_t properties;
 	uint8_t offset;
+#define CHORDTEXT_EXT_7_9					0x01
 #define CHORDTEXT_PLUS_5					0x02
+#define CHORDTEXT_EXT_7_13					0x04
+#define CHORDTEXT_ADD_2						0x08
 #define CHORDTEXT_ADD_9						0x40
+#define CHORDTEXT_ADD_11					0x80
 	uint8_t additions;
 	uint8_t alterations;
 #define CHORDTEXT_VII_OPEN					0x01
+#define CHORDTEXT_VII_VI					0x06
 #define CHORDTEXT_VII						0x08
+#define CHORDTEXT_VII_TYPE_2				0x20
+#define CHORDTEXT_VII_TYPE_3				0x40
 	uint8_t VII;
 };
 
@@ -215,28 +222,41 @@ struct ptb_position {
 	struct ptb_position *prev, *next;
 
 	uint8_t offset;
-#define POSITION_PALM_MUTE						0x20
+#define POSITION_PICKSTROKE_DOWN				0x01
 #define POSITION_STACCATO 						0x02
 #define POSITION_ACCENT							0x04
+#define POSITION_HEAVY_ACCENT					0x08
+#define POSITION_TREMOLO_PICKING				0x10
+#define POSITION_PALM_MUTE						0x20
 	uint8_t palm_mute;
 	uint8_t length;
 #define POSITION_DOTS_1							0x01
 #define POSITION_DOTS_2							0x02
 #define POSITION_DOTS_REST						0x04
 #define POSITION_DOTS_VIBRATO					0x08
+#define POSITION_DOTS_WIDE_VIBRATO				0x10
 #define POSITION_DOTS_ARPEGGIO_UP				0x20
 #define POSITION_DOTS_ARPEGGIO_DOWN				0x40
 	uint8_t dots;
+
+	/* Irregular grouping: 
+	   Play x notes in the time of y
+	   Stored as (x - 1) * 8 + (y - 1)
+	*/
+#define POSITION_PROPERTY_IRREGULAR_GROUPING	0x007F
 #define POSITION_PROPERTY_IN_SINGLE_BEAM		0x0080
 #define POSITION_PROPERTY_IN_DOUBLE_BEAM		0x0100
 #define POSITION_PROPERTY_IN_TRIPLE_BEAM		0x0200
 #define POSITION_PROPERTY_FIRST_IN_BEAM 		0x0400
+#define POSITION_PROPERTY_PARTIAL_BEAM			0x0800
 #define POSITION_PROPERTY_LAST_IN_BEAM			0x1000
 #define POSITION_PROPERTY_MIDDLE_IN_BEAM 		0x2000
 	uint16_t properties;
 	uint8_t let_ring;
 	uint8_t fermenta;
 #define POSITION_FERMENTA_ACCIACCATURA			0x01
+#define POSITION_FERMENTA_TRIPLET_FEEL_FIRST	0x02
+#define POSITION_FERMENTA_TRIPLET_FEEL_SECOND	0x04
 #define POSITION_FERMENTA_LET_RING				0x08
 #define POSITION_FERMENTA_FERMENTA				0x10
 #define POSITION_FERMENTA_TRIPLET_1				0x20
@@ -292,6 +312,7 @@ struct ptb_linedata {
 	}; 
 #define LINEDATA_PROPERTY_TIE					0x01
 #define LINEDATA_PROPERTY_MUTED					0x02
+#define LINEDATA_PROPERTY_CONTINUES				0x04
 #define LINEDATA_PROPERTY_HAMMERON_FROM			0x08
 #define LINEDATA_PROPERTY_PULLOFF_FROM			0x10
 #define LINEDATA_PROPERTY_DEST_NOWHERE			0x20
@@ -372,11 +393,26 @@ struct ptb_musicbar {
 struct ptb_rhythmslash {
 	struct ptb_rhythmslash *prev, *next;
 
+#define RHYTHMSLASH_PROPERTY_IN_SINGLE_BEAM	0x01
+#define RHYTHMSLASH_PROPERTY_IN_DOUBLE_BEAM	0x02
 #define RHYTHMSLASH_PROPERTY_FIRST_IN_BEAM	0x04
+#define RHYTHMSLASH_PROPERTY_PARTIAL_BEAM	0x08
+#define RHYTHMSLASH_PROPERTY_LAST_IN_BEAM	0x10
+#define RHYTHMSLASH_PROPERTY_TRIPLET_FIRST	0x20
+#define RHYTHMSLASH_PROPERTY_TRIPLET_SECOND	0x40
+#define RHYTHMSLASH_PROPERTY_TRIPLET_THIRD	0x80
 	uint8_t properties;
 	uint8_t offset;
 	uint8_t dotted;
 	uint8_t length;
+	uint8_t extra;
+#define RHYTHMSLASH_EXTRA_ARPEGGIO_UP		0x02
+#define RHYTHMSLASH_EXTRA_ACCENT			0x20
+#define RHYTHMSLASH_EXTRA_HEAVY_ACCENT		0x40
+	uint8_t singlenote; /* 
+		5 MSB contains fret
+		3 LSB contains string
+		*/
 };
 
 struct ptb_direction {

@@ -121,7 +121,8 @@ static ssize_t ptb_data(struct ptbf *f, void *data, size_t length)
 	return 0;
 }
 
-static ssize_t ptb_data_constant(struct ptbf *f, unsigned char expected) 
+#define ptb_data_constant(f,e) ptb_data_constant_helper(f,e,__LINE__)
+static ssize_t ptb_data_constant_helper(struct ptbf *f, unsigned char expected, int line) 
 {
 	unsigned char real;
 	ssize_t ret;
@@ -132,7 +133,7 @@ static ssize_t ptb_data_constant(struct ptbf *f, unsigned char expected)
 			ret = ptb_data(f, &real, 1);
 	
 		if(real != expected) {
-			ptb_error("%04lx: Expected %02x, got %02x", f->curpos-1, expected, real);
+			ptb_error("%04lx: Expected %02x, got %02x at line "__FILE__":%d", f->curpos-1, expected, real, line);
 			ptb_assert(f, 0);
 		}
 	}
@@ -721,6 +722,7 @@ static int handle_CLineData (struct ptbf *bf, const char *section, struct ptb_li
 			   & ~LINEDATA_PROPERTY_DEST_NOWHERE
 			   & ~LINEDATA_PROPERTY_TIE
 			   & ~LINEDATA_PROPERTY_NATURAL_HARMONIC
+			   & ~LINEDATA_PROPERTY_CONTINUES
 			   & ~LINEDATA_PROPERTY_MUTED);
 	ptb_data(bf, &linedata->transcribe, 1);
 	ptb_assert(bf, linedata->transcribe == LINEDATA_TRANSCRIBE_8VA 
@@ -757,13 +759,20 @@ static int handle_CChordText (struct ptbf *bf, const char *section, struct ptb_l
 			   & ~0xC0 /*FIXME*/);
 	ptb_data(bf, &chordtext->additions, 1);
 	ptb_assert_0(bf, chordtext->additions 
+			   & ~CHORDTEXT_EXT_7_9
+			   & ~CHORDTEXT_EXT_7_13
+			   & ~CHORDTEXT_ADD_2
 			   & ~CHORDTEXT_ADD_9
+			   & ~CHORDTEXT_ADD_11
 			   & ~CHORDTEXT_PLUS_5);
 	ptb_data(bf, &chordtext->alterations, 1);
 	ptb_data(bf, &chordtext->VII, 1);
 	ptb_assert_0(bf, chordtext->VII 
 				 & ~CHORDTEXT_VII 
+				 & ~CHORDTEXT_VII_VI
 				 & ~CHORDTEXT_VII_OPEN
+				 & ~CHORDTEXT_VII_TYPE_2
+				 & ~CHORDTEXT_VII_TYPE_3
 				 	);
 
 	*dest = (struct ptb_list *)chordtext;
@@ -831,10 +840,12 @@ static int handle_CPosition (struct ptbf *bf, const char *section, struct ptb_li
 	ptb_data(bf, &position->offset, 1);
 	ptb_data(bf, &position->properties, 2); 
 	ptb_assert_0(bf, position->properties 
+			   & ~POSITION_PROPERTY_IRREGULAR_GROUPING
 			   & ~POSITION_PROPERTY_IN_SINGLE_BEAM
 			   & ~POSITION_PROPERTY_IN_DOUBLE_BEAM
 			   & ~POSITION_PROPERTY_IN_TRIPLE_BEAM
 			   & ~POSITION_PROPERTY_FIRST_IN_BEAM
+			   & ~POSITION_PROPERTY_PARTIAL_BEAM
 			   & ~POSITION_PROPERTY_MIDDLE_IN_BEAM
 			   & ~POSITION_PROPERTY_LAST_IN_BEAM);
 	ptb_data(bf, &position->dots, 1);
@@ -844,13 +855,23 @@ static int handle_CPosition (struct ptbf *bf, const char *section, struct ptb_li
 					& ~POSITION_DOTS_REST 
 					& ~POSITION_DOTS_ARPEGGIO_UP 
 					& ~POSITION_DOTS_ARPEGGIO_DOWN
+					& ~POSITION_DOTS_WIDE_VIBRATO
 					& ~POSITION_DOTS_VIBRATO);
 	ptb_data(bf, &position->palm_mute, 1);
-	ptb_assert_0(bf, position->palm_mute & ~POSITION_PALM_MUTE & ~POSITION_STACCATO & ~POSITION_ACCENT);
+	ptb_assert_0(bf, position->palm_mute 
+				 & ~POSITION_PALM_MUTE 
+				 & ~POSITION_STACCATO 
+				 & ~POSITION_ACCENT
+				 & ~POSITION_HEAVY_ACCENT
+				 & ~POSITION_PICKSTROKE_DOWN
+				 & ~POSITION_TREMOLO_PICKING
+				 );
 	ptb_data(bf, &position->fermenta, 1);
 	ptb_assert_0(bf, position->fermenta
 					& ~POSITION_FERMENTA_ACCIACCATURA
 					& ~POSITION_FERMENTA_LET_RING
+					& ~POSITION_FERMENTA_TRIPLET_FEEL_FIRST
+					& ~POSITION_FERMENTA_TRIPLET_FEEL_SECOND
 					& ~POSITION_FERMENTA_TRIPLET_1
 					& ~POSITION_FERMENTA_TRIPLET_2
 					& ~POSITION_FERMENTA_TRIPLET_3
@@ -914,11 +935,25 @@ static int handle_CRhythmSlash (struct ptbf *bf, const char *section, struct ptb
 	
 	ptb_data(bf, &rhythmslash->offset, 1);
 	ptb_data(bf, &rhythmslash->properties, 1);
-	ptb_assert_0(bf, rhythmslash->properties & ~RHYTHMSLASH_PROPERTY_FIRST_IN_BEAM);
+	ptb_assert_0(bf, rhythmslash->properties 
+				 & ~RHYTHMSLASH_PROPERTY_FIRST_IN_BEAM
+				 & ~RHYTHMSLASH_PROPERTY_IN_SINGLE_BEAM
+				 & ~RHYTHMSLASH_PROPERTY_IN_DOUBLE_BEAM
+				 & ~RHYTHMSLASH_PROPERTY_LAST_IN_BEAM
+				 & ~RHYTHMSLASH_PROPERTY_PARTIAL_BEAM
+				 & ~RHYTHMSLASH_PROPERTY_TRIPLET_FIRST
+				 & ~RHYTHMSLASH_PROPERTY_TRIPLET_SECOND
+				 & ~RHYTHMSLASH_PROPERTY_TRIPLET_THIRD
+				 );
 	ptb_data(bf, &rhythmslash->dotted, 1);
-	ptb_data_constant(bf, 0);
+	ptb_data(bf, &rhythmslash->extra, 1);
+	ptb_assert_0(bf, rhythmslash->extra 
+				 & ~RHYTHMSLASH_EXTRA_ARPEGGIO_UP
+				 & ~RHYTHMSLASH_EXTRA_ACCENT
+				 & ~RHYTHMSLASH_EXTRA_HEAVY_ACCENT
+				 & ~0x18 /* FIXME */);
 	ptb_data(bf, &rhythmslash->length, 1);
-	ptb_data_constant(bf, 0);
+	ptb_data(bf, &rhythmslash->singlenote, 1);
 
 	*dest = (struct ptb_list *)rhythmslash;
 	return 1;
