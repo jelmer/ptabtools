@@ -75,7 +75,6 @@ void *handle_CSection (struct ptbf *bf, const char *sectionname) {
 	07d -> 1 staff
 	102 -> 2  staffs
 	*/
-	printf("%04x\n", section->properties);
 	ptb_read(bf, &section->end_mark, 1);
 	ptb_read(bf, &section->position_width, 1);
 	ptb_read_unknown(bf, 5);

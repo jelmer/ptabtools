@@ -252,4 +252,6 @@ struct ptbf {
 
 struct ptbf *ptb_read_file(const char *ptb);
 
+void ptb_set_debug(int level);
+
 #endif /* __PTB_H__ */

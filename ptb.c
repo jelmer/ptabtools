@@ -296,6 +296,7 @@ GList *ptb_read_items(struct ptbf *bf, const char *assumed_type) {
 	return list;
 }
 
+void ptb_set_debug(int level) { debugging = level; }
 
 struct ptbf *ptb_read_file(const char *file)
 {
@@ -310,8 +311,6 @@ struct ptbf *ptb_read_file(const char *file)
 	if(bf < 0) return NULL;
 
 	bf->curpos = 1;
-
-	debugging = 1;
 
 	if(ptb_read_header(bf, &bf->hdr) < 0) {
 		fprintf(stderr, "Error parsing header\n");	
