@@ -684,7 +684,7 @@ const char *ptb_get_tone(ptb_tone id)
 
 const char *ptb_get_tone_full(ptb_tone id)
 {
-	const char *chords[] = { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "c", "cis", "d", "dis", "e", "f", "fis", "g", "gis", "a", "ais", "b", NULL };
-	if(sizeof(chords) < id) return "_UNKNOWN_CHORD_";
-	return chords[id];
+	const char *chords[] = { "c", "cis", "d", "dis", "e", "f", "fis", "g", "gis", "a", "ais", "b", NULL };
+	if(id < 16 || sizeof(chords) < id-16) return "_UNKNOWN_CHORD_";
+	return chords[id-16];
 }

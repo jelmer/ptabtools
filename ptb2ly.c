@@ -52,23 +52,24 @@ void ly_write_chordtext(FILE *out, struct ptb_chordtext *name)
 		//FIXME:fprintf(out, "N.C.");
 	} 
 
+	/*
 	if(name->properties & CHORDTEXT_PROPERTY_PARENTHESES) {
 		fprintf(out, "(");
-	}
+	}*/
 
 	if(!(name->properties & CHORDTEXT_PROPERTY_NOCHORD) || 
 	   (name->properties & CHORDTEXT_PROPERTY_PARENTHESES)) { 
-		if(name->name[0] == name->name[1]) 
-			fprintf(out, "%s", ptb_get_tone_full(name->name[0]));
+		if(name->name[0] == name->name[1] || name->name[0] < 16 || name->name[0] > 28) 
+			fprintf(out, "%s", ptb_get_tone_full(name->name[1]));
 		else 
 			fprintf(out, "%s/%s",
-				ptb_get_tone_full(name->name[0]), 
-				ptb_get_tone_full(name->name[1]));
+				ptb_get_tone_full(name->name[1]), 
+				ptb_get_tone_full(name->name[0]));
 	}
-
+/*
 	if(name->properties & CHORDTEXT_PROPERTY_PARENTHESES) {
 		fprintf(out, ")");
-	} 
+	} */
 	fprintf(out, " ");
 }
 
@@ -229,8 +230,9 @@ int main(int argc, const char **argv)
 	int debugging = 0;
 	GList *gl;
 	int instrument = 0;
-	int c;
+	int c, i = 0;
 	int version = 0;
+	int num_sections = 0;
 	char *output = NULL;
 	poptContext pc;
 	struct poptOption options[] = {
@@ -239,6 +241,7 @@ int main(int argc, const char **argv)
 		{"outputfile", 'o', POPT_ARG_STRING, &output, 0, "Write to specified file", "FILE" },
 		{"regular", 'r', POPT_ARG_NONE, &instrument, 0, "Write tabs for regular guitar" },
 		{"bass", 'b', POPT_ARG_NONE, &instrument, 1, "Write tabs for bass guitar"},
+		{"sections", 's', POPT_ARG_INT, &num_sections, 0, "Write only X sections (0 for all)", "SECTIONS" },
 		{"version", 'v', POPT_ARG_NONE, &version, 'v', "Show version information" },
 		POPT_TABLEEND
 	};
@@ -281,9 +284,10 @@ int main(int argc, const char **argv)
 		
 	ly_write_header(out, ret);
 	have_lyrics = ly_write_lyrics(out, ret);
-
+	
 	gl = ret->instrument[instrument].sections;
 	while(gl) {
+		if(++i > num_sections && num_sections) break;
 		ly_write_section(out, (struct ptb_section *)gl->data);
 		gl = gl->next;
 	}
