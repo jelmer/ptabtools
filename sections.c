@@ -68,6 +68,12 @@ int handle_CGuitar (struct ptbf *bf, const char *section) {
 		prevguitar = guitar;
 	}
 
+	/* FIXME: */
+	while(!ptb_end_of_section(bf->fd)) {
+		read(bf->fd, unknown, 1);
+		fprintf(stderr, "x: %02x\n", unknown[0]);
+	}
+
 	return 0;
 }
 
