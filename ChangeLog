@@ -2,6 +2,7 @@ All changes, unless specified otherwise, made by Jelmer Vernooij
 <jelmer@samba.org>.
 
 0.4.2:
+ * Support for some more types of data
  * Fix bugs when reading odd combinations of symbols (multiple 
 	 coda symbols, etc)
  * Add ptbdict utility

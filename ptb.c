@@ -753,12 +753,12 @@ static int handle_CChordText (struct ptbf *bf, const char *section, struct ptb_l
 	ptb_assert_0(bf, chordtext->properties 
 			   & ~CHORDTEXT_PROPERTY_NOCHORD
 			   & ~CHORDTEXT_PROPERTY_PARENTHESES
-			   & ~0xc0 /*FIXME*/
-			   & ~CHORDTEXT_PROPERTY_FORMULA_M
-			   & ~CHORDTEXT_PROPERTY_FORMULA_MAJ7);
+			   & ~0x0F /* Formula */
+			   & ~0xC0 /*FIXME*/);
 	ptb_data(bf, &chordtext->additions, 1);
 	ptb_assert_0(bf, chordtext->additions 
-			   & ~CHORDTEXT_ADD_9);
+			   & ~CHORDTEXT_ADD_9
+			   & ~CHORDTEXT_PLUS_5);
 	ptb_data(bf, &chordtext->alterations, 1);
 	ptb_data(bf, &chordtext->VII, 1);
 	ptb_assert_0(bf, chordtext->VII & ~CHORDTEXT_VII);
