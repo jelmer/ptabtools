@@ -18,15 +18,33 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <fcntl.h>
 #include "ptb.h"
+
 
 int main(int argc, char **argv) 
 {
-	int ret = readptb(argv[1]);
-	if(ret == 0) {
-		printf("Read successful!\n");
-	} else {
-		perror("Read error: ");
+	int i;
+	
+	if(argc < 3) {
+		fprintf(stderr, "Usage: %s <SectionName> <InputFile>\n");
+		return 1;
 	}
-	return ret;
+
+	for(i = 0; default_sections[i].name; i++) {
+		if(!strcmp(default_sections[i].name, argv[1])) {
+			struct ptbf *bf = calloc(sizeof(struct ptbf), 1);
+			bf->filename = strdup(argv[2]);
+			bf->fd = open(bf->filename, O_RDONLY);
+			if(default_sections[i].handler(bf, argv[2]) != 0) {
+				fprintf(stderr, "Parsing file '%s' as section '%s' unsuccessful!\n", argv[2], argv[1]);
+				return 1;
+			}
+			return 0;
+		}
+	}
+
+	fprintf(stderr, "Unknown section '%s'\n", argv[1]);
+	
+	return 1;
 }

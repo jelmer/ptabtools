@@ -124,7 +124,10 @@ struct ptbf *ptb_read_file(const char *file, struct ptb_section *sections)
 
 	if(fstat(bf->fd, &bf->st_buf) < 0) return NULL;
 
-	if(ptb_read_header(bf->fd, &bf->hdr) < 0) return NULL;
+	if(ptb_read_header(bf->fd, &bf->hdr) < 0) {
+		fprintf(stderr, "Error parsing header\n");	
+		return NULL;
+	}
 
 	debugging = 1;
 
@@ -135,19 +138,26 @@ struct ptbf *ptb_read_file(const char *file, struct ptb_section *sections)
 		guint8 data = 0;
 		char unknown[6];
 		char *sectionname;
+
 		/* Read section */
-		read(bf->fd, &unknownval, 2);
+		if(read(bf->fd, &unknownval, 2) < 2) {
+			fprintf(stderr, "Unexpected end of file\n");
+			return NULL;
+		}
+
 		if(unknownval != 0x0001) {
 			fprintf(stderr, "Unknownval: %04x\n", unknownval);
 			return NULL;
 		}
-		read(bf->fd, &length, 2);
+		
+		if(read(bf->fd, &length, 2) < 2) {
+			fprintf(stderr, "Unexpected end of file\n");
+			return NULL;
+		}
 		
 		sectionname = malloc(length + 1);
 		read(bf->fd, sectionname, length);
 		sectionname[length] = '\0';
-
-		read(bf->fd, unknown, 6);
 
 		//fprintf(stderr, "%s: %02x %02x %02x %02x %02x %02x\n", bf->filename, unknown[0], unknown[1], unknown[2], unknown[3], unknown[4], unknown[5]);
 

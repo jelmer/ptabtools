@@ -29,17 +29,8 @@ int handle_unknown (struct ptbf *bf, const char *section) {
 int handle_CGuitar (struct ptbf *bf, const char *section) {
 	char unknown[256];
 	struct ptb_track *prevtrack = NULL;
-
-	/* FIXME: 01 00 07 00 */
-	read(bf->fd, unknown, 4);
-	//fprintf(stderr, "%2x%2x%2x%2x\n", unknown[0], unknown[1], unknown[2], unknown[3]);
-
-	/* FIXME: CGuitar */
-	read(bf->fd, unknown, 7);
-	unknown[7] = '\0';
-	//fprintf(stderr, "%s\n", unknown);
-
-	while(1) {
+	
+	while(!ptb_end_of_section(bf->fd)) {
 		struct ptb_track *track = calloc(sizeof(struct ptb_track), 1);
 	
 		if(bf->tracks) prevtrack->next = track;
@@ -58,7 +49,10 @@ int handle_CGuitar (struct ptbf *bf, const char *section) {
 		ptb_read_string(bf->fd, &track->type);
 
 		//FIXME
-		read(bf->fd, unknown, 10);
+		read(bf->fd, unknown, 1);
+		ptb_read_string(bf->fd, &track->tempo);
+		//FIXME
+		read(bf->fd, unknown, 2);
 
 		prevtrack = track;
 	}

@@ -25,13 +25,16 @@ int write_section(struct ptbf *bf, const char *sectionname)
 {
 	int efd;
 	char *outname = g_strdup_printf("%s_%s", bf->filename, sectionname);
-	printf("Going to try to open '%s'\n", outname);
 	efd = creat(outname, 0755);
-	if(efd < 0) perror("Open");
+	if(efd < 0) {
+		perror("Open");
+		return -1;
+	}
+
 	while(!ptb_end_of_section(bf->fd)) {
 		char byte;
-		read(bf->fd, &byte, 1);
-		if(efd) write(efd, byte, 1);
+		if(read(bf->fd, &byte, 1) < 1) perror("read");
+		if(write(efd, &byte, 1) < 1) perror("write");
 	}
 
 	close(efd);
@@ -45,7 +48,7 @@ struct ptb_section sections[] = {
 int main(int argc, char **argv) 
 {
 	struct ptbf *ret = ptb_read_file(argv[1], sections);
-	if(ret == 0) {
+	if(ret) {
 		printf("Read successful!\n");
 	} else {
 		perror("Read error: ");

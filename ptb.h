@@ -47,6 +47,7 @@ struct ptb_track {
 	guint8 index;
 	char *title;
 	char *type;
+	char *tempo;
 	struct ptb_track *next;
 };
 
