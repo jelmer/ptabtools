@@ -131,6 +131,11 @@ struct ptb_chorddiagram {
 	struct ptb_chorddiagram *next;
 };
 
+struct ptb_linedata {
+	
+	struct ptb_linedata *next;
+};
+
 struct ptbf {
 	int fd;
 	char *filename;
@@ -140,6 +145,7 @@ struct ptbf {
 	struct ptb_floatingtext *floating_texts;
 	struct ptb_tempomarker *tempomarkers;
 	struct ptb_chorddiagram *chorddiagrams;
+	struct ptb_linedata *linedatas;
 };
 
 struct ptb_section {

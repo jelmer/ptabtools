@@ -155,13 +155,36 @@ int handle_CChordDiagram (struct ptbf *bf, const char *section) {
 	return 0; 
 }
 
+int handle_CLineData (struct ptbf *bf, const char *section) { 
+	char unknown[256];
+	struct ptb_linedata *prevlinedata = NULL;
+
+	read(bf->fd, unknown, 1);
+
+	while(!ptb_end_of_section(bf->fd)) {
+		struct ptb_linedata *linedata = calloc(sizeof(struct ptb_linedata), 1);
+		int i;
+
+		if(bf->linedatas) prevlinedata->next = linedata;
+		else bf->linedatas = linedata;
+
+		read(bf->fd, unknown, 3);
+		read(bf->fd, unknown, 5);
+
+		fprintf(stderr, "%02x %02x %02x %02x %02x\n", unknown[0], unknown[1], unknown[2], unknown[3], unknown[4]);
+
+		prevlinedata = linedata;
+	}
+
+	return 0; 
+}
+
 int handle_CGuitarIn (struct ptbf *bf, const char *section) { return 0; }
 int handle_CDynamic (struct ptbf *bf, const char *section) { return 0; }
 int handle_CSectionSymbol (struct ptbf *bf, const char *section) { return 0; }
 int handle_CChordText (struct ptbf *bf, const char *section) { return 0; }
 int handle_CStaff (struct ptbf *bf, const char *section) { return 0; }
 int handle_CPosition (struct ptbf *bf, const char *section) { return 0; }
-int handle_CLineData (struct ptbf *bf, const char *section) { return 0; }
 int handle_CMusicBar (struct ptbf *bf, const char *section) { return 0; }
 int handle_CRhythmSlash (struct ptbf *bf, const char *section) { return 0; }
 int handle_CDirection (struct ptbf *bf, const char *section) { return 0; }
@@ -171,6 +194,7 @@ struct ptb_section default_sections[] = {
 	{"CFloatingText", handle_CFloatingText },
 	{"CChordDiagram", handle_CChordDiagram },
 	{"CTempoMarker", handle_CTempoMarker},
+	{"CLineData", handle_CLineData },
 /*	{"CGuitarIn", handle_CGuitarIn },
 	{"CSection", handle_CSection },
 	{"CDynamic", handle_CDynamic },
@@ -178,7 +202,6 @@ struct ptb_section default_sections[] = {
 	{"CChordText", handle_CChordText },
 	{"CStaff", handle_CStaff },
 	{"CPosition", handle_CPosition },
-	{"CLineData", handle_CLineData },
 	{"CMusicBar", handle_CMusicBar },
 	{"CRhythmSlash", handle_CRhythmSlash },
 	{"CDirection", handle_CDirection },*/
