@@ -78,6 +78,7 @@ struct ptb_hdr {
 	char *guitar_notes;
 	char *bass_notes;
 	char *drum_notes;
+	guint8 nr_guitars;
 	guint16 version;
 };
 

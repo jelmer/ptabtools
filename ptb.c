@@ -127,7 +127,6 @@ static int ptb_read_header(int fd, struct ptb_hdr *hdr)
 	ptb_read_string(fd, &hdr->class_info.song.copyright);
 	ptb_read_string(fd, &hdr->guitar_notes);
 	ptb_read_string(fd, &hdr->bass_notes);
-	read(fd, unknown, 2);
 	break;
 	case CLASSIFICATION_LESSON:
 	ptb_read_string(fd, &hdr->class_info.lesson.title);
@@ -137,7 +136,6 @@ static int ptb_read_header(int fd, struct ptb_hdr *hdr)
 	ptb_read_string(fd, &hdr->class_info.lesson.author);
 	ptb_read_string(fd, &hdr->guitar_notes);
 	ptb_read_string(fd, &hdr->class_info.lesson.copyright);
-	read(fd, unknown, 2); /* FIXME */
 	break;
 
 	default:
@@ -145,6 +143,11 @@ static int ptb_read_header(int fd, struct ptb_hdr *hdr)
 	break;
 
 	}
+
+	read(fd, &hdr->nr_guitars, 1);
+
+	read(fd, unknown, 1); /* FIXME */
+	fprintf(stderr, "Unknwo: %02x\n", unknown[0]);
 
 	/* This should be 0xffff, ending the header */
 	read(fd, &header_end, 2);
@@ -180,7 +183,6 @@ struct ptbf *ptb_read_file(const char *file, struct ptb_section *sections)
 		guint16 l;
 		guint16 length;
 		guint8 data = 0;
-		char unknown[6];
 		char *sectionname;
 
 		/* Read section */

@@ -32,8 +32,9 @@ int handle_unknown (struct ptbf *bf, const char *section) {
 int handle_CGuitar (struct ptbf *bf, const char *section) {
 	char unknown[256];
 	struct ptb_guitar *prevguitar = NULL;
-	
-	while(!ptb_end_of_section(bf->fd)) {
+	int i;
+
+	for(i = 0; i < bf->hdr.nr_guitars; i++) {
 		struct ptb_guitar *guitar = calloc(sizeof(struct ptb_guitar), 1);
 		int i;
 	
