@@ -25,8 +25,14 @@
 #include "ptb.h"
 #include <glib.h>
 
+int assert_is_fatal = 1;
+
 #define ptb_assert(ptb, expr) \
-	if (!(expr)) { ptb_debug("file: %s, line: %d (%s): assertion failed: %s. Current position: 0x%lx", __FILE__, __LINE__, __PRETTY_FUNCTION__, #expr, ptb->curpos); ptb_print_section_list(ptb); abort(); }
+	if (!(expr)) { ptb_debug("---------------------------------------------"); \
+		ptb_debug("file: %s, line: %d (%s): assertion failed: %s. Current position: 0x%lx", __FILE__, __LINE__, __PRETTY_FUNCTION__, #expr, ptb->curpos); \
+		ptb_print_section_list(ptb); \
+		if(assert_is_fatal) abort(); \
+	}
 
 struct ptb_section_handler {
 	char *name;
@@ -314,8 +320,6 @@ GList *ptb_read_items(struct ptbf *bf, const char *assumed_type) {
 			if(next_thing != 0x8000 + my_section_index) {
 				ptb_debug("Warning: got %04x, expected %04x\n", next_thing, 0x8000 + my_section_index);
 				ptb_assert(bf, 0);
-/*FIXME				ptb_assert(bf, next_thing & 0x8000);
-				ptb_section_handlers[i].index = next_thing - 0x8000;*/
 			}
 		}
 	}
@@ -324,6 +328,8 @@ GList *ptb_read_items(struct ptbf *bf, const char *assumed_type) {
 }
 
 void ptb_set_debug(int level) { debugging = level; }
+
+void ptb_set_asserts_fatal(int y) { assert_is_fatal = y; }
 
 struct ptbf *ptb_read_file(const char *file)
 {
@@ -524,10 +530,12 @@ void *handle_CStaff (struct ptbf *bf, const char *section) {
 	struct ptb_staff *staff = g_new0(struct ptb_staff, 1);
 
 	ptb_read(bf, &staff->properties, 1);
+	ptb_debug("Properties: %d", staff->properties);
 	ptb_read(bf, &staff->highest_note, 1);
 	ptb_read(bf, &staff->lowest_note, 1);
 	ptb_read_unknown(bf, 2); /* FIXME */
 
+	/* FIXME! */
 	staff->positions1 = ptb_read_items(bf, "CPosition");
 	staff->positions2 = ptb_read_items(bf, "CPosition");
 	staff->musicbars = ptb_read_items(bf, "CMusicBar");

@@ -1,4 +1,10 @@
+All changes, unless specified otherwise, made by Jelmer Vernooij
+<jelmer@samba.org>.
+
 0.2:
  * Add chord name support
  * Don't append length of note if not necessary
  * Fix chord handling
+
+0.1:
+ * Initial release

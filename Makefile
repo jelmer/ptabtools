@@ -12,9 +12,13 @@ CFLAGS = -g -Wall -DPTB_VERSION=\"$(PTB_VERSION)\"
 PTB2LY_OBJS = ptb2ly.o ptb.o
 PTB2ASCII_OBJS = ptb2ascii.o ptb.o
 PTB2MUSICXML_OBJS = ptb2musicxml.o ptb.o
+PTB2XML_OBJS = ptb2xml.o ptb.o
 PTBSO_OBJS = ptb.o
 
 all: $(PROGS)
+
+ptb2xml.o: ptb2xml.c
+	$(CC) $(CFLAGS) -c $< `pkg-config --cflags glib-2.0 libxml-2.0`
 
 ptb2musicxml.o: ptb2musicxml.c
 	$(CC) $(CFLAGS) -c $< `pkg-config --cflags glib-2.0 libxml-2.0`
@@ -24,6 +28,9 @@ ptb2musicxml.o: ptb2musicxml.c
 
 libptb-$(PTB_VERSION).so: $(PTBSO_OBJS)
 	$(CC) -shared $(CFLAGS) -o $@ $(PTBSO_OBJS) `pkg-config --libs glib-2.0`
+
+ptb2xml: $(PTB2XML_OBJS)
+	$(CC) $(CFLAGS) -o $@ $(PTB2XML_OBJS) `pkg-config --libs glib-2.0 libxml-2.0` -lpopt
 	
 ptb2musicxml: $(PTB2MUSICXML_OBJS)
 	$(CC) $(CFLAGS) -o $@ $(PTB2MUSICXML_OBJS) `pkg-config --libs glib-2.0 libxml-2.0` -lpopt
@@ -43,7 +50,7 @@ install: all
 	$(INSTALL) -m 644 ptb.h $(DESTDIR)$(includedir)
 	$(INSTALL) -m 644 ptabtools.pc $(DESTDIR)$(pkgconfigdir)
 
-tags:
+tags: *.c *.h
 	ctags *.c *.h
 
 clean: 

@@ -1,0 +1,81 @@
+\documentclass[a4paper]{article}
+
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage[pdftex]{hyperref}
+
+\newcommand\hex[1]{\hbox{\rm\H{}\tt#1}} % hexadecimal constant
+
+\begin{document}
+\title{The PowerTab file format}
+\date{2004}
+\author{Jelmer Vernooij}
+\maketitle
+
+Relevant links:
+
+\begin{itemize}
+\item \url{http://jelmer.vernstok.nl/oss/ptabtools/}
+\item \url{http://www.power-tab.net/}
+\end{itemize}
+
+\begin{abstract}
+This document describes the format of the PowerTab format, as 
+used by the PowerTab editor. All information 
+in this document was obtained by analysing data in existing PowerTab files.
+
+This document should be used by those interested in adding support 
+for the PowerTab file format to their own guitar tablature editors.
+\end{abstract}
+
+\section{Introduction}
+
+Most of the programs I use run on Linux or other Unices. However, 
+at the moment I still need to run guitar tablature editors on Windows, 
+because most tabs are only available in proprietary file formats from 
+programs such as Guitar Pro 3 and PowerTab.
+
+This is why I decided to try to figure out the structure of the PowerTab 
+format so I could write a small utility for generating Lilypond files 
+from PowerTab files.
+
+This document is the result of what I have figured out about the PowerTab 
+format so far --- it's almost complete. The conversion utilities 
+(published under the GPL) can be found on the website mentioned on the top of 
+this page.
+
+\section{General layout}
+
+Every file has 4 parts: a header, a part containing the guitar tabs, a 
+part containing the bass parts and a footer.
+
+\section{General techniques}
+
+\subsection{Strings}
+
+Strings are always prepended by one byte describing their length. There is 
+no ending null character.
+
+\section{Header}
+
+\section{Types}
+
+\section{Reference}
+
+\subsection{CGuitar}
+\subsection{CFloatingText}
+\subsection{CChordDiagram}
+\subsection{CTempoMarker}
+\subsection{CLineData}
+\subsection{CChordText}
+\subsection{CGuitarIn}
+\subsection{CStaff}
+\subsection{CPosition}
+\subsection{CSection}
+\subsection{CDynamic}
+\subsection{CSectionSymbol}
+\subsection{CMusicBar}
+\subsection{CRhythmSlash}
+\subsection{CDirection}
+
+\end{document}

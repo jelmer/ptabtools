@@ -259,5 +259,6 @@ struct ptbf {
 struct ptbf *ptb_read_file(const char *ptb);
 
 void ptb_set_debug(int level);
+void ptb_set_asserts_fatal(int yes);
 
 #endif /* __PTB_H__ */
