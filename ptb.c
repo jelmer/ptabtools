@@ -156,11 +156,8 @@ int ptb_read_item(struct ptbf *bf, struct ptb_section_handler *sections) {
 	char *sectionname;
 
 	read(bf->fd, &nr_items, 2);	
-	if(nr_items == 0x0) {
-		printf("Ignoring...\n");
-		return 0;
-	}
-		section_index++;
+	if(nr_items == 0x0) { return 0; }
+	section_index++;
 
 	read(bf->fd, &header, 2);
 	fprintf(stderr, "Header: %04x\n", header);
