@@ -54,13 +54,13 @@ int assert_is_fatal = 0;
 		if(assert_is_fatal) abort(); \
 	}
 
+#define malloc_p(t,n) (t *) calloc(sizeof(t), n)
+
 #define GET_ITEM(bf, dest, type)  ((bf)->mode == O_WRONLY?(type *)(*(dest)):malloc_p(type, 1))
 
 #define ptb_assert_0(ptb, expr) \
 	if(expr) ptb_debug("%s == 0x%x!", #expr, expr); \
 /*	ptb_assert(ptb, (expr) == 0); */
-
-#define malloc_p(t,n) (t *) calloc(sizeof(t), n)
 
 struct ptb_list {
 	struct ptb_list *prev, *next;
@@ -706,8 +706,10 @@ static int handle_CLineData (struct ptbf *bf, const char *section, struct ptb_li
 	ptb_data(bf, &linedata->conn_to_next, 1);
 	
 	if(linedata->conn_to_next) { 
-		linedata->bends = calloc(linedata->conn_to_next, sizeof(struct bend));
-		ptb_data(bf, &linedata->bends, 4*linedata->conn_to_next);
+		linedata->bends = malloc_p(struct ptb_bend, 1);
+		ptb_data(bf, linedata->bends, 4*linedata->conn_to_next);
+	} else {
+		linedata->bends = NULL;
 	}
 
 	*dest = (struct ptb_list *)linedata;
@@ -967,3 +969,127 @@ void ptb_get_position_difference(struct ptb_section *section, int start, int end
 	*length = 0;
 	if(l % 0x100) *length = 0x100 / (l % 0x100) ;
 }	
+
+static void ptb_free_hdr(struct ptb_hdr *hdr)
+{
+	if (hdr->classification == CLASSIFICATION_SONG) { 
+		switch (hdr->class_info.song.release_type) {
+		case RELEASE_TYPE_PR_AUDIO:
+			free(hdr->class_info.song.release_info.pr_audio.album_title);
+			break;
+		case RELEASE_TYPE_PR_VIDEO:
+			free(hdr->class_info.song.release_info.pr_video.video_title);
+			break;
+		case RELEASE_TYPE_BOOTLEG:
+			free(hdr->class_info.song.release_info.bootleg.title);
+			break;
+		default: break;
+		}
+		free (hdr->class_info.song.title);
+		free (hdr->class_info.song.artist);
+		free (hdr->class_info.song.words_by);
+		free (hdr->class_info.song.music_by);
+		free (hdr->class_info.song.arranged_by);
+		free (hdr->class_info.song.guitar_transcribed_by);
+		free (hdr->class_info.song.lyrics);
+		free (hdr->class_info.song.copyright);
+	} else if (hdr->classification == CLASSIFICATION_LESSON) {
+		free(hdr->class_info.lesson.artist);
+		free(hdr->class_info.lesson.title);
+		free(hdr->class_info.lesson.author);
+		free(hdr->class_info.lesson.copyright);
+	}
+
+	free(hdr->guitar_notes);
+	free(hdr->bass_notes);
+	free(hdr->drum_notes);
+}
+
+static void ptb_free_font(struct ptb_font *f)
+{
+	free(f->family);
+}
+
+#define FREE_LIST(ls, em, type) \
+{ \
+	type tmp; \
+	type tmp_next; \
+	for (tmp = ls; tmp; tmp = tmp_next) { \
+		em; \
+		tmp_next = tmp->next; \
+		if (tmp->prev) free(tmp); \
+	} \
+}
+
+static void ptb_free_position(struct ptb_position *pos)
+{
+	FREE_LIST(pos->linedatas, free(tmp->bends), struct ptb_linedata *);
+}
+
+static void ptb_free_staff(struct ptb_staff *staff)
+{
+	int i;
+	for (i = 0; i < 2; i++) {
+		FREE_LIST( staff->positions[i], ptb_free_position(tmp), struct ptb_position *);
+	}
+
+	FREE_LIST(
+		staff->musicbars,
+		free(tmp->description),
+		struct ptb_musicbar *);
+}
+
+static void ptb_free_section(struct ptb_section *section)
+{
+	FREE_LIST(section->staffs, ptb_free_staff(tmp), struct ptb_staff *);
+	FREE_LIST(section->chordtexts, , struct ptb_chordtext *);
+	FREE_LIST(section->rhythmslashes, , struct ptb_rhythmslash *);
+	FREE_LIST(section->directions, , struct ptb_direction *);
+}
+
+void ptb_free(struct ptbf *bf)
+{
+	int i;
+	ptb_free_hdr(&bf->hdr);
+	ptb_free_font(&bf->default_font);
+	ptb_free_font(&bf->chord_name_font);
+	ptb_free_font(&bf->tablature_font);
+
+	free(bf->filename);
+
+	for (i = 0; i < 2; i++) 
+	{
+		FREE_LIST(
+			bf->instrument[i].floatingtexts, 
+			free(tmp->text); ptb_free_font(&tmp->font);,
+			struct ptb_floatingtext *);
+		
+		FREE_LIST(
+			bf->instrument[i].guitars,
+			free(tmp->title); free(tmp->type),
+			struct ptb_guitar *);
+
+		FREE_LIST(
+			bf->instrument[i].tempomarkers,
+			free(tmp->description),
+			struct ptb_tempomarker *);
+
+		FREE_LIST(
+			bf->instrument[i].chorddiagrams,
+			free(tmp->tones),
+			struct ptb_chorddiagram *);
+			
+		FREE_LIST(
+			bf->instrument[i].sections,
+			free(tmp->description);
+			ptb_free_section(tmp),
+			struct ptb_section *);
+
+		FREE_LIST(
+			bf->instrument[i].sectionsymbols,
+			,
+			struct ptb_sectionsymbol *);
+	}
+	
+	free(bf);
+}

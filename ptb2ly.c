@@ -677,6 +677,8 @@ int main(int argc, const char **argv)
 	}
 	
 	if(output)fclose(out);
+
+	ptb_free(ret); ret = NULL;
 	
-	return (ret?0:1);
+	return 0;
 }

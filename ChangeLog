@@ -2,6 +2,8 @@ All changes, unless specified otherwise, made by Jelmer Vernooij
 <jelmer@samba.org>.
 
 0.4.2:
+ * add ptb_free function
+ * fix bug in reading bends for ptb 
  * pragma(lib) is MSVC-specific (thanks to Matthias Vogelgesang)
 
 0.4.1:

@@ -244,5 +244,6 @@ struct gpf {
 };
 
 extern struct gpf *gp_read_file(const char *filename);
+extern void gp_free(struct gpf *);
 
 #endif /* __GP_H__ */

@@ -235,7 +235,7 @@ struct ptb_staff {
 	struct ptb_musicbar *musicbars;
 };
 
-struct bend
+struct ptb_bend
 {
 	uint8_t bend_pitch:4;
 	uint8_t release_pitch:4;
@@ -267,7 +267,7 @@ struct ptb_linedata {
 #define LINEDATA_TRANSCRIBE_8VB					0x03
 #define LINEDATA_TRANSCRIBE_15MB				0x04
 	uint8_t conn_to_next;
-	struct bend *bends;
+	struct ptb_bend *bends;
 };
 
 #define METER_TYPE_BEAM_2	0x0080	
@@ -359,6 +359,7 @@ struct ptbf {
 
 extern struct ptbf *ptb_read_file(const char *ptb);
 extern int ptb_write_file(const char *ptb, struct ptbf *);
+extern void ptb_free(struct ptbf *);
 
 extern void ptb_set_debug(int level);
 extern void ptb_set_asserts_fatal(int yes);
