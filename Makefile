@@ -5,7 +5,7 @@ libdir = $(prefix)/lib
 includedir = $(prefix)/include
 pkgconfigdir = $(libdir)/pkgconfig
 PTB_VERSION=0.2
-PROGS = ptb2ly libptb-$(PTB_VERSION).so ptb2ascii
+PROGS = ptb2ly libptb-$(PTB_VERSION).so ptb2ascii $(shell pkg-config --exists libxml-2.0 && echo ptb2xml ptb2musicxml)
 INSTALL = install
 CFLAGS = -g -Wall -DPTB_VERSION=\"$(PTB_VERSION)\" 
 

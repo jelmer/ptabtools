@@ -37,7 +37,6 @@ xmlNodePtr xml_write_identification(struct ptb_hdr *hdr)
 	xmlNodePtr software = xmlNewNode(NULL, "software");
 	xmlNodePtr encoding_date = xmlNewNode(NULL,"encoding-date");
 	xmlNodePtr misc = xmlNewNode(NULL, "miscellaneous");
-	xmlNodePtr tmp;
 	
 	xmlNodeSetContent(software, "ptb2musicxml "PTB_VERSION);
 	t = time(NULL);
