@@ -896,7 +896,9 @@ static int handle_CRhythmSlash (struct ptbf *bf, const char *section, struct ptb
 static int handle_CDirection (struct ptbf *bf, const char *section, struct ptb_list **dest) { 
 	struct ptb_direction *direction = GET_ITEM(bf, dest, struct ptb_direction);
 
-	ptb_data_unknown(bf, 4); /* FIXME */
+	ptb_data_unknown(bf, 1);
+	ptb_data(bf, &direction->nr_items, 1);
+	ptb_data_unknown(bf, 2 * direction->nr_items); /* FIXME */
 
 	*dest = (struct ptb_list *)direction;
 	return 1;

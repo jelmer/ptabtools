@@ -362,6 +362,7 @@ struct ptb_rhythmslash {
 
 struct ptb_direction {
 	struct ptb_direction *prev, *next;
+	uint8_t nr_items;
 };
 
 struct ptbf {
