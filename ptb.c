@@ -530,7 +530,11 @@ struct ptbf *ptb_read_file(const char *file)
 	struct ptbf *bf = malloc_p(struct ptbf, 1);
 
 	bf->mode = O_RDONLY;
-	bf->fd = open(file, bf->mode);
+	bf->fd = open(file, bf->mode
+#ifdef O_BINARY
+				  | O_BINARY
+#endif
+				  );
 
 	strncpy(bf->data, "abc", 3);
 
