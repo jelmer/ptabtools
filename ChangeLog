@@ -9,6 +9,7 @@ All changes, unless specified otherwise, made by Jelmer Vernooij
  * (ptb2xml) Escape ampersands in output
  * (ptb2xml) Add -f option
  * (ptb2ly) Include version information
+ * (ptb2ly) Generate fewer lilypond output files, make midi work
 
 0.3:
  * Put chords at the right place
