@@ -31,8 +31,8 @@ int ptb_read(int fd, void *data, size_t length){
 }
 
 int ptb_read_unknown(int fd, size_t length) {
-	lseek(fd, length, SEEK_CUR);
-	return length;
+	char unknown[255];
+	return read(fd, unknown, length);
 }
 
 int ptb_read_font(int fd, struct ptb_font *dest) {
@@ -256,7 +256,7 @@ struct ptbf *ptb_read_file(const char *file, struct ptb_section_handler *section
 		fprintf(stderr, "Header parsed correctly\n");
 	}
 
-	while(lseek(bf->fd, 0L, SEEK_CUR) < bf->st_buf.st_size) {
+	while(lseek(bf->fd, 0, SEEK_CUR) < bf->st_buf.st_size) {
 		if(ptb_read_items(bf, sections) < 0) return NULL;
 	}
 

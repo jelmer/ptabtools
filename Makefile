@@ -12,14 +12,8 @@ all: $(PROGS)
 	$(CC) $(CFLAGS) -c $< `pkg-config --cflags glib-2.0`
 
 
-ptbsplit: $(PTBSPLIT_OBJS)
-	$(CC) $(CFLAGS) -o $@ $(PTBSPLIT_OBJS) `pkg-config --libs glib-2.0`
-
 ptb2ly: $(PTB2LY_OBJS)
 	$(CC) $(CFLAGS) -o $@ $(PTB2LY_OBJS) `pkg-config --libs glib-2.0`
-
-ptbtest: $(PTBTEST_OBJS)
-	$(CC) $(CFLAGS) -o $@ $(PTBTEST_OBJS) `pkg-config --libs glib-2.0`
 
 clean: 
 	rm -f *.o core $(PROGS)
