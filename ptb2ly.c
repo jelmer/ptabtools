@@ -51,12 +51,12 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 	int l = g_list_length(pos->linedatas);
 
 	if(l == 0) {/* Rest */
-		fprintf(out, " r ");
+		fprintf(out, " r%d ", pos->length);
 		/* FIXME */
 	}
-	
+
 	/* Multiple notes */
-	if(l > 1) fprintf(out, " <");
+	if(l > 1) fprintf(out, " << ");
 
 	while(gl) {
 		struct ptb_linedata *d = gl->data;
@@ -73,7 +73,6 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 		case 4: note+= 0; break;
 		case 5: note+= -7; break;
 		}
-		printf("Note: %d: %d\n",note, note / 12);
 		
 		fprintf(out, "%s", note_names[abs(note)%12]);
 
@@ -85,12 +84,12 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 		}
 
 		/* String */
-		fprintf(out, "\\%d ", string+1);
+		fprintf(out, "%d\\%d ", pos->length,string+1);
 		gl = gl->next;
 	}
 
 	/* Multiple notes */
-	if(l > 1) fprintf(out, " >");
+	if(l > 1) fprintf(out, " >> ");
 }
 
 void ly_write_staff(FILE *out, struct ptb_staff *s) 
