@@ -76,6 +76,7 @@ struct ptb_section_handler {
 extern struct ptb_section_handler ptb_section_handlers[];
 
 static void ptb_debug(const char *fmt, ...);
+static void ptb_error(const char *fmt, ...);
 
 int debugging = 0;
 
