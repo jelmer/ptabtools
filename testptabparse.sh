@@ -2,5 +2,8 @@
 # Test which files can't be parsed
 for I in $*
 do
-	./ptbinfo "$I" > /dev/null 2>/dev/null || echo "$I"
+	echo "$I"
+	./ptbinfo "$I" > /dev/null 2>/dev/null
+	./ptb2xml -q "$I" || echo "xml: $I"
+	./ptb2ly -q "$I" || echo "ly: $I"
 done

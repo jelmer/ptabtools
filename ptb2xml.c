@@ -105,6 +105,7 @@ xmlNodePtr xml_write_musicbars(GList *musicbars)
 
 	while(gl) {
 		struct ptb_musicbar *musicbar = gl->data;
+		xmlChar *tmp;
 		xmlNodePtr xmusicbar = xmlNewNode(NULL, "musicbar");
 		xmlAddChild(xmusicbars, xmusicbar);
 
@@ -114,7 +115,9 @@ xmlNodePtr xml_write_musicbars(GList *musicbars)
 			xmlSetProp(xmusicbar, "letter", tmp);
 		}
 
-		xmlNodeSetContent(xmusicbar, musicbar->description);
+		tmp = xmlEncodeEntitiesReentrant(NULL, musicbar->description);
+		xmlNodeSetContent(xmusicbar, tmp);
+		xmlFree(tmp);
 
 		gl = gl->next;
 	}
@@ -317,6 +320,7 @@ xmlNodePtr xml_write_tempomarkers(GList *tempomarkers)
 	
 	while(gl) {
 		struct ptb_tempomarker *tempomarker = gl->data;
+		xmlChar *tmp;
 		xmlNodePtr xtempomarker = xmlNewNode(NULL, "tempomarker");
 		xmlAddChild(xtempomarkers, xtempomarker);
 		
@@ -324,7 +328,10 @@ xmlNodePtr xml_write_tempomarkers(GList *tempomarkers)
 		SMART_ADD_CHILD_INT(xtempomarker, "section", tempomarker->section);
 		SMART_ADD_CHILD_INT(xtempomarker, "offset", tempomarker->offset);
 		SMART_ADD_CHILD_INT(xtempomarker, "bpm", tempomarker->bpm);
-		xmlNodeSetContent(xtempomarker, tempomarker->description);
+
+		tmp = xmlEncodeEntitiesReentrant(NULL, tempomarker->description);
+		xmlNodeSetContent(xtempomarker, tmp);
+		xmlFree(tmp);
 
 		gl = gl->next;
 	}
@@ -403,6 +410,7 @@ xmlNodePtr xml_write_floatingtexts(GList *floatingtexts)
 	
 	while(gl) {
 		struct ptb_floatingtext *floatingtext = gl->data;
+		xmlChar *tmp;
 		xmlNodePtr xfloatingtext = xmlNewNode(NULL, "floatingtext");
 		xmlAddChild(xfloatingtexts, xfloatingtext);
 		
@@ -419,7 +427,10 @@ xmlNodePtr xml_write_floatingtexts(GList *floatingtexts)
 			SMART_ADD_CHILD_STRING(xfloatingtext, "alignment", "center");
 			break;
 		}
-		xmlNodeSetContent(xfloatingtext, floatingtext->text);
+
+		tmp = xmlEncodeEntitiesReentrant(NULL, floatingtext->text);
+		xmlNodeSetContent(xfloatingtext, tmp);
+		xmlFree(tmp);
 
 		xmlAddChild(xfloatingtext, xml_write_font(&floatingtext->font));
 
@@ -591,7 +602,10 @@ int main(int argc, const char **argv)
 	xmlAddChild(font, xml_write_font(&ret->tablature_font));
 
 	if (!quiet) fprintf(stderr, "Writing output to %s...\n", output);
-	xmlSaveFormatFileEnc(output, doc, "UTF-8", 1);
+
+	if (xmlSaveFormatFileEnc(output, doc, "UTF-8", 1) < 0) {
+		return -1;
+	}
 
 	xmlFreeDoc(doc);
 
