@@ -257,7 +257,7 @@ void ly_write_staff_identifier(FILE *out, struct ptb_staff *s, struct ptb_sectio
 	int i;
 
 	fprintf(out, "\n%% Notes for section %d, staff %d\n", section_num, staff_num);
-	fprintf(out, "%s = \\relative {\n", get_staff_name(section_num, staff_num));
+	fprintf(out, "%s = {\n", get_staff_name(section_num, staff_num));
 	fprintf(out, "\t");
 	previous = 0.0;
 	for(i = 0; i < 2; i++) {
@@ -302,6 +302,11 @@ void ly_write_section_identifier(FILE *out, struct ptb_section *s, int section_n
 	int staff_num = 0;
 	GList *gl;
 
+	if (s->description) {
+		fprintf(out, "\n%% %s\n", s->description);
+	}
+
+
 	ly_write_chords_identifier(out, s, section_num);
 
 	gl = s->staffs;
@@ -334,34 +339,6 @@ void ly_write_chords(FILE *out, struct ptb_section *s, int section_num)
 	fprintf(out, "\t\t\\chords%s\n", num_to_string(section_num, num));
 }
 
-void ly_write_section_tabstaffs(FILE *out, struct ptb_section *s, int section_num) 
-{
-	int staff_num = 0;
-	GList *gl;
-
-	gl = s->staffs;
-		while(gl) {
-		ly_write_tabstaff(out, (struct ptb_staff *)gl->data, s, section_num, staff_num);
-		gl = gl->next;
-		staff_num++;
-	}
-}
-
-
-void ly_write_section_staffs(FILE *out, struct ptb_section *s, int section_num) 
-{
-	int staff_num = 0;
-	GList *gl;
-
-	gl = s->staffs;
-	
-	while(gl) {
-		ly_write_staff(out, (struct ptb_staff *)gl->data, s, section_num, staff_num);
-		gl = gl->next;
-		staff_num++;
-	}
-
-}
 
 int ly_write_lyrics(FILE *out, struct ptbf *ret)
 {
@@ -371,6 +348,65 @@ int ly_write_lyrics(FILE *out, struct ptbf *ret)
 	fprintf(out, "%s\n", "}\n");
 	return 1;
 }
+
+int ly_write_book_section(FILE *out, struct ptb_section *s, int section_num)
+{
+	int staff_num = 0;
+	GList *gl;
+
+	fprintf(out, "\t\\score {  \n");
+	fprintf(out, "\t\\header { \n");
+	if (s->description) {
+		fprintf(out, "\t\tpiece = \"%s\"\n", s->description);
+	}
+	fprintf(out, "\t} << \n");
+	fprintf(out, "\t\\context ChordNames {\n");
+	ly_write_chords(out, s, section_num);
+	fprintf(out, "\t}\n");
+
+	gl = s->staffs;
+	
+	while(gl) {
+		fprintf(out, "\t\\context StaffGroup = \"Staff%d\" <<\n", staff_num);
+		fprintf(out, "\t\t\\context Staff { \n");
+		ly_write_staff(out, (struct ptb_staff *)gl->data, s, section_num, staff_num);
+		fprintf(out, "\t\t}\n");
+		fprintf(out, "\t\\context TabStaff { \n");
+		ly_write_tabstaff(out, (struct ptb_staff *)gl->data, s, section_num, staff_num);
+		fprintf(out, "\t\t}\n");
+		fprintf(out, "\t>>\n");
+		gl = gl->next;
+		staff_num++;
+	}
+
+	fprintf(out, "\t>>\n");
+	fprintf(out, "} \n");
+	return 1;
+}
+
+int ly_write_main_book(FILE *out, struct ptb_instrument *instrument)
+{
+	GList *gl;
+	int i = 0;
+	fprintf(out, "\\book {\n");
+
+	gl = instrument->sections;
+	while(gl) {
+		ly_write_book_section(out, (struct ptb_section *)gl->data, i);
+		gl = gl->next;
+		i++;
+	}
+
+	fprintf(out, "\t\\paper { } \n");
+	fprintf(out, "}\n");
+	return 1;
+}
+
+int ly_write_main_single(FILE *out, struct ptb_instrument *instrument)
+{
+	fprintf(out, "%%FIXME\n");
+	return 0;
+}	
 
 int main(int argc, const char **argv) 
 {
@@ -382,8 +418,8 @@ int main(int argc, const char **argv)
 	int instrument = 0;
 	int c, i = 0;
 	int version = 0;
+	int singlepiece = 0;
 	int quiet = 0;
-	int num_sections = 0;
 	const char *input;
 	char *output = NULL;
 	poptContext pc;
@@ -393,8 +429,8 @@ int main(int argc, const char **argv)
 		{"outputfile", 'o', POPT_ARG_STRING, &output, 0, "Write to specified file", "FILE" },
 		{"regular", 'r', POPT_ARG_NONE, &instrument, 0, "Write tabs for regular guitar" },
 		{"bass", 'b', POPT_ARG_NONE, &instrument, 1, "Write tabs for bass guitar"},
-		{"sections", 's', POPT_ARG_INT, &num_sections, 0, "Write only X sections (0 for all)", "SECTIONS" },
 		{"quiet", 'q', POPT_ARG_NONE, &quiet, 1, "Be quiet (no output to stderr)" },
+		{"single", 's', POPT_ARG_NONE, &singlepiece, 1, "Write single piece instead of \\book (experimental)" },
 		{"version", 'v', POPT_ARG_NONE, &version, 'v', "Show version information" },
 		POPT_TABLEEND
 	};
@@ -457,55 +493,28 @@ int main(int argc, const char **argv)
 	ly_write_header(out, ret);
 	have_lyrics = ly_write_lyrics(out, ret);
 	
+	i = 1;
 	gl = ret->instrument[instrument].sections;
 	while(gl) {
-		if(++i > num_sections && num_sections) break;
 		ly_write_section_identifier(out, (struct ptb_section *)gl->data, i-1);
 		gl = gl->next;
+		i++;
 	}
 
-	fprintf(out, "\n\\score { << \n");
+	/* Do the main typesetting */
 
-	fprintf(out, "\t\\context ChordNames {\n");
-	i = 0;
-	gl = ret->instrument[instrument].sections;
-	while(gl) {
-		if(++i > num_sections && num_sections) break;
-		ly_write_chords(out, (struct ptb_section *)gl->data, i-1);
-		gl = gl->next;
+	if (!singlepiece) {
+		/* typeset using \book */
+
+		ly_write_main_book(out, &ret->instrument[instrument]);
+	} else {
+	/* OR:
+	 * - define 3 staffs and a chordnames occurring simultaneously
+	 * - walk through all of the sections /per/ staff, adding R1's where staffs are not used.
+	 */
+	 	ly_write_main_single(out, &ret->instrument[instrument]);
 	}
-
-	fprintf(out, "\t}\n");
-
-	fprintf(out, "\t\\context StaffGroup <<\n");
-	fprintf(out, "\t\t\\context Staff { \n");
-	i = 0;
-	gl = ret->instrument[instrument].sections;
-	while(gl) {
-		if(++i > num_sections && num_sections) break;
-		ly_write_section_staffs(out, (struct ptb_section *)gl->data, i-1);
-		gl = gl->next;
-	}
-
-	fprintf(out, "\t\t}\n");
-	fprintf(out, "\t\\context TabStaff { \n");
-	i = 0;
-	gl = ret->instrument[instrument].sections;
-	while(gl) {
-		if(++i > num_sections && num_sections) break;
-		ly_write_section_tabstaffs(out, (struct ptb_section *)gl->data, i-1);
-		gl = gl->next;
-	}
-	fprintf(out, "\t\t}\n");
-	fprintf(out, "\t>>\n");
-
-
-	fprintf(out, "\t>>\n");
 	
-	fprintf(out, "\t\\layout { }\n");
-	fprintf(out, "\t\\midi { }\n");
-	fprintf(out, "} \n");
-
 	if(output)fclose(out);
 	
 	return (ret?0:1);

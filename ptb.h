@@ -308,7 +308,7 @@ struct ptbf {
 	int mode;
 	char *filename;
 	struct ptb_hdr hdr;
-	struct {
+	struct ptb_instrument {
 		GList *guitars;
 		GList *sections;
 		GList *guitarins;
