@@ -397,9 +397,9 @@ struct ptb_tuning_dict {
 	} *tunings;
 };
 
-extern struct ptb_tuning_dict *ptb_read_tuning_file(const char *);
-extern int ptb_write_tuning_file(const char *, struct ptb_tuning_dict *);
-extern void ptb_free_tuning(struct ptb_tuning_dict *);
+extern struct ptb_tuning_dict *ptb_read_tuning_dict(const char *);
+extern int ptb_write_tuning_dict(const char *, struct ptb_tuning_dict *);
+extern void ptb_free_tuning_dict(struct ptb_tuning_dict *);
 
 #ifdef __cplusplus
 }

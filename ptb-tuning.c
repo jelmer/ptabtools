@@ -41,7 +41,7 @@ typedef int ssize_t;
 
 #define malloc_p(t,n) (t *) calloc(sizeof(t), n)
 
-struct ptb_tuning_dict *ptb_read_tuning_file(const char *f)
+struct ptb_tuning_dict *ptb_read_tuning_dict(const char *f)
 {
 	struct ptb_tuning_dict *ptbf = malloc_p(struct ptb_tuning_dict, 1);
 	char unknown[8];
@@ -70,7 +70,7 @@ struct ptb_tuning_dict *ptb_read_tuning_file(const char *f)
 		read(fd, &ptbf->tunings[i].capo, 1);
 		read(fd, &ptbf->tunings[i].nr_strings, 1);
 		ptbf->tunings[i].strings = malloc_p(uint8_t, ptbf->tunings[i].nr_strings);
-		read(fd, ptbf->tunings[i].strings, sizeof(uint8_t));
+		read(fd, ptbf->tunings[i].strings, ptbf->tunings[i].nr_strings);
 
 		read(fd, unknown, 2);
 	}
@@ -80,13 +80,13 @@ struct ptb_tuning_dict *ptb_read_tuning_file(const char *f)
 	return ptbf;
 }
 
-int ptb_write_tuning_file(const char *f, struct ptb_tuning_dict *t)
+int ptb_write_tuning_dict(const char *f, struct ptb_tuning_dict *t)
 {
 	/* FIXME */
 	return 0;
 }
 
-void ptb_free_tuning(struct ptb_tuning_dict *t)
+void ptb_free_tuning_dict(struct ptb_tuning_dict *t)
 {
 	int i;
 	for (i = 0; i < t->nr_tunings; i++) {

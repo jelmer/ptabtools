@@ -40,6 +40,9 @@ gp2ly$(EXEEXT): gp2ly.o gp.o
 
 ptbinfo$(EXEEXT): ptbinfo.o ptb.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(POPT_LIBS)
+
+ptbdict$(EXEEXT): ptbdict.o ptb.o ptb-tuning.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(POPT_LIBS)
 	
 install: all
 	$(INSTALL) $(TARGET_BINS) $(DESTDIR)$(bindir)

@@ -21,7 +21,7 @@ AC_SUBST(POPT_LIBS)
 # Checks for libraries.
 AC_CHECK_LIB([popt], [poptGetArg], [ 
 	  POPT_LIBS="-lpopt"
-	  TARGET_BINS="$TARGET_BINS ptb2ly$EXEEXT ptb2ascii$EXEEXT ptbinfo$EXEEXT gp2ly$EXEEXT" 
+	  TARGET_BINS="$TARGET_BINS ptbdict$EXEEXT ptb2ly$EXEEXT ptb2ascii$EXEEXT ptbinfo$EXEEXT gp2ly$EXEEXT" 
 	  ] , AC_MSG_WARN([Popt is required for command-line utilities]))
 PKG_CHECK_MODULES(LIBXML, libxml-2.0, [
 if test $ac_cv_lib_popt_poptGetArg = yes; then  

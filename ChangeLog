@@ -2,6 +2,7 @@ All changes, unless specified otherwise, made by Jelmer Vernooij
 <jelmer@samba.org>.
 
 0.4.2:
+ * Add ptbdict utility
  * Add parser for ptb tuning dictionaries (thanks to Matthias 
 		Vogelgesang for information about the file format)
  * Move variables from Makefile to Makefile.settings.in
