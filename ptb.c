@@ -43,11 +43,14 @@ ssize_t ptb_read(struct ptbf *f, void *data, size_t length){
 
 ssize_t ptb_read_unknown(struct ptbf *f, size_t length) {
 	char unknown[255];
-	ssize_t ret = ptb_read(f, unknown, length);
+	ssize_t ret;
+	off_t oldpos = f->curpos;
 	int i;
+
+	ret = ptb_read(f, unknown, length);
 	if(debugging) {
 		for(i = 0; i < length; i++) 
-			ptb_debug("Unknown[%04x]: %02x", f->curpos + i, unknown[i]);
+			ptb_debug("Unknown[%04lx]: %02x", oldpos + i, unknown[i]);
 	}
 	return ret;
 }
@@ -200,10 +203,10 @@ int ptb_read_items(struct ptbf *bf) {
 	ret+=ptb_read(bf, &nr_items, 2);	
 	if(nr_items == 0x0) { ptb_debug("Embedded"); return ret; }
 	if(ret == 0) return 0;
+	ret+=ptb_read(bf, &header, 2);
 	debug_level++;
 	section_index++;
 
-	ret+=ptb_read(bf, &header, 2);
 
 	if(header == 0xffff) { /* New section */
 
@@ -250,8 +253,9 @@ int ptb_read_items(struct ptbf *bf) {
 
 	for(l = 0; l < nr_items; l++) {
 		int tmp;
+		guint16 next_thing;
 
-		ptb_debug("%02x ============= Handling %s (%d of %d) =============", ptb_section_handlers[i].index, ptb_section_handlers[i].name, l+1, nr_items);
+		ptb_debug("%02x %02x ============= Handling %s (%d of %d) =============", bf->curpos, ptb_section_handlers[i].index, ptb_section_handlers[i].name, l+1, nr_items);
 		section_index++;
 		tmp = ptb_section_handlers[i].handler(bf, ptb_section_handlers[i].name);
 
@@ -261,14 +265,20 @@ int ptb_read_items(struct ptbf *bf) {
 			fprintf(stderr, "Error parsing section '%s'\n", ptb_section_handlers[i].name);
 		}
 		ret+=tmp;
-
-
+		
 		if(l < nr_items - 1) {
-			unsigned char seperators[2];
-			ptb_read(bf, seperators, 2);
-			g_assert(seperators[1] == 0x80);
+			ret+=ptb_read(bf, &next_thing, 2);
+			if(next_thing != 0x8000 + ptb_section_handlers[i].index) {
+				fprintf(stderr, "%04x != %04x\n", next_thing, 0x8000 + ptb_section_handlers[i].index);
+				g_assert(0);
+			}
 		}
 	}
+
+	do { 
+		l = ptb_read_items(bf);
+		ret+=l;
+	} while(l > 2);
 	debug_level--;
 
 	return ret;

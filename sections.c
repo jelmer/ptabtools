@@ -50,7 +50,7 @@ ssize_t handle_CGuitar (struct ptbf *bf, const char *section) {
 	ret+=ptb_read(bf, &guitar->nr_strings, 1);
 	guitar->strings = g_new(guint8, guitar->nr_strings);
 	ret+=ptb_read(bf, guitar->strings, guitar->nr_strings);
-	
+
 	return ret;
 }
 
@@ -72,16 +72,21 @@ ssize_t handle_CFloatingText (struct ptbf *bf, const char *section) {
 
 ssize_t handle_CSection (struct ptbf *bf, const char *sectionname) { 
 	ssize_t ret = 0;
-	int cur = 0;
 	struct ptb_section *section = g_new0(struct ptb_section, 1);
 
 	bf->sections = g_list_append(bf->sections, section);
 
 	ret+=ptb_read_unknown(bf, 12);
-	ret+=ptb_read(bf, &section->child_size, 1);
-	ret+=ptb_read_unknown(bf, 3);
+	ret+=ptb_read(bf, &section->properties, 2);
+	ret+=ptb_read_unknown(bf, 2);
+/*	175 -> 3 staffs
+	07d -> 1 staff
+	102 -> 2  staffs
+	*/
+	printf("%04x\n", section->properties);
 	ret+=ptb_read(bf, &section->end_mark, 1);
-	ret+=ptb_read_unknown(bf, 6);
+	ret+=ptb_read(bf, &section->position_width, 1);
+	ret+=ptb_read_unknown(bf, 5);
 	ret+=ptb_read(bf, &section->key_extra, 1);
 	ret+=ptb_read_unknown(bf, 1);
 	ret+=ptb_read(bf, &section->meter_type, 2);
@@ -90,18 +95,7 @@ ssize_t handle_CSection (struct ptbf *bf, const char *sectionname) {
 	ret+=ptb_read(bf, &section->letter, 1);
 	ret+=ptb_read_string(bf, &section->description);
 
-	ret+=ptb_read_unknown(bf, 2);
-
-	while(cur < section->child_size) {
-		int ret = ptb_read_items(bf); 
-		if(ret) cur+=ret;
-		else { 
-			fprintf(stderr, "CSection: Can't read all my items (%d out of %d)\n", cur, section->child_size);
-			g_assert(0);
-		}
-	}
-
-	g_assert(cur == section->child_size);
+	ret+=ptb_read_unknown(bf, 6);
 
 	return ret; 
 }
@@ -194,10 +188,13 @@ ssize_t handle_CStaff (struct ptbf *bf, const char *section) {
 	bf->staffs = g_list_append(bf->staffs, staff);
 
 	ret+=ptb_read(bf, &staff->properties, 1);
-	ret+=ptb_read_unknown(bf, 3); /* FIXME */
+	ret+=ptb_read(bf, &staff->highest_note, 1);
+	ret+=ptb_read(bf, &staff->lowest_note, 1);
+	ret+=ptb_read_unknown(bf, 1); /* FIXME */
 	ret+=ptb_read(bf, &staff->extra_data, 1);
-	ret+=ptb_read_items(bf);
-	ret+=ptb_read_unknown(bf, staff->extra_data);
+//	ret+=ptb_read_unknown(bf, 2);
+//	ret+=ptb_read_items(bf);
+//	ret+=ptb_read_unknown(bf, staff->extra_data);
 	return ret;
 }
 

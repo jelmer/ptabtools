@@ -107,6 +107,7 @@ struct ptb_guitarin {
 	guint16 offset;	
 	guint8 section;
 	guint8 staff;
+
 	/* OR'd numbers of guitars 
 	 * (0x01 = guitar1, 0x02 = guitar2, 0x04 = guitar3, etc) */
 	guint8 guitar;
@@ -162,8 +163,9 @@ struct ptb_position {
 struct ptb_staff {
 	/* Number of strings OR-ed with some settings */
 	guint8 properties;
-	guint8 child_size;
 	guint8 extra_data;
+	guint8 highest_note;
+	guint8 lowest_note;
 };
 
 struct ptb_linedata {
@@ -197,8 +199,9 @@ struct ptb_section {
 	guint16 meter_type;
 	guint8 beat_value;
 	guint8 metronome_pulses_per_measure;
-	guint8 child_size;
+	guint16 properties;
 	guint8 key_extra;
+	guint8 position_width;
 	char *description;
 };
 
