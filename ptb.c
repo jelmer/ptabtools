@@ -872,7 +872,9 @@ static int handle_CSectionSymbol (struct ptbf *bf, const char *section, struct p
 static int handle_CMusicBar (struct ptbf *bf, const char *section, struct ptb_list **dest) { 
 	struct ptb_musicbar *musicbar = GET_ITEM(bf, dest, struct ptb_musicbar);
 											 
-	ptb_data_unknown(bf, 8); /* FIXME */
+	ptb_data_unknown(bf, 1);
+	ptb_data(bf, &musicbar->properties, 1);
+	ptb_data_unknown(bf, 6);
 	ptb_data(bf, &musicbar->letter, 1);
 	ptb_data_string(bf, &musicbar->description);
 

@@ -31,6 +31,8 @@
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned long uint32_t;
+#else
+#include <stdint.h>
 #endif
 
 #ifdef __cplusplus
@@ -321,6 +323,14 @@ struct ptb_sectionsymbol {
 struct ptb_musicbar {
 	struct ptb_musicbar *prev, *next;
 
+#define MUSICBAR_PROPERTY_SINGLE_BAR    0x00
+#define MUSICBAR_PROPERTY_DOUBLE_BAR    0x20
+#define MUSICBAR_PROPERTY_FREE_BAR      0x40
+#define MUSICBAR_PROPERTY_REPEAT_BEGIN  0x60
+#define MUSICBAR_PROPERTY_REPEAT_END    0x80
+#define MUSICBAR_PROPERTY_END_BAR       0xA0
+	/* Number of times to repeat OR-ed only with REPEAT_END property */
+	uint8_t properties;
 	char letter;
 	char *description;
 };
