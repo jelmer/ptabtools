@@ -131,6 +131,7 @@ int main(int argc, const char **argv)
 	}
 			
 	ptb_set_debug(debugging);
+	ptb_set_asserts_fatal(0);
 	
 	if(!poptPeekArg(pc)) {
 		poptPrintUsage(pc, stderr, 0);

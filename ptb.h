@@ -149,7 +149,9 @@ struct ptb_chorddiagram {
 struct ptb_chordtext {
 	ptb_chord name[2];
 #define CHORDTEXT_PROPERTY_NOCHORD 			0x10
-#define CHORDTEXT_PROPERTY_COMBINED_CHORD	0x20
+#define CHORDTEXT_PROPERTY_PARENTHESES		0x20
+#define CHORDTEXT_PROPERTY_FORMULA_M		0x01
+#define CHORDTEXT_PROPERTY_FORMULA_MAJ7		0x08
 	guint8 properties;
 	guint8 offset;
 	guint8 additions;
@@ -159,14 +161,17 @@ struct ptb_chordtext {
 struct ptb_position {
 	guint8 offset;
 	guint8 length;
-#define POSITION_PROPERTY_FIRST_IN_BIND	0x0004
-#define POSITION_PROPERTY_LEFT_BOUND	0x0001
-#define POSITION_PROPERTY_STACCATO 		0x0002
-#define POSITION_PROPERTY_LAST_IN_BIND	0x0020
+#define POSITION_PROPERTY_IN_SINGLE_BEAM		0x0080
+#define POSITION_PROPERTY_IN_DOUBLE_BEAM		0x0100
+#define POSITION_PROPERTY_FIRST_IN_BEAM 		0x0400
+#define POSITION_PROPERTY_LAST_IN_BEAM			0x2000
+#define POSITION_PROPERTY_STACCATO 				0x0002
 	guint8 dots;
 	guint16 properties;
 	guint8 let_ring;
 	guint8 fermenta;
+#define POSITION_FERMENTA_LET_RING				0x08
+#define POSITION_FERMENTA_FERMENTA				0x10
 	GList *linedatas;
 };
 
@@ -184,8 +189,11 @@ struct ptb_staff {
 
 struct ptb_linedata {
 	guint8 tone;	
-#define LINEDATA_PROPERTY_GHOST_NOTE 			0x01
+#define LINEDATA_PROPERTY_TIE					0x01
 #define LINEDATA_PROPERTY_MUTED					0x02
+#define LINEDATA_PROPERTY_PULLOFF				0x10
+#define LINEDATA_PROPERTY_HAMMERON				0x20
+#define LINEDATA_PROPERTY_GHOST_NOTE 			0x80
 #define LINEDATA_PROPERTY_PULLOFF_FROM_NOWHERE	0x30
 #define LINEDATA_PROPERTY_HAMMERON_FROM_NOWHERE	0x28
 	guint8 properties;
@@ -207,8 +215,9 @@ struct ptb_linedata {
 #define METER_TYPE_CUT    	0x8000
 #define METER_TYPE_SHOW   	0x1000
 
-#define END_MARK_TYPE_NORMAL 0x00
-#define END_MARK_TYPE_REPEAT 0x80
+#define END_MARK_TYPE_NORMAL 	 0x00
+#define END_MARK_TYPE_DOUBLELINE 0x20
+#define END_MARK_TYPE_REPEAT 	 0x80
 
 struct ptb_section {
 	char letter;

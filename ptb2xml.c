@@ -104,7 +104,7 @@ xmlNodePtr xml_write_musicbars(GList *musicbars)
 		xmlNodePtr xmusicbar = xmlNewNode(NULL, "musicbar");
 		xmlAddChild(xmusicbars, xmusicbar);
 
-		{
+		if(musicbar->letter != 0x7f) {
 			char tmp[100];
 			g_snprintf(tmp, 100, "%c", musicbar->letter);
 			xmlSetProp(xmusicbar, "letter", tmp);
@@ -194,7 +194,7 @@ xmlNodePtr xml_write_sections(GList *sections)
 
 		xmlAddChild(sctns, xsection);
 
-		{
+		if(section->letter != 0x7f) {
 		char tmp[100];
 		g_snprintf(tmp, 100, "%c", section->letter);
 		xmlSetProp(xsection, "letter", tmp);

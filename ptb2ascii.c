@@ -62,12 +62,12 @@ void ascii_write_chordtext(FILE *out, struct ptb_chordtext *name) {
 		fprintf(out, "N.C.");
 	}
 
-	if(name->properties & CHORDTEXT_PROPERTY_COMBINED_CHORD) {
+	if(name->properties & CHORDTEXT_PROPERTY_PARENTHESES) {
 		fprintf(out, "(");
 	}
 
 	if(!(name->properties & CHORDTEXT_PROPERTY_NOCHORD) | 
-	   (name->properties & CHORDTEXT_PROPERTY_COMBINED_CHORD)) {
+	   (name->properties & CHORDTEXT_PROPERTY_PARENTHESES)) {
 		if(name->name[0] == name->name[1]) {
 			fprintf(out, "%s", ptb_get_tone(name->name[0]));
 		} else { 
@@ -76,7 +76,7 @@ void ascii_write_chordtext(FILE *out, struct ptb_chordtext *name) {
 		}
 	}
 
-	if(name->properties & CHORDTEXT_PROPERTY_COMBINED_CHORD) {
+	if(name->properties & CHORDTEXT_PROPERTY_PARENTHESES) {
 		fprintf(out, ")");
 	}
 

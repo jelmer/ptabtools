@@ -25,7 +25,7 @@
 #include "ptb.h"
 #include <glib.h>
 
-int assert_is_fatal = 1;
+int assert_is_fatal = 0;
 
 #define ptb_assert(ptb, expr) \
 	if (!(expr)) { ptb_debug("---------------------------------------------"); \
@@ -33,6 +33,10 @@ int assert_is_fatal = 1;
 		ptb_print_section_list(ptb); \
 		if(assert_is_fatal) abort(); \
 	}
+
+#define ptb_assert_0(ptb, expr) \
+	if(expr) ptb_debug("%s == 0x%x!", #expr, expr); \
+/*	ptb_assert(ptb, (expr) == 0); */
 
 struct ptb_section_handler {
 	char *name;
@@ -275,8 +279,9 @@ GList *ptb_read_items(struct ptbf *bf, const char *assumed_type) {
 	} else if(header & 0x8000) {
 		my_section_index=header-0x8000;
 		my_section_name = g_hash_table_lookup(bf->section_indices, GINT_TO_POINTER(my_section_index));
+		ptb_assert(bf, my_section_name);
 	} else { 
-		fprintf(stderr, "Expected new item type (%s), got %04x %02x\n", assumed_type, nr_items, header);
+		ptb_debug("Expected new item type (%s), got %04x %02x\n", assumed_type, nr_items, header);
 		ptb_assert(bf, 0);
 		return NULL;
 	}
@@ -320,6 +325,8 @@ GList *ptb_read_items(struct ptbf *bf, const char *assumed_type) {
 			if(next_thing != 0x8000 + my_section_index) {
 				ptb_debug("Warning: got %04x, expected %04x\n", next_thing, 0x8000 + my_section_index);
 				ptb_assert(bf, 0);
+				g_hash_table_insert(bf->section_indices, GINT_TO_POINTER(next_thing - 0x8000), g_strdup(my_section_name));
+				my_section_index = next_thing - 0x8000;
 			}
 		}
 	}
@@ -436,6 +443,7 @@ void *handle_CSection (struct ptbf *bf, const char *sectionname) {
 	*/
 	ptb_read(bf, &section->end_mark, 1);
 	ptb_assert(bf, section->end_mark == END_MARK_TYPE_NORMAL 
+			   || section->end_mark == END_MARK_TYPE_DOUBLELINE
 			   || section->end_mark == END_MARK_TYPE_REPEAT);
 	ptb_read(bf, &section->position_width, 1);
 	ptb_read_unknown(bf, 5);
@@ -459,10 +467,10 @@ void *handle_CTempoMarker (struct ptbf *bf, const char *section) {
 	struct ptb_tempomarker *tempomarker = g_new0(struct ptb_tempomarker, 1);
 
 	ptb_read(bf, &tempomarker->section, 1);
-	ptb_read_unknown(bf, 1);
+	ptb_read_constant(bf, 0);
 	ptb_read(bf, &tempomarker->offset, 1);
 	ptb_read(bf, &tempomarker->bpm, 1);
-	ptb_read_unknown(bf, 1);
+	ptb_read_constant(bf, 0);
 	ptb_read(bf, &tempomarker->type, 2);
 	ptb_read_string(bf, &tempomarker->description);
 
@@ -489,16 +497,18 @@ void *handle_CLineData (struct ptbf *bf, const char *section) {
 
 	ptb_read(bf, &linedata->tone, 1);
 	ptb_read(bf, &linedata->properties, 1);
-	ptb_debug("Properties: %02x", linedata->properties);
-	ptb_assert(bf, 0 == (linedata->properties
+	ptb_assert_0(bf, linedata->properties
 			   & ~LINEDATA_PROPERTY_GHOST_NOTE
-			   & ~LINEDATA_PROPERTY_MUTED));
+			   & ~LINEDATA_PROPERTY_PULLOFF
+			   & ~LINEDATA_PROPERTY_HAMMERON
+			   & ~LINEDATA_PROPERTY_TIE
+			   & ~LINEDATA_PROPERTY_MUTED);
 	ptb_read(bf, &linedata->transcribe, 1);
-	ptb_debug("Transcribe: %02x", linedata->transcribe);
 	ptb_assert(bf, linedata->transcribe == LINEDATA_TRANSCRIBE_8VA 
 			   ||  linedata->transcribe == LINEDATA_TRANSCRIBE_15MA
 			   ||  linedata->transcribe == LINEDATA_TRANSCRIBE_8VB
-			   ||  linedata->transcribe == LINEDATA_TRANSCRIBE_15MB);
+			   ||  linedata->transcribe == LINEDATA_TRANSCRIBE_15MB
+			   ||  linedata->transcribe == 0);
 			   
 	ptb_read(bf, &linedata->conn_to_next, 1);
 	
@@ -518,12 +528,15 @@ void *handle_CChordText (struct ptbf *bf, const char *section) {
 	ptb_read(bf, chordtext->name, 2);
 
 	ptb_read(bf, &chordtext->properties, 1);
-	ptb_assert(bf, (chordtext->properties 
+	ptb_assert_0(bf, chordtext->properties 
 			   & ~CHORDTEXT_PROPERTY_NOCHORD
-			   & ~CHORDTEXT_PROPERTY_COMBINED_CHORD) == 0);
+			   & ~CHORDTEXT_PROPERTY_PARENTHESES
+			   & ~0xc0 /*FIXME*/
+			   & ~CHORDTEXT_PROPERTY_FORMULA_M
+			   & ~CHORDTEXT_PROPERTY_FORMULA_MAJ7);
 	ptb_read(bf, &chordtext->additions, 1);
 	ptb_read(bf, &chordtext->alterations, 1);
-	ptb_read_unknown(bf, 1); /* FIXME */
+	ptb_read_constant(bf, 0); /* FIXME */
 
 	return chordtext;
 }
@@ -549,10 +562,11 @@ void *handle_CStaff (struct ptbf *bf, const char *section) {
 	ptb_debug("Properties: %d", staff->properties);
 	ptb_read(bf, &staff->highest_note, 1);
 	ptb_read(bf, &staff->lowest_note, 1);
-	ptb_read_unknown(bf, 2); /* FIXME */
+	ptb_read_unknown(bf, 2);
 
 	/* FIXME! */
 	staff->positions1 = ptb_read_items(bf, "CPosition");
+	/* Positions2 is there in case there are more then 32 positions */
 	staff->positions2 = ptb_read_items(bf, "CPosition");
 	staff->musicbars = ptb_read_items(bf, "CMusicBar");
 	return staff;
@@ -564,21 +578,24 @@ void *handle_CPosition (struct ptbf *bf, const char *section) {
 
 	ptb_read(bf, &position->offset, 1);
 	ptb_read(bf, &position->properties, 2); /* FIXME */
-	ptb_debug("Properties: %04x", position->properties);
-	ptb_assert(bf, (position->properties 
-			   & ~POSITION_PROPERTY_FIRST_IN_BIND
-			   & ~POSITION_PROPERTY_LEFT_BOUND
+	ptb_assert_0(bf, position->properties 
+			   & ~POSITION_PROPERTY_IN_SINGLE_BEAM
+			   & ~POSITION_PROPERTY_IN_DOUBLE_BEAM
+			   & ~POSITION_PROPERTY_FIRST_IN_BEAM
 			   & ~POSITION_PROPERTY_STACCATO
-			   & ~POSITION_PROPERTY_LAST_IN_BIND) == 0);
+			   & ~POSITION_PROPERTY_LAST_IN_BEAM);
 	ptb_read(bf, &position->dots, 1);
+	ptb_debug("DOts: %d", position->dots);
 	ptb_assert(bf, position->dots == 0 || 
 			   	   position->dots == 1 ||
 				   position->dots == 2);
-	ptb_read_unknown(bf, 1);
+	ptb_read_constant(bf, 0);
 	ptb_read(bf, &position->fermenta, 1);
-	ptb_debug("Fermenta: %x", position->fermenta);
+	ptb_assert_0(bf, position->fermenta
+					& ~POSITION_FERMENTA_LET_RING
+					& ~POSITION_FERMENTA_FERMENTA);
 	ptb_read(bf, &position->length, 1);
-	ptb_read_unknown(bf, 1);
+	ptb_read_constant(bf, 0);
 
 	position->linedatas = ptb_read_items(bf, "CLineData");
 	
