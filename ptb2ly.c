@@ -50,8 +50,9 @@ void ly_write_header(FILE *out, struct ptbf *ret)
 		if(ret->hdr.class_info.song.words_by) fprintf(out, "  poet = \"%s\"\n", ly_escape(ret->hdr.class_info.song.words_by));
 		if(ret->hdr.class_info.song.copyright) fprintf(out, "  copyright = \"%s\"\n", ly_escape(ret->hdr.class_info.song.copyright));
 		if(ret->hdr.class_info.song.guitar_transcribed_by) fprintf(out, "  arranger = \"%s\"\n", ly_escape(ret->hdr.class_info.song.guitar_transcribed_by));
+		if(ret->hdr.class_info.song.artist) fprintf(out, "  subtitle = \"As recorded by %s\"\n", ly_escape(ret->hdr.class_info.song.artist));
 		if(ret->hdr.class_info.song.release_type == RELEASE_TYPE_PR_AUDIO &&
-		   ret->hdr.class_info.song.release_info.pr_audio.album_title) fprintf(out, "  xtitle = \"%s\"\n", ly_escape(ret->hdr.class_info.song.release_info.pr_audio.album_title));
+		   ret->hdr.class_info.song.release_info.pr_audio.album_title) fprintf(out, "  subsubtitle = \"From the %d album %s\"\n", ret->hdr.class_info.song.release_info.pr_audio.year, ly_escape(ret->hdr.class_info.song.release_info.pr_audio.album_title));
 	} else if(ret->hdr.classification == CLASSIFICATION_LESSON) {
 		if(ret->hdr.class_info.lesson.title) 	fprintf(out, "  title = \"%s\"\n", ly_escape(ret->hdr.class_info.lesson.title));
 		if(ret->hdr.class_info.lesson.artist) fprintf(out, "  composer = \"%s\"\n", ly_escape(ret->hdr.class_info.lesson.artist));
@@ -211,8 +212,9 @@ void ly_write_staff(FILE *out, struct ptb_staff *s)
 	int i;
 
 	
-	fprintf(out, "\t\t\\context StaffGroup <<\n");
-	fprintf(out, "\t\t\t\\context Staff <<\n"
+	fprintf(out, "\t\t\\new StaffGroup {\n");
+	fprintf(out, "\t\t\\simultaneous {\n");
+	fprintf(out, "\t\t\t\\new Staff {\n"
 			"\t\t\t\t\\clef \"G_8\"\n");
 	fprintf(out, "\t\t\t\t\\notes {\n");
 	fprintf(out, "\t\t\t\t\t\t");
@@ -227,8 +229,8 @@ void ly_write_staff(FILE *out, struct ptb_staff *s)
 	fprintf(out, "\n");
 	fprintf(out, "\t\t\t\t\t}\n");
 
-	fprintf(out, "\t\t\t>>\n");
-	fprintf(out, "\t\t\t\\context TabStaff <<\n");
+	fprintf(out, "\t\t\t}\n");
+	fprintf(out, "\t\t\t\\new TabStaff {\n");
 	fprintf(out, "\t\t\t\t\\notes {\n");
 	fprintf(out, "\t\t\t\t\t");
 	for(i = 0; i < 2; i++) {
@@ -242,15 +244,16 @@ void ly_write_staff(FILE *out, struct ptb_staff *s)
 	fprintf(out, "\t\t\t\t}\n");
 
 
-	fprintf(out,"\t\t\t>>\n");
-	fprintf(out, "\t\t>>\n");
+	fprintf(out,"\t\t\t}\n");
+	fprintf(out,"\t\t\t}\n");
+	fprintf(out, "\t\t}\n");
 }
 
 void ly_write_section(FILE *out, struct ptb_section *s) 
 {
 	GList *gl;
 
-	fprintf(out, "\t\\score { \\simultaneous { \n");
+	fprintf(out, "\t\\score { << \n");
 	gl = s->chordtexts;
 	if(gl) {
 		int bars, length, i;
@@ -276,7 +279,7 @@ void ly_write_section(FILE *out, struct ptb_section *s)
 	}
 
 
-	fprintf(out, "\t}\n");
+	fprintf(out, "\t>>\n");
 
 	fprintf(out, "\t\\paper { }\n");
 	fprintf(out, "\t\\midi { }\n");
