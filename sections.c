@@ -41,11 +41,17 @@ int handle_CGuitar (struct ptbf *bf, const char *section) {
 		if(track->index == 0xff) return 0;
 		ptb_read_string(bf->fd, &track->title);
 
-		//FIXME
-		read(bf->fd, unknown, 8);
-		fprintf(stderr, "%s %02x %02x %02x\n", bf->filename, unknown[0], unknown[1], unknown[2]);
-		fprintf(stderr, "%s %02x %02x %02x\n", bf->filename, unknown[3], unknown[4], unknown[5]);
-		fprintf(stderr, "%s %02x %02x\n", bf->filename, unknown[6], unknown[7]);
+		read(bf->fd, &track->midi_instrument, 1);
+		read(bf->fd, &track->initial_volume, 1);
+		read(bf->fd, &track->pan, 1);
+		read(bf->fd, &track->reverb, 1);
+		read(bf->fd, &track->chorus, 1);
+		read(bf->fd, &track->tremolo, 1);
+
+		read(bf->fd, unknown, 1);
+		fprintf(stderr, "%s %02x\n", bf->filename, unknown[0]);
+		read(bf->fd, &track->capo, 1);
+		
 		ptb_read_string(bf->fd, &track->type);
 
 		//FIXME

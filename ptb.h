@@ -88,6 +88,13 @@ struct ptb_track {
 	char *title;
 	char *type;
 	char *tempo;
+	guint8 reverb;
+	guint8 chorus;
+	guint8 tremolo;
+	guint8 pan;
+	guint8 capo;
+	guint8 initial_volume;
+	guint8 midi_instrument;
 	struct ptb_track *next;
 };
 
