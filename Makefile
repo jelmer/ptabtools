@@ -11,7 +11,7 @@ ptb2xml.o: ptb2xml.c
 	$(CC) $(CFLAGS) -c $< 
 
 ptb.dll: $(PTBSO_OBJS)
-	$(CC) -shared $(CFLAGS) -o $@ $^ 
+	$(CC) -shared $(CFLAGS) -o $@ $^ -Wl,--out-implib,$@.a
 
 ptb.lib: $(PTBSO_OBJS)
 	$(DLLTOOL) -l $@ $(PTBSO_OBJS)
