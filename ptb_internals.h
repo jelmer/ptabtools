@@ -23,6 +23,7 @@
 
 extern int section_index;
 
+ssize_t ptb_read_constant(struct ptbf *, unsigned char expected);
 ssize_t ptb_read_string(struct ptbf *, char **);
 ssize_t ptb_read(struct ptbf *, void *data, size_t len);
 ssize_t ptb_read_unknown(struct ptbf *, size_t len);

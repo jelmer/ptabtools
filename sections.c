@@ -77,7 +77,8 @@ ssize_t handle_CSection (struct ptbf *bf, const char *sectionname) {
 
 	bf->sections = g_list_append(bf->sections, section);
 
-	ret+=ptb_read_unknown(bf, 12);
+	ret+=ptb_read_constant(bf, 0x32);
+	ret+=ptb_read_unknown(bf, 11);
 	ret+=ptb_read(bf, &section->properties, 2);
 	ret+=ptb_read_unknown(bf, 2);
 /*	175 -> 3 staffs
@@ -98,8 +99,11 @@ ssize_t handle_CSection (struct ptbf *bf, const char *sectionname) {
 
 	ret+=ptb_read_unknown(bf, 2);
 
+	ptb_debug("Section prt 1");
 	ret+=ptb_read_items(bf);
+	ptb_debug("Section prt 2");
 	ret+=ptb_read_items(bf);
+	ptb_debug("Section prt 3");
 	ret+=ptb_read_items(bf);
 //	ret+=ptb_read_stuff(bf);
 /*	ret+=ptb_read_items(bf);
@@ -207,8 +211,11 @@ ssize_t handle_CStaff (struct ptbf *bf, const char *section) {
 	ret+=ptb_read_unknown(bf, 1); /* FIXME */
 	ret+=ptb_read(bf, &staff->extra_data, 1);
 
+	ptb_debug("Staff prt 1");
 	ret+=ptb_read_items(bf);
+	ptb_debug("Staff prt 2");
 	ret+=ptb_read_items(bf);
+	ptb_debug("Staff prt 3");
 	ret+=ptb_read_items(bf);
 //	ret+=ptb_read_unknown(bf, 2);
 //	ret+=ptb_read_items(bf);
@@ -228,7 +235,7 @@ ssize_t handle_CPosition (struct ptbf *bf, const char *section) {
 	ret+=ptb_read(bf, &position->length, 2);
 	ret+=ptb_read(bf, &position->fermenta, 1);
 	ret+=ptb_read(bf, &position->let_ring, 1);
-	ret+=ptb_read_unknown(bf, 1);
+	ret+=ptb_read_constant(bf, 0x00);
 	
 	return ret + ptb_read_items(bf);
 }

@@ -42,6 +42,15 @@ ssize_t ptb_read(struct ptbf *f, void *data, size_t length){
 	return ret;
 }
 
+ssize_t ptb_read_constant(struct ptbf *f, unsigned char expected) 
+{
+	unsigned char real;
+	ssize_t ret = ptb_read(f, &real, 1);
+	
+	g_assert(real == expected);
+	return ret;
+}
+
 ssize_t ptb_read_unknown(struct ptbf *f, size_t length) {
 	char unknown[255];
 	ssize_t ret;
@@ -282,6 +291,7 @@ int ptb_read_items(struct ptbf *bf) {
 			ret+=ptb_read(bf, &next_thing, 2);
 			if(next_thing != 0x8000 + ptb_section_handlers[i].index) {
 				ptb_debug("Warning: got %04x, expected %04x\n", next_thing, 0x8000 + ptb_section_handlers[i].index);
+				if(next_thing & 0x8000) ptb_section_handlers[i].index = next_thing - 0x8000;
 			}
 		}
 	}
