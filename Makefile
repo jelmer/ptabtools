@@ -1,6 +1,6 @@
 -include Makefile.settings
 
-PTBLIB_OBJS = ptb.o gp.o
+PTBLIB_OBJS = ptb.o gp.o ptb-tuning.o
 TARGETS = $(TARGET_BINS) $(TARGET_LIBS)
 
 all: $(TARGETS)

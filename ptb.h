@@ -1,6 +1,6 @@
 /*
    Functions for writing and reading PowerTab (.ptb) files
-   (c) 2004 Jelmer Vernooij <jelmer@samba.org>
+   (c) 2004-2005 Jelmer Vernooij <jelmer@samba.org>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -383,6 +383,23 @@ extern const char *ptb_get_tone(ptb_tone);
 extern const char *ptb_get_tone_full(ptb_tone);
 
 extern void ptb_get_position_difference(struct ptb_section *, int start, int end, int *bars, int *length);
+
+/* Reading tuning data files (tunings.dat) */
+
+struct ptb_tuning_dict {
+	uint16_t nr_tunings;
+
+	struct ptb_tuning {
+		char *name;
+		uint8_t capo;
+		uint8_t nr_strings;
+		uint8_t *strings;
+	} *tunings;
+};
+
+extern struct ptb_tuning_dict *ptb_read_tuning_file(const char *);
+extern int ptb_write_tuning_file(const char *, struct ptb_tuning_dict *);
+extern void ptb_free_tuning(struct ptb_tuning_dict *);
 
 #ifdef __cplusplus
 }

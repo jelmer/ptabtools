@@ -2,6 +2,9 @@ All changes, unless specified otherwise, made by Jelmer Vernooij
 <jelmer@samba.org>.
 
 0.4.2:
+ * Add parser for ptb tuning dictionaries
+ * Move variables from Makefile to Makefile.settings.in
+ * Support cross-compiling
  * Add gp2ly utility
  * Add ptb_free function
  * Fix bug in reading bends for ptb 
