@@ -178,7 +178,7 @@ static double previous = 0.0;
 void ly_write_position(FILE *out, struct ptb_position *pos)
 {
 	double this = 0.0;
-	gboolean print_length = False;
+	gboolean print_length = FALSE;
 	GList *gl = pos->linedatas;
 	int l = g_list_length(pos->linedatas);
 
@@ -186,11 +186,15 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 		* (pos->dots & POSITION_DOTS_2?1.5*1.5:1.0);
 	
 	if(this != previous) {
-		print_length = True;
+		print_length = TRUE;
 		previous = this;
 	}
 
 	fprintf(out, " ");
+
+	if (pos->fermenta & POSITION_FERMENTA_TRIPLET_1) {
+		fprintf(out, "\\times 2/3 { ");
+	}
 
 	if(l == 0) {/* Rest */
 		fprintf(out, " r");
@@ -256,6 +260,9 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 	if(pos->properties & POSITION_PROPERTY_LAST_IN_BEAM)
 		fprintf(out, "]");
 
+	if (pos->fermenta & POSITION_FERMENTA_TRIPLET_3) {
+		fprintf(out, "} ");
+	}
 }
 
 void ly_write_staff_identifier(FILE *out, struct ptb_staff *s, struct ptb_section *section, int section_num, int staff_num) 
