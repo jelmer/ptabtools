@@ -43,7 +43,14 @@ ssize_t ptb_read(struct ptbf *f, void *data, size_t length){
 
 ssize_t ptb_read_unknown(struct ptbf *f, size_t length) {
 	char unknown[255];
-	return ptb_read(f, unknown, length);
+	ssize_t ret = ptb_read(f, unknown, length);
+	int i;
+	if(debugging) {
+		fprintf(stderr, "Unknown[%04x]: ", f->curpos);
+		for(i = 0; i < length; i++) fprintf(stderr, "%02x ", unknown[i]);
+		fprintf(stderr, "\n");
+	}
+	return ret;
 }
 
 ssize_t ptb_read_font(struct ptbf *f, struct ptb_font *dest) {
@@ -171,6 +178,7 @@ int ptb_read_items(struct ptbf *bf) {
 	char *sectionname;
 
 	ret+=ptb_read(bf, &nr_items, 2);	
+	if(ret == 0) return 0;
 	if(nr_items == 0x0) { fprintf(stderr, "Embedded\n"); return ret; }
 	level++;
 	section_index++;
@@ -228,6 +236,7 @@ int ptb_read_items(struct ptbf *bf) {
 		section_index++;
 		tmp = ptb_section_handlers[i].handler(bf, ptb_section_handlers[i].name);
 
+		fprintf(stderr, "%02x ============= END Handling %s =============\n", ptb_section_handlers[i].index, ptb_section_handlers[i].name);
 
 		if(tmp < 0) {
 			fprintf(stderr, "Error parsing section '%s'\n", ptb_section_handlers[i].name);
@@ -250,6 +259,7 @@ int ptb_read_items(struct ptbf *bf) {
 struct ptbf *ptb_read_file(const char *file)
 {
 	struct ptbf *bf = g_new0(struct ptbf, 1);
+	int ret = 1;
 	bf->fd = open(file, O_RDONLY);
 
 	strncpy(bf->data, "abc", 3);
@@ -258,7 +268,7 @@ struct ptbf *ptb_read_file(const char *file)
 
 	if(bf < 0) return NULL;
 
-	if(fstat(bf->fd, &bf->st_buf) < 0) return NULL;
+	bf->curpos = 1;
 
 	debugging = 1;
 
@@ -269,10 +279,9 @@ struct ptbf *ptb_read_file(const char *file)
 		fprintf(stderr, "Header parsed correctly\n");
 	}
 
-	while(bf->curpos < bf->st_buf.st_size) {
-		if(ptb_read_items(bf) < 0) { 
-			return NULL;
-		}
+	while(ret) {
+		ret = ptb_read_items(bf);
+		if(ret < 0) return NULL;
 	}
 
 	ptb_read_font(bf, bf->tablature_font);

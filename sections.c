@@ -29,7 +29,6 @@ ssize_t handle_CGuitar (struct ptbf *bf, const char *section) {
 	ssize_t ret = 0;
 	struct ptb_guitar *guitar = g_new0(struct ptb_guitar, 1);
 
-
 	bf->guitars = g_list_append(bf->guitars, guitar);
 		
 	ret+=ptb_read(bf, &guitar->index, 1);
@@ -93,7 +92,14 @@ ssize_t handle_CSection (struct ptbf *bf, const char *sectionname) {
 
 	ret+=ptb_read_unknown(bf, 2);
 
-	while(cur < section->child_size) { cur+=ptb_read_items(bf); }
+	while(cur < section->child_size) {
+		int ret = ptb_read_items(bf); 
+		if(ret) cur+=ret;
+		else { 
+			fprintf(stderr, "CSection: Can't read all my items (%d out of %d)\n", cur, section->child_size);
+			g_assert(0);
+		}
+	}
 
 	g_assert(cur == section->child_size);
 
@@ -142,7 +148,7 @@ ssize_t handle_CLineData (struct ptbf *bf, const char *section) {
 	ret+=ptb_read(bf, &linedata->tone, 1);
 	ret+=ptb_read(bf, &linedata->properties, 1);
 	ret+=ptb_read(bf, &linedata->transcribe, 1);
-	ret+=ptb_read_unknown(bf, 1);
+	ret+=ptb_read(bf, &linedata->conn_to_next, 1);
 
 	return ret;
 }
@@ -171,8 +177,11 @@ ssize_t handle_CGuitarIn (struct ptbf *bf, const char *section) {
 
 	bf->guitarins = g_list_append(bf->guitarins, guitarin);
 
-	ret+=ptb_read(bf, &guitarin->offset, 1);
-	ret+=ptb_read_unknown(bf, 5); /* FIXME */
+	ret+=ptb_read(bf, &guitarin->section, 1);
+	ret+=ptb_read_unknown(bf, 1); /* FIXME */
+	ret+=ptb_read(bf, &guitarin->staff, 1);
+	ret+=ptb_read(bf, &guitarin->offset, 2);
+	ret+=ptb_read(bf, &guitarin->guitar, 1);
 
 	return ret;
 }
@@ -186,7 +195,7 @@ ssize_t handle_CStaff (struct ptbf *bf, const char *section) {
 
 	ret+=ptb_read(bf, &staff->properties, 1);
 	ret+=ptb_read(bf, &staff->child_size, 1);
-	ret+=ptb_read_unknown(bf, 2); /* FIXME */
+	ret+=ptb_read_unknown(bf, 6); /* FIXME */
 	ret+=ptb_read(bf, &staff->extra_data, 1);
 
 //	while(cur < staff->child_size) { cur+=ptb_read_items(bf, default_section_handlers); }

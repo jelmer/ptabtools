@@ -104,7 +104,12 @@ struct ptb_dynamic {
 };
 
 struct ptb_guitarin {
-	guint8 offset;	
+	guint16 offset;	
+	guint8 section;
+	guint8 staff;
+	/* OR'd numbers of guitars 
+	 * (0x01 = guitar1, 0x02 = guitar2, 0x04 = guitar3, etc) */
+	guint8 guitar;
 };
 
 struct ptb_font {
@@ -167,6 +172,9 @@ struct ptb_linedata {
 #define LINEDATA_PROPERTIES_MUTED		0x02
 	guint8 properties;
 	guint8 transcribe;
+#define CONN_TO_NEXT_SHIFT_SLIDE	0x01	
+#define CONN_TO_NEXT_LEGATO_SLIDE	0x02
+	guint8 conn_to_next;
 };
 
 
@@ -211,7 +219,6 @@ struct ptbf {
 	char data[3];
 	int fd;
 	char *filename;
-	struct stat st_buf;
 	struct ptb_hdr hdr;
 	off_t curpos;
 	GList *guitars;
