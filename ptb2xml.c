@@ -28,6 +28,18 @@
 #define SMART_ADD_CHILD_STRING(parent, name, contents) if(contents) { xmlNodePtr tmp = xmlNewNode(NULL, name); xmlNodeSetContent(tmp, contents); xmlAddChild(parent, tmp); }
 #define SMART_ADD_CHILD_INT(parent, name, contents) { char tmpc[100]; xmlNodePtr tmp = xmlNewNode(NULL, name); g_snprintf(tmpc, 100, "%d", contents); xmlNodeSetContent(tmp, tmpc); xmlAddChild(parent, tmp); }
 
+xmlNodePtr xml_write_font(struct ptb_font *font)
+{
+	xmlNodePtr xfont = xmlNewNode(NULL, "font");
+	char tmp[100];
+	g_snprintf(tmp, 100, "%d", font->size); xmlSetProp(xfont, "size", tmp);
+	g_snprintf(tmp, 100, "%d", font->thickness); xmlSetProp(xfont, "thickness", tmp);
+	g_snprintf(tmp, 100, "%d", font->underlined); xmlSetProp(xfont, "underlined", tmp);
+	g_snprintf(tmp, 100, "%d", font->italic); xmlSetProp(xfont, "italic", tmp);
+	xmlSetProp(xfont, "family", font->family);
+	return xfont;
+}
+
 xmlNodePtr xml_write_directions(GList *directions)
 {
 	xmlNodePtr xdirections = xmlNewNode(NULL, "directions");
@@ -81,6 +93,72 @@ xmlNodePtr xml_write_chordtexts(GList *chordtexts)
 	return xchordtexts;
 }
 
+xmlNodePtr xml_write_musicbars(GList *musicbars)
+{
+	xmlNodePtr xmusicbars = xmlNewNode(NULL, "musicbars");
+	GList *gl = musicbars;
+
+	while(gl) {
+		struct ptb_musicbar *musicbar = gl->data;
+		xmlNodePtr xmusicbar = xmlNewNode(NULL, "musicbar");
+		xmlAddChild(xmusicbars, xmusicbar);
+
+		{
+			char tmp[100];
+			g_snprintf(tmp, 100, "%c", musicbar->letter);
+			xmlSetProp(xmusicbar, "letter", tmp);
+		}
+
+		xmlNodeSetContent(xmusicbar, musicbar->description);
+
+		gl = gl->next;
+	}
+	return xmusicbars;
+}
+
+xmlNodePtr xml_write_linedatas(GList *linedatas)
+{
+	xmlNodePtr xlinedatas = xmlNewNode(NULL, "linedatas");
+	GList *gl = linedatas;
+
+	while(gl) {
+		struct ptb_linedata *linedata = gl->data;
+		xmlNodePtr xlinedata = xmlNewNode(NULL, "linedata");
+		xmlAddChild(xlinedatas, xlinedata);
+
+		SMART_ADD_CHILD_INT(xlinedata, "tone", linedata->tone);
+		SMART_ADD_CHILD_INT(xlinedata, "properties", linedata->properties);
+		SMART_ADD_CHILD_INT(xlinedata, "transcribe", linedata->transcribe);
+		SMART_ADD_CHILD_INT(xlinedata, "conn_to_next", linedata->conn_to_next);
+
+		gl = gl->next;
+	}
+	return xlinedatas;
+}
+
+xmlNodePtr xml_write_positions(GList *positions)
+{
+	xmlNodePtr xpositions = xmlNewNode(NULL, "positions");
+	GList *gl = positions;
+
+	while(gl) {
+		struct ptb_position *position = gl->data;
+		xmlNodePtr xposition = xmlNewNode(NULL, "position");
+		xmlAddChild(xpositions, xposition);
+
+		SMART_ADD_CHILD_INT(xposition, "offset", position->offset);
+		SMART_ADD_CHILD_INT(xposition, "length", position->length);
+		SMART_ADD_CHILD_INT(xposition, "properties", position->properties);
+		SMART_ADD_CHILD_INT(xposition, "let_ring", position->let_ring);
+		SMART_ADD_CHILD_INT(xposition, "fermenta", position->fermenta);
+
+		xmlAddChild(xposition, xml_write_linedatas(position->linedatas));
+
+		gl = gl->next;
+	}
+	return xpositions;
+}
+
 xmlNodePtr xml_write_staffs(GList *staffs)
 {
 	xmlNodePtr xstaffs = xmlNewNode(NULL, "staffs");
@@ -95,8 +173,8 @@ xmlNodePtr xml_write_staffs(GList *staffs)
 		SMART_ADD_CHILD_INT(xstaff, "lowest_note", staff->lowest_note);
 		SMART_ADD_CHILD_INT(xstaff, "properties", staff->properties);
 
-		/* FIXME: Positions */
-		/* FIXME: Musicbars */
+		xmlAddChild(xstaff, xml_write_positions(staff->positions1));
+		xmlAddChild(xstaff, xml_write_musicbars(staff->musicbars));
 		
 		gl = gl->next;
 	}
@@ -128,17 +206,14 @@ xmlNodePtr xml_write_sections(GList *sections)
 		case END_MARK_TYPE_REPEAT:
 			SMART_ADD_CHILD_STRING(xsection, "end-mark", "repeat");
 			break;
-		default:
-			xmlAddChild(xsection, xmlNewComment("Unknown end-mark! FIXME"));
-			break;
 		}
 
 		meter_type = xmlNewNode(NULL, "meter-type");
 		xmlAddChild(xsection, meter_type);
 
 		if(section->meter_type & METER_TYPE_BEAM_2) SMART_ADD_CHILD_STRING(meter_type, "beam_2", "");
-		if(section->meter_type & METER_TYPE_BEAM_4) SMART_ADD_CHILD_STRING(meter_type, "beam_4", "");
 		if(section->meter_type & METER_TYPE_BEAM_3) SMART_ADD_CHILD_STRING(meter_type, "beam_3", "");
+		if(section->meter_type & METER_TYPE_BEAM_4) SMART_ADD_CHILD_STRING(meter_type, "beam_4", "");
 		if(section->meter_type & METER_TYPE_BEAM_5) SMART_ADD_CHILD_STRING(meter_type, "beam_5", "");
 		if(section->meter_type & METER_TYPE_BEAM_6) SMART_ADD_CHILD_STRING(meter_type, "beam_6", "");
 		if(section->meter_type & METER_TYPE_COMMON) SMART_ADD_CHILD_STRING(meter_type, "common", "");
@@ -152,10 +227,10 @@ xmlNodePtr xml_write_sections(GList *sections)
 		SMART_ADD_CHILD_INT(xsection, "position-width", section->position_width);
 		SMART_ADD_CHILD_STRING(xsection, "description", section->description);
 
-//		xmlAddChild(xsection, xml_write_chordtexts(section->chordtexts));
-//		xmlAddChild(xsection, xml_write_rhythmslashes(section->rhythmslashes));
-//		xmlAddChild(xsection, xml_write_directions(section->directions));
-//		xmlAddChild(xsection, xml_write_staffs(section->staffs));
+		xmlAddChild(xsection, xml_write_chordtexts(section->chordtexts));
+		xmlAddChild(xsection, xml_write_rhythmslashes(section->rhythmslashes));
+		xmlAddChild(xsection, xml_write_directions(section->directions));
+		xmlAddChild(xsection, xml_write_staffs(section->staffs));
 
 		gl = gl->next;
 	}
@@ -202,6 +277,145 @@ xmlNodePtr xml_write_guitars(GList *guitars)
 	return gtrs;
 }
 
+xmlNodePtr xml_write_guitarins(GList *guitarins)
+{
+	GList *gl = guitarins;
+	xmlNodePtr xguitarins = xmlNewNode(NULL, "guitarins");
+	
+	while(gl) {
+		struct ptb_guitarin *guitarin = gl->data;
+		xmlNodePtr xguitarin = xmlNewNode(NULL, "guitarin");
+		xmlAddChild(xguitarins, xguitarin);
+		
+		SMART_ADD_CHILD_INT(xguitarin, "offset", guitarin->offset);
+		SMART_ADD_CHILD_INT(xguitarin, "section", guitarin->section);
+		SMART_ADD_CHILD_INT(xguitarin, "staff", guitarin->staff);
+		SMART_ADD_CHILD_INT(xguitarin, "rhythm_slash", guitarin->rhythm_slash);
+		SMART_ADD_CHILD_INT(xguitarin, "staff_in", guitarin->staff_in);
+
+		gl = gl->next;
+	}
+
+	return xguitarins;
+}
+
+xmlNodePtr xml_write_tempomarkers(GList *tempomarkers)
+{
+	GList *gl = tempomarkers;
+	xmlNodePtr xtempomarkers = xmlNewNode(NULL, "tempomarkers");
+	
+	while(gl) {
+		struct ptb_tempomarker *tempomarker = gl->data;
+		xmlNodePtr xtempomarker = xmlNewNode(NULL, "tempomarker");
+		xmlAddChild(xtempomarkers, xtempomarker);
+		
+		SMART_ADD_CHILD_INT(xtempomarker, "type", tempomarker->type);
+		SMART_ADD_CHILD_INT(xtempomarker, "bpm", tempomarker->bpm);
+		xmlNodeSetContent(xtempomarker, tempomarker->description);
+
+		gl = gl->next;
+	}
+
+	return xtempomarkers;
+}
+
+xmlNodePtr xml_write_dynamics(GList *dynamics)
+{
+	GList *gl = dynamics;
+	xmlNodePtr xdynamics = xmlNewNode(NULL, "dynamics");
+	
+	while(gl) {
+		struct ptb_dynamic *dynamic = gl->data;
+		xmlNodePtr xdynamic = xmlNewNode(NULL, "dynamic");
+		xmlAddChild(xdynamics, xdynamic);
+		
+		SMART_ADD_CHILD_INT(xdynamic, "offset", dynamic->offset);
+
+		gl = gl->next;
+	}
+
+	return xdynamics;
+}
+
+xmlNodePtr xml_write_chorddiagrams(GList *chorddiagrams)
+{
+	GList *gl = chorddiagrams;
+	xmlNodePtr xchorddiagrams = xmlNewNode(NULL, "chorddiagrams");
+	
+	while(gl) {
+		struct ptb_chorddiagram *chorddiagram = gl->data;
+		int i;
+		xmlNodePtr xchorddiagram = xmlNewNode(NULL, "chorddiagram");
+		xmlNodePtr strings = xmlNewNode(NULL, "strings");
+		xmlAddChild(xchorddiagrams, xchorddiagram);
+		xmlAddChild(xchorddiagram, strings);
+		
+		SMART_ADD_CHILD_INT(xchorddiagram, "note1", chorddiagram->name[0]);
+		SMART_ADD_CHILD_INT(xchorddiagram, "note2", chorddiagram->name[1]);
+		SMART_ADD_CHILD_INT(xchorddiagram, "frets", chorddiagram->frets);
+		SMART_ADD_CHILD_INT(xchorddiagram, "type", chorddiagram->type);
+
+		for(i = 0; i < chorddiagram->nr_strings; i++) {
+			SMART_ADD_CHILD_INT(strings, "string", chorddiagram->tones[i]);
+		}
+		
+		gl = gl->next;
+	}
+
+	return xchorddiagrams;
+}
+
+xmlNodePtr xml_write_sectionsymbols(GList *sectionsymbols)
+{
+	GList *gl = sectionsymbols;
+	xmlNodePtr xsectionsymbols = xmlNewNode(NULL, "sectionsymbols");
+	
+	while(gl) {
+		struct ptb_sectionsymbol *sectionsymbol = gl->data;
+		xmlNodePtr xsectionsymbol = xmlNewNode(NULL, "sectionsymbol");
+		xmlAddChild(xsectionsymbols, xsectionsymbol);
+		
+		SMART_ADD_CHILD_INT(xsectionsymbol, "repeat-ending", sectionsymbol->repeat_ending);
+
+		gl = gl->next;
+	}
+
+	return xsectionsymbols;
+}
+
+xmlNodePtr xml_write_floatingtexts(GList *floatingtexts)
+{
+	GList *gl = floatingtexts;
+	xmlNodePtr xfloatingtexts = xmlNewNode(NULL, "floatingtexts");
+	
+	while(gl) {
+		struct ptb_floatingtext *floatingtext = gl->data;
+		xmlNodePtr xfloatingtext = xmlNewNode(NULL, "floatingtext");
+		xmlAddChild(xfloatingtexts, xfloatingtext);
+		
+		SMART_ADD_CHILD_INT(xfloatingtext, "beginpos", floatingtext->beginpos);
+
+		switch(floatingtext->alignment) {
+		case ALIGN_LEFT:
+			SMART_ADD_CHILD_STRING(xfloatingtext, "alignment", "left");
+			break;
+		case ALIGN_RIGHT:
+			SMART_ADD_CHILD_STRING(xfloatingtext, "alignment", "right");
+			break;
+		case ALIGN_CENTER:
+			SMART_ADD_CHILD_STRING(xfloatingtext, "alignment", "center");
+			break;
+		}
+		xmlNodeSetContent(xfloatingtext, floatingtext->text);
+
+		xmlAddChild(xfloatingtext, xml_write_font(&floatingtext->font));
+
+		gl = gl->next;
+	}
+
+	return xfloatingtexts;
+}
+
 xmlNodePtr xml_write_instrument(struct ptbf *bf, int i)
 {
 	char tmp[100];
@@ -210,8 +424,13 @@ xmlNodePtr xml_write_instrument(struct ptbf *bf, int i)
 	xmlSetProp(instrument, "id", tmp);
 
 	xmlAddChild(instrument, xml_write_guitars(bf->instrument[i].guitars));
-	xmlAddChild(instrument, xml_write_sections(bf->instrument[i].guitars));
-	/*FIXME*/
+	xmlAddChild(instrument, xml_write_sections(bf->instrument[i].sections));
+	xmlAddChild(instrument, xml_write_guitarins(bf->instrument[i].guitarins));
+	xmlAddChild(instrument, xml_write_chorddiagrams(bf->instrument[i].chorddiagrams));
+	xmlAddChild(instrument, xml_write_tempomarkers(bf->instrument[i].tempomarkers));
+	xmlAddChild(instrument, xml_write_dynamics(bf->instrument[i].dynamics));
+	xmlAddChild(instrument, xml_write_floatingtexts(bf->instrument[i].floatingtexts));
+	xmlAddChild(instrument, xml_write_sectionsymbols(bf->instrument[i].sectionsymbols));
 	return instrument;
 }
 
