@@ -191,12 +191,14 @@ struct ptbf {
 struct ptb_section_handler {
 	char *name;
 	int (*handler) (struct ptbf *, const char *section);
+	int index;
 };
 
 extern struct ptb_section_handler default_section_handlers[];
 
 struct ptbf *ptb_read_file(const char *ptb, struct ptb_section_handler *sections);
 int ptb_read_string(int fd, char **);
+int ptb_read_item(struct ptbf *bf, struct ptb_section_handler *sections);
 
 extern int debugging;
 

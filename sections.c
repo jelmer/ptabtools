@@ -80,7 +80,13 @@ int handle_CSection (struct ptbf *bf, const char *sectionname) {
 	read(bf->fd, unknown, 29);
 	read(bf->fd, &section->letter, 1);
 	ptb_read_string(bf->fd, &section->description);
-	read(bf->fd, unknown, 8);
+
+	ptb_read_item(bf, default_section_handlers);
+	ptb_read_item(bf, default_section_handlers);
+	ptb_read_item(bf, default_section_handlers);
+	ptb_read_item(bf, default_section_handlers);
+	ptb_read_item(bf, default_section_handlers);
+	ptb_read_item(bf, default_section_handlers);
 
 	return 0; 
 }
@@ -179,7 +185,7 @@ int handle_CStaff (struct ptbf *bf, const char *section) {
 	bf->staffs = g_list_append(bf->staffs, staff);
 
 	read(bf->fd, &staff->offset, 1);
-	read(bf->fd, unknown, 6); /* FIXME */
+	read(bf->fd, unknown, 4); /* FIXME */
 
 	return 0;
 }
@@ -194,6 +200,9 @@ int handle_CPosition (struct ptbf *bf, const char *section) {
 
 	read(bf->fd, &position->offset, 1);
 	read(bf->fd, unknown, 7); /* FIXME */
+	ptb_read_item(bf, default_section_handlers);
+	ptb_read_item(bf, default_section_handlers);
+	ptb_read_item(bf, default_section_handlers);
 
 	return 0;
 }

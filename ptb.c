@@ -182,13 +182,15 @@ int ptb_read_item(struct ptbf *bf, struct ptb_section_handler *sections) {
 	read(bf->fd, sectionname, length);
 	sectionname[length] = '\0';
 	fprintf(stderr, "---- %s ----: %d (%02x) \n", sectionname, nr_items, section_index);
-	section_index+= nr_items;
+	
 
 	for(i = 0; sections[i].name; i++) {
 		if(!strcmp(sections[i].name, sectionname)) {
 			break;
 		}
 	}
+
+	sections[i].index = section_index;
 
 	if(!sections[i].handler) {
 		fprintf(stderr, "No handler for '%s'\n", sectionname);
@@ -197,15 +199,19 @@ int ptb_read_item(struct ptbf *bf, struct ptb_section_handler *sections) {
 
 	for(l = 0; l < nr_items; l++) {
 		char unknown[2];
+		section_index++;
 		if(sections[i].handler(bf, sectionname) != 0) {
 			fprintf(stderr, "Error parsing section '%s'\n", sectionname);
 		}
+
 
 		if(l < nr_items - 1) {
 			read(bf->fd, unknown, 2);
 			fprintf(stderr, "Seperators: %02x %02x\n", unknown[0], unknown[1]);
 		}
 	}
+
+	fprintf(stderr, "------ End of %s ------ \n", sectionname);
 	return 0;
 }
 
