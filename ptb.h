@@ -166,12 +166,13 @@ struct ptb_position {
 	guint8 offset;
 #define POSITION_PALM_MUTE						0x20
 #define POSITION_STACCATO 						0x02
+#define POSITION_ACCENT							0x04
 	guint8 palm_mute;
 	guint8 length;
-#define POSITION_DOTS_0							0x0
-#define POSITION_DOTS_1							0x1
-#define POSITION_DOTS_2							0x2
-#define POSITION_DOTS_REST						0x4
+#define POSITION_DOTS_1							0x01
+#define POSITION_DOTS_2							0x02
+#define POSITION_DOTS_REST						0x04
+#define POSITION_DOTS_ARPEGGIO_UP				0x10
 	guint8 dots;
 #define POSITION_PROPERTY_IN_SINGLE_BEAM		0x0080
 #define POSITION_PROPERTY_IN_DOUBLE_BEAM		0x0100
@@ -204,9 +205,8 @@ struct ptb_linedata {
 	guint8 tone;	
 #define LINEDATA_PROPERTY_TIE					0x01
 #define LINEDATA_PROPERTY_MUTED					0x02
-#define LINEDATA_PROPERTY_UNKNOWN				0x08 /* Something to do with hammeron ? */
-#define LINEDATA_PROPERTY_PULLOFF				0x10
-#define LINEDATA_PROPERTY_HAMMERON				0x20
+#define LINEDATA_PROPERTY_HAMMERON_FROM			0x08
+#define LINEDATA_PROPERTY_PULLOFF_FROM			0x10
 #define LINEDATA_PROPERTY_NATURAL_HARMONIC		0x40
 #define LINEDATA_PROPERTY_GHOST_NOTE 			0x80
 	guint8 properties;

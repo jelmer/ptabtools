@@ -3,12 +3,14 @@ Section: sound
 Priority: optional
 Maintainer: Jelmer Vernooij <jelmer@samba.org>
 Standards-Version: 3.5.8
-Build-Depends: debmake
+Build-Depends: debmake, libglib2.0-dev, libxml2-dev
 
 Package: ptabtools
 Architecture: any
 Depends: ${shlibs:Depends}
 Description: Tools for parsing PowerTab files
- This package contains a utility to convert PowerTab files, as generated 
- by the PowerTab editor, to GNU LilyPond files or plain ASCII files 
- and a library that can be used by other programs.
+ This package contains a utilities for using PowerTab files
+ on Linux. It includes utilities for converting PowerTab files to 
+ to GNU LilyPond files, plain ASCII files and MusicXML files. 
+ It also contains a library that can be used by other programs 
+ for reading PowerTab files.

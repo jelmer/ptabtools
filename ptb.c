@@ -499,8 +499,8 @@ void *handle_CLineData (struct ptbf *bf, const char *section) {
 	ptb_read(bf, &linedata->properties, 1);
 	ptb_assert_0(bf, linedata->properties
 			   & ~LINEDATA_PROPERTY_GHOST_NOTE
-			   & ~LINEDATA_PROPERTY_PULLOFF
-			   & ~LINEDATA_PROPERTY_HAMMERON
+			   & ~LINEDATA_PROPERTY_PULLOFF_FROM
+			   & ~LINEDATA_PROPERTY_HAMMERON_FROM
 			   & ~LINEDATA_PROPERTY_TIE
 			   & ~LINEDATA_PROPERTY_NATURAL_HARMONIC
 			   & ~LINEDATA_PROPERTY_MUTED);
@@ -560,14 +560,13 @@ void *handle_CStaff (struct ptbf *bf, const char *section) {
 	struct ptb_staff *staff = g_new0(struct ptb_staff, 1);
 
 	ptb_read(bf, &staff->properties, 1);
-	ptb_debug("Properties: %d", staff->properties);
+	ptb_debug("Properties: %02x", staff->properties);
 	ptb_read(bf, &staff->highest_note, 1);
 	ptb_read(bf, &staff->lowest_note, 1);
 	ptb_read_unknown(bf, 2);
 
 	/* FIXME! */
 	staff->positions1 = ptb_read_items(bf, "CPosition");
-	/* Positions2 is there in case there are more then 32 positions */
 	staff->positions2 = ptb_read_items(bf, "CPosition");
 	staff->musicbars = ptb_read_items(bf, "CMusicBar");
 	return staff;
@@ -585,12 +584,10 @@ void *handle_CPosition (struct ptbf *bf, const char *section) {
 			   & ~POSITION_PROPERTY_FIRST_IN_BEAM
 			   & ~POSITION_PROPERTY_LAST_IN_BEAM);
 	ptb_read(bf, &position->dots, 1);
-	ptb_assert(bf, position->dots == POSITION_DOTS_0 || 
-			   	   position->dots == POSITION_DOTS_1 ||
-				   position->dots == POSITION_DOTS_2 ||
-				   position->dots == POSITION_DOTS_REST);
+	ptb_assert_0(bf, position->dots &~ POSITION_DOTS_1 
+				 	 & ~POSITION_DOTS_2 & ~POSITION_DOTS_REST & ~POSITION_DOTS_ARPEGGIO_UP);
 	ptb_read(bf, &position->palm_mute, 1);
-	ptb_assert(bf, position->palm_mute == 0 || position->palm_mute == POSITION_PALM_MUTE || position->palm_mute == POSITION_STACCATO);
+	ptb_assert_0(bf, position->palm_mute & ~POSITION_PALM_MUTE & ~POSITION_STACCATO & ~POSITION_ACCENT);
 	ptb_read(bf, &position->fermenta, 1);
 	ptb_assert_0(bf, position->fermenta
 					& ~POSITION_FERMENTA_LET_RING
