@@ -313,7 +313,7 @@ void ly_write_section_identifier(FILE *out, struct ptb_section *s, int section_n
 	}
 }
 
-void ly_write_tabstaff(FILE *out, struct ptb_staff *s, struct ptb_section *section, int staff_num, int section_num) 
+void ly_write_tabstaff(FILE *out, struct ptb_staff *s, struct ptb_section *section, int section_num, int staff_num) 
 {
 	fprintf(out, "\t\t\t\t\\%s\n", get_staff_name(section_num, staff_num));
 }
