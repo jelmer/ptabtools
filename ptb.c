@@ -189,6 +189,16 @@ void ptb_debug(const char *fmt, ...)
 	free(newfmt);
 }
 
+int ptb_read_stuff(struct ptbf *bf) {
+	int ret = 0;
+	debug_level++;
+	
+	ret+=ptb_read_items(bf);
+
+	debug_level--;
+	return ret;
+}
+
 int ptb_read_items(struct ptbf *bf) {
 	int i;
 	guint16 unknownval;
@@ -201,12 +211,9 @@ int ptb_read_items(struct ptbf *bf) {
 	char *sectionname;
 
 	ret+=ptb_read(bf, &nr_items, 2);	
-	if(nr_items == 0x0) { ptb_debug("Embedded"); return ret; }
 	if(ret == 0) return 0;
 	ret+=ptb_read(bf, &header, 2);
-	debug_level++;
 	section_index++;
-
 
 	if(header == 0xffff) { /* New section */
 
@@ -274,12 +281,6 @@ int ptb_read_items(struct ptbf *bf) {
 			}
 		}
 	}
-
-	do { 
-		l = ptb_read_items(bf);
-		ret+=l;
-	} while(l > 2);
-	debug_level--;
 
 	return ret;
 }
