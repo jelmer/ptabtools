@@ -10,6 +10,7 @@ All changes, unless specified otherwise, made by Jelmer Vernooij
  * Add gp2ly utility
  * Add ptb_free function
  * Fix bug in reading bends for ptb 
+ * Correctly parse CMusicBar (thanks to Matthias Vogelgesang)
  * pragma(lib) is MSVC-specific (thanks to Matthias Vogelgesang)
 
 0.4.1:

@@ -323,7 +323,8 @@ struct ptb_sectionsymbol {
 struct ptb_musicbar {
 	struct ptb_musicbar *prev, *next;
 
-#define MUSICBAR_PROPERTY_SINGLE_BAR    0x00
+	uint8_t offset;
+#define MUSICBAR_PROPERTY_SINGLE_BAR    0x01
 #define MUSICBAR_PROPERTY_DOUBLE_BAR    0x20
 #define MUSICBAR_PROPERTY_FREE_BAR      0x40
 #define MUSICBAR_PROPERTY_REPEAT_BEGIN  0x60
