@@ -317,6 +317,7 @@ struct ptbf {
 		GList *floatingtexts;
 		GList *sectionsymbols;
 	} instrument[2];
+	GHashTable *section_nums;
 	off_t curpos;
 	struct ptb_font default_font;
 	struct ptb_font chord_name_font;

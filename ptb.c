@@ -200,7 +200,7 @@ static ssize_t ptb_data_string(struct ptbf *bf, char **dest) {
 	switch (bf->mode) {
 	case O_RDONLY: return ptb_read_string(bf, dest);
 	case O_WRONLY: return ptb_write_string(bf, dest);
-	default: g_assert(0);
+	default: ptb_assert(bf, 0);
 	}
 	return 0;
 }
@@ -382,6 +382,7 @@ static gboolean ptb_read_items(struct ptbf *bf, const char *assumed_type, GList 
 		
 		if(l < nr_items - 1) {
 			ret+=ptb_data(bf, &next_thing, 2);
+			g_hash_table_replace(bf->section_nums, (void *) assumed_type, GINT_TO_POINTER(next_thing));
 			if(!(next_thing & 0x8000)) {
 				ptb_debug("Warning: got %04x, expected | 0x8000\n", next_thing);
 				ptb_assert(bf, 0);
@@ -396,7 +397,8 @@ static gboolean ptb_write_items(struct ptbf *bf, const char *assumed_type, GList
 {
 	int i;
 	guint16 length;
-	guint16 header = 0x8020;
+	guint16 header;
+	guint16 id = 0x20;
 	guint16 nr_items;
 	GList *gl;
 	int ret = 0;
@@ -406,23 +408,24 @@ static gboolean ptb_write_items(struct ptbf *bf, const char *assumed_type, GList
 	ret+=ptb_data(bf, &nr_items, 2);	
 	if(nr_items == 0x0) return TRUE; 
 
+	header = GPOINTER_TO_INT(g_hash_table_lookup(bf->section_nums, assumed_type));
+	if (header == 0) header = 0xffff;
+
 	ret+=ptb_data(bf, &header, 2);
 
 	ptb_debug("Going to write %d items", nr_items);
 
-	if(header == 0xffff) { /* New section */
-		char *section_type = g_strdup(assumed_type);
+	if (header == 0xffff) {
 		guint16 unknownval = 0x0001; /* FIXME */
 
 		ret+=ptb_data(bf, &unknownval, 2);
-
 		length = strlen(assumed_type);
 		ret+=ptb_data(bf, &length, 2);
-		ret+=ptb_data(bf, section_type, length);
-		g_free(section_type);
-
-	} else if(header & 0x8000) {
+		ret+=ptb_data(bf, (void *)assumed_type, length);
+		
+		g_hash_table_replace(bf->section_nums, (void *)assumed_type, GINT_TO_POINTER(id));
 	}
+
 
 	for(i = 0; ptb_section_handlers[i].name; i++) {
 		if(!strcmp(ptb_section_handlers[i].name, assumed_type)) {
@@ -443,9 +446,7 @@ static gboolean ptb_write_items(struct ptbf *bf, const char *assumed_type, GList
 		debug_level--;
 
 		if(gl->next) {
-			guint16 next_thing;
-			next_thing = 0x8000 | 0; /* FIXME */
-			ret+=ptb_data(bf, &next_thing, 2);
+			ret+=ptb_data(bf, &id, 2);
 		}
 		gl = gl->next;
 	}
@@ -459,7 +460,7 @@ static gboolean ptb_data_items(struct ptbf *bf, const char *assumed_type, GList 
 	switch (bf->mode) {
 	case O_RDONLY: return ptb_read_items(bf, assumed_type, result);
 	case O_WRONLY: return ptb_write_items(bf, assumed_type, result);
-	default: g_assert(0);
+	default: ptb_assert(bf, 0);
 	}
 	return FALSE;
 }
@@ -507,6 +508,8 @@ static ssize_t ptb_data_file(struct ptbf *bf)
 struct ptbf *ptb_read_file(const char *file)
 {
 	struct ptbf *bf = g_new0(struct ptbf, 1);
+
+	bf->section_nums = g_hash_table_new(g_str_hash, g_str_equal);
 	bf->mode = O_RDONLY;
 	bf->fd = open(file, bf->mode);
 
@@ -529,6 +532,7 @@ int ptb_write_file(const char *file, struct ptbf *bf)
 {
 	bf->mode = O_WRONLY;
 	bf->fd = creat(file, 0644);
+	bf->section_nums = g_hash_table_new(g_str_hash, g_str_equal);
 
 	strncpy(bf->data, "abc", 3);
 

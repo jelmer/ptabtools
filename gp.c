@@ -28,6 +28,7 @@
 #include <string.h>
 #include "gp.h"
 #include <glib.h>
+#include <ctype.h>
 
 static void gp_read(struct gpf *gpf, void *data, size_t len)
 {
@@ -49,7 +50,6 @@ static void gp_read_string(struct gpf *gpf, const char **dest)
 	ret = g_new0(char, len+1);
 	gp_read(gpf, ret, len);
 	*dest = ret;
-	printf("Read short string : %s\n", ret);
 }
 
 static void gp_read_uint8(struct gpf *gpf, guint8 *n)
@@ -70,7 +70,6 @@ static void gp_read_long_string(struct gpf *gpf, const char **dest)
 	ret = g_new0(char, l + 1);
 	gp_read(gpf, ret, l);
 	*dest = ret;
-	printf("Read long string : %s\n", ret);
 }
 
 static void gp_read_color(struct gpf *gpf, struct gp_color *color)
@@ -83,10 +82,13 @@ static void gp_read_color(struct gpf *gpf, struct gp_color *color)
 
 static void gp_read_nstring(struct gpf *gpf, const char **dest, size_t len)
 {
+	guint8 _len;
 	char *ret = g_new0(char, len + 1);
-	gp_read(gpf, ret, len + 1);
+	gp_read_uint8(gpf, &_len);
+	g_assert(_len <= len);
+	gp_read(gpf, ret, len);
+	ret[_len] = '\0';
 	*dest = ret;
-	printf("Read n string : %s\n", ret);
 }
 
 static void gp_read_header(struct gpf *gpf)
@@ -167,7 +169,17 @@ static void gp_read_bars(struct gpf *gpf)
 
 	for (i = 0; i < gpf->num_bars; i++) 
 	{
-		gp_read_uint32(gpf, &gpf->bars[i].properties);
+		gp_read_uint8(gpf, &gpf->bars[i].properties);
+
+		g_assert((	gpf->bars[i].properties 
+					&~ GP_BAR_PROPERTY_CUSTOM_RHYTHM_1 
+					&~ GP_BAR_PROPERTY_CUSTOM_RHYTHM_2
+					&~ GP_BAR_PROPERTY_REPEAT_OPEN
+					&~ GP_BAR_PROPERTY_REPEAT_CLOSE
+					&~ GP_BAR_PROPERTY_ALT_ENDING
+					&~ GP_BAR_PROPERTY_MARKER
+					&~ GP_BAR_PROPERTY_CHANGE_ARMOR
+					&~ GP_BAR_PROPERTY_DOUBLE_ENDING) == 0);
 
 		if (gpf->bars[i].properties & GP_BAR_PROPERTY_CUSTOM_RHYTHM_1) {
 			gp_read_uint8(gpf, &gpf->bars[i].rhythm_1);
@@ -214,12 +226,12 @@ static void gp_read_tracks(struct gpf *gpf)
 			guint32 j;
 			gp_read_uint8(gpf, &gpf->tracks[i].spc);
 			gp_read_nstring(gpf, &gpf->tracks[i].name, 40);
-			gp_read_uint8(gpf, &gpf->tracks[i].num_strings);
+			gp_read_uint32(gpf, &gpf->tracks[i].num_strings);
 			gpf->tracks[i].strings = g_new0(struct gp_track_string, gpf->tracks[i].num_strings);
 			for (j = 0; j < 7; j++) {
 				guint32 string_pitch;
 				gp_read_uint32(gpf, &string_pitch);
-				if (i < gpf->tracks[i].num_strings) {
+				if (j < gpf->tracks[i].num_strings) {
 					gpf->tracks[i].strings[j].pitch = string_pitch;
 				}
 			}
@@ -246,11 +258,25 @@ static void gp_read_tracks(struct gpf *gpf)
 
 static void gp_read_beat(struct gpf *gpf, struct gp_beat *beat)
 {
+	int i;
 	gp_read_uint8(gpf, &beat->properties);
+	g_assert((beat->properties 
+			 &~ GP_BEAT_PROPERTY_DOTTED	
+			 &~ GP_BEAT_PROPERTY_CHORD
+			 &~ GP_BEAT_PROPERTY_TEXT
+			 &~ GP_BEAT_PROPERTY_EFFECT
+			 &~ GP_BEAT_PROPERTY_CHANGE
+			 &~ GP_BEAT_PROPERTY_TUPLET
+			 &~ GP_BEAT_PROPERTY_REST) == 0);
+
+	if (beat->properties & GP_BEAT_PROPERTY_REST) {
+		gp_read_unknown(gpf, 1);
+	}
+
 	gp_read_uint8(gpf, &beat->duration);
 
 	if (beat->properties & GP_BEAT_PROPERTY_TUPLET) {
-		gp_read_uint32(gpf, &beat->n_tuplet);
+		gp_read_uint32(gpf, &beat->tuplet.n_tuplet);
 	}
 
 	if (beat->properties & GP_BEAT_PROPERTY_CHORD) {
@@ -291,27 +317,180 @@ static void gp_read_beat(struct gpf *gpf, struct gp_beat *beat)
 	{
 		gp_read_uint8(gpf, &beat->effect.properties1);
 
+
 		if (gpf->version >= 4.0) {
 			gp_read_uint8(gpf, &beat->effect.properties2);
+		} else {
+			beat->effect.properties2 = 0;
+		}
+
+		if (beat->effect.properties1 & GP_BEAT_EFFECT1_STROCKE) {
+			gp_read_unknown(gpf, 2);
+		}
+
+		if (beat->effect.properties2 & GP_BEAT_EFFECT2_PICK_STROCKE) {
+			gp_read_unknown(gpf, 1);
+		}
+
+		if (beat->effect.properties2 & GP_BEAT_EFFECT2_TREMOLO_BAR) {
+			gp_read_unknown(gpf, 5);
+			gp_read_uint32(gpf, &beat->effect.tremolo_bar.num_points);
+			gp_read_unknown(gpf, beat->effect.tremolo_bar.num_points * 9);
+		}
+
+		if (gpf->version >= 4.0) {
+			if (beat->effect.properties1 & GP_BEAT_EFFECT1_4_STROCKE_EFFECT) {
+				gp_read_unknown(gpf, 1);
+			}
+		} else {
+			if (beat->effect.properties1 & GP_BEAT_EFFECT1_TREMOLO_BAR) {
+				gp_read_unknown(gpf, 5);
+			}
+		}
+	}
+
+	if (beat->properties & GP_BEAT_PROPERTY_CHANGE) 
+	{
+		gp_read_uint8(gpf, &beat->change.new_instrument);
+		gp_read_uint8(gpf, &beat->change.new_volume);
+		gp_read_uint8(gpf, &beat->change.new_pan);
+		gp_read_uint8(gpf, &beat->change.new_chorus);
+		gp_read_uint8(gpf, &beat->change.new_reverb);
+		gp_read_uint8(gpf, &beat->change.new_phaser);
+		gp_read_uint8(gpf, &beat->change.new_tremolo);
+		gp_read_uint32(gpf, &beat->change.new_tempo);
+		if (beat->change.new_volume != 0xFF) gp_read_unknown(gpf, 1);
+		if (beat->change.new_pan != 0xFF) gp_read_unknown(gpf, 1);
+		if (beat->change.new_chorus != 0xFF) gp_read_unknown(gpf, 1);
+		if (beat->change.new_reverb != 0xFF) gp_read_unknown(gpf, 1);
+		if (beat->change.new_phaser != 0xFF) gp_read_unknown(gpf, 1);
+		if (beat->change.new_tremolo != 0xFF) gp_read_unknown(gpf, 1);
+		if (beat->change.new_tempo != -1) gp_read_unknown(gpf, 1);
+
+		if (gpf->version >= 4.0) {
+			gp_read_unknown(gpf, 1);
+		}
+	}
+
+	gp_read_uint8(gpf, &beat->strings_present);
+
+	for (i = 0; i < 7; i++)
+	{
+		struct gp_note *n = &beat->notes[i];
+
+		if (!(beat->strings_present & (1 << i))) continue;
+
+		gp_read_uint8(gpf, &n->properties);
+
+		if (n->properties & GP_NOTE_PROPERTY_ALTERATION) {
+			gp_read_uint8(gpf, &n->alteration);
+		} else {
+			n->alteration = 0;
+		}
+
+		if (n->properties & GP_NOTE_PROPERTY_DURATION_SPECIAL) {
+			gp_read_uint8(gpf, &n->duration);
+			gp_read_unknown(gpf, 1);
+		} else {
+			n->duration = beat->duration;
+		}
+
+		if (n->properties & GP_NOTE_PROPERTY_NUANCE_CHANGE) {
+			gp_read_uint8(gpf, &n->new_nuance);
+		}
+
+		if (n->properties & GP_NOTE_PROPERTY_ALTERATION) {
+			gp_read_uint8(gpf, &n->value);
+		}
+
+		if (n->properties & GP_NOTE_PROPERTY_FINGERING) {
+			gp_read_uint8(gpf, &n->fingering.left_hand);
+			gp_read_uint8(gpf, &n->fingering.right_hand);
+		}
+
+		if (n->properties & GP_NOTE_PROPERTY_EFFECT) {
+			gp_read_uint8(gpf, &n->effect.properties1);
+			
+			if (gpf->version >= 4.0) {
+				gp_read_uint8(gpf, &n->effect.properties2);
+			} else {
+				n->effect.properties2 = 0;
+			}
+
+			if (n->effect.properties1 & GP_NOTE_EFFECT1_BEND) {
+				int k;
+				gp_read_unknown(gpf, 5);
+				gp_read_uint32(gpf, &n->effect.bend.num_points);
+				n->effect.bend.points = g_new0(struct gp_note_effect_bend_point, n->effect.bend.num_points);
+				for (k = 0; k < n->effect.bend.num_points; k++)
+				{
+					gp_read_unknown(gpf, 4);
+					gp_read_uint32(gpf, &n->effect.bend.points[k].pitch);
+					gp_read_unknown(gpf, 1);
+				}
+			}
+
+			if (n->effect.properties1 & GP_NOTE_EFFECT1_APPOGIATURE) 
+			{
+				gp_read_uint8(gpf, &n->effect.appogiature.previous_note);
+				gp_read_unknown(gpf, 1);
+				gp_read_uint8(gpf, &n->effect.appogiature.transition);
+				gp_read_uint8(gpf, &n->effect.appogiature.duration);
+			}
+
+			if (n->effect.properties2 & GP_NOTE_EFFECT2_TREMOLO_PICKING)
+			{
+				gp_read_uint8(gpf, &n->effect.tremolo_picking.duration);
+			}
+
+			if (n->effect.properties2 & GP_NOTE_EFFECT2_SLIDE)
+			{
+				gp_read_uint8(gpf, &n->effect.slide.type);
+			}
+
+			if (n->effect.properties2 & GP_NOTE_EFFECT2_HARMONIC)
+			{
+				gp_read_uint8(gpf, &n->effect.harmonic.type);
+			}
+
+			if (n->effect.properties2 & GP_NOTE_EFFECT2_TRILL)
+			{
+				gp_read_uint8(gpf, &n->effect.trill.note_value);
+				gp_read_uint8(gpf, &n->effect.trill.frequency);
+			}
 		}
 	}
 }
 
 static void gp_read_data(struct gpf *gpf)
 {
-	guint32 i, j;
+	guint32 i, j, k;
 	for (i = 0; i < gpf->num_bars; i++) 
 	{
-		gpf->beats = g_new0(struct gp_beat, 1);
+		gpf->bars[i].tracks = g_new0(struct gp_bar_track, gpf->num_tracks);
 		for (j = 0; j < gpf->num_tracks; j++) 
 		{
-			/* FIXME */
+			gp_read_uint32(gpf, &gpf->bars[i].tracks[j].num_beats);
+			gpf->bars[i].tracks[j].beats = g_new0(struct gp_beat, gpf->bars[i].tracks[j].num_beats);
+			for (k = 0; k < gpf->bars[i].tracks[j].num_beats; k++) 
+			{
+				gp_read_beat(gpf, &gpf->bars[i].tracks[j].beats[k]);
+			}
 		}
 	}
 }
 
+static double find_version(const char *name)
+{
+	int i;
+	for(i = strlen(name)-1; isdigit(name[i]) || name[i] == '.'; i--);
+
+	return atof(name+i+1);
+}
+
 struct gpf *gp_read_file(const char *filename)
 {
+	
 	struct gpf *gpf = g_new0(struct gpf, 1);
 	gpf->fd = open(filename, O_RDONLY);
 
@@ -320,7 +499,7 @@ struct gpf *gp_read_file(const char *filename)
 	}
 
 	gp_read_string(gpf, &gpf->version_string);
-	gpf->version = 4.06; /* FIXME */
+	gpf->version = find_version(gpf->version_string);
 
 	gp_read_unknown(gpf, 6);
 
@@ -354,6 +533,8 @@ struct gpf *gp_read_file(const char *filename)
 	gp_read_tracks(gpf);
 
 	gp_read_data(gpf);
+
+	gp_read_unknown(gpf, 2);
 
 	return gpf;
 }
