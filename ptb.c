@@ -261,7 +261,7 @@ void ptb_debug(const char *fmt, ...)
 	free(newfmt);
 }
 
-gboolean ptb_data_items(struct ptbf *bf, const char *assumed_type, GList **result) {
+static gboolean ptb_read_items(struct ptbf *bf, const char *assumed_type, GList **result) {
 	int i;
 	guint16 unknownval;
 	guint16 l;
@@ -339,6 +339,78 @@ gboolean ptb_data_items(struct ptbf *bf, const char *assumed_type, GList **resul
 
 	return TRUE;
 }
+
+static gboolean ptb_write_items(struct ptbf *bf, const char *assumed_type, GList **result) 
+{
+	int i;
+	guint16 l;
+	guint16 length;
+	guint16 header;
+	guint16 nr_items;
+	int ret = 0;
+
+	*result = NULL;
+
+	nr_items = g_list_length(*result);
+
+	ret+=ptb_data(bf, &nr_items, 2);	
+	if(ret == 0 || nr_items == 0x0) return TRUE; 
+	ret+=ptb_data(bf, &header, 2);
+
+	ptb_debug("Going to read %d items", nr_items);
+
+	if(header == 0xffff) { /* New section */
+		char *section_type = g_strdup(assumed_type);
+		guint16 unknownval = 0x0001; /* FIXME */
+
+		ret+=ptb_data(bf, &unknownval, 2);
+
+		length = strlen(assumed_type);
+		ret+=ptb_data(bf, &length, 2);
+		ret+=ptb_data(bf, section_type, length);
+		g_free(section_type);
+
+	} else if(header & 0x8000) {
+	}
+
+	for(i = 0; ptb_section_handlers[i].name; i++) {
+		if(!strcmp(ptb_section_handlers[i].name, assumed_type)) {
+			break;
+		}
+	}
+
+	if(!ptb_section_handlers[i].handler) {
+		fprintf(stderr, "Unable to find handler for section %s\n", assumed_type);
+		return FALSE;
+	}
+
+	for(l = 0; l < nr_items; l++) {
+		debug_level++;
+		ptb_section_handlers[i].handler(bf, ptb_section_handlers[i].name);
+		debug_level--;
+
+		if(l < nr_items - 1) {
+			guint16 next_thing;
+			next_thing = 0x8000 | 0; /* FIXME */
+			ret+=ptb_data(bf, &next_thing, 2);
+		}
+	}
+
+	return TRUE;
+
+}
+
+static gboolean ptb_data_items(struct ptbf *bf, const char *assumed_type, GList **result)
+{
+	switch (bf->mode) {
+	case O_RDONLY: return ptb_read_items(bf, assumed_type, result);
+	case O_WRONLY: return ptb_write_items(bf, assumed_type, result);
+	default: g_assert(0);
+	}
+	return FALSE;
+}
+
+
 
 void ptb_set_debug(int level) { debugging = level; }
 

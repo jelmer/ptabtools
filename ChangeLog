@@ -2,6 +2,8 @@ All changes, unless specified otherwise, made by Jelmer Vernooij
 <jelmer@samba.org>.
 
 0.4:
+ * Write support
+ * Start working on GuitarPro support
  * Move to autoconf
  * Win32 build works now
  * Add setup files for Win32 build
