@@ -1,0 +1,15 @@
+	ptabtools 0.1
+=====================
+This package contains a utility to convert PowerTab files, as generated 
+by the PowerTab editor, to GNU LilyPond files and a library that 
+can be used by other programs.
+
+Some of the fields in the ptab file format are still unknown to me, so the 
+converter might crash on some file, perhaps with an assert error. Please send
+me any ptb files that you find are crashing, and I will have a try at getting
+them working.
+
+Enjoy!
+
+Jelmer Vernooij <jelmer@samba.org>
+http://jelmer.vernstok.nl/
