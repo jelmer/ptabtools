@@ -25,6 +25,7 @@
 #include <glib.h>
 
 int debugging = 0;
+int section_index = 0;
 
 ssize_t ptb_read(struct ptbf *f, void *data, size_t length){
 #undef read
@@ -191,15 +192,14 @@ void ptb_debug(const char *fmt, ...)
 int ptb_read_stuff(struct ptbf *bf) {
 	ssize_t ret = 0, tmp = 1;
 	guint16 end;
-	debug_level++;
 	
 	do { 
-		tmp=ptb_read_items(bf);
+		tmp = ptb_read_items(bf);
+		ptb_debug("TMP: %d\n", tmp);
 		g_assert(tmp >= 0);
 		ret+=tmp;
 	} while(tmp > 2);
 
-	debug_level--;
 	return ret;
 }
 
@@ -209,7 +209,6 @@ int ptb_read_items(struct ptbf *bf) {
 	guint16 l;
 	guint16 length;
 	guint16 header;
-	static int section_index = 0;
 	guint16 nr_items;
 	int ret = 0;
 	char *sectionname;
@@ -268,7 +267,9 @@ int ptb_read_items(struct ptbf *bf) {
 
 		ptb_debug("%02x %02x ============= Handling %s (%d of %d) =============", bf->curpos, ptb_section_handlers[i].index, ptb_section_handlers[i].name, l+1, nr_items);
 		section_index++;
+		debug_level++;
 		tmp = ptb_section_handlers[i].handler(bf, ptb_section_handlers[i].name);
+		debug_level--;
 
 		ptb_debug("%02x ============= END Handling %s =============", ptb_section_handlers[i].index, ptb_section_handlers[i].name);
 
@@ -280,8 +281,7 @@ int ptb_read_items(struct ptbf *bf) {
 		if(l < nr_items - 1) {
 			ret+=ptb_read(bf, &next_thing, 2);
 			if(next_thing != 0x8000 + ptb_section_handlers[i].index) {
-				fprintf(stderr, "%04x != %04x\n", next_thing, 0x8000 + ptb_section_handlers[i].index);
-				g_assert(0);
+				ptb_debug("Warning: got %04x, expected %04x\n", next_thing, 0x8000 + ptb_section_handlers[i].index);
 			}
 		}
 	}

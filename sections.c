@@ -98,8 +98,13 @@ ssize_t handle_CSection (struct ptbf *bf, const char *sectionname) {
 
 	ret+=ptb_read_unknown(bf, 2);
 
-	ret+=ptb_read_stuff(bf);
-	ret+=ptb_read_stuff(bf);
+	ret+=ptb_read_items(bf);
+	ret+=ptb_read_items(bf);
+	ret+=ptb_read_items(bf);
+//	ret+=ptb_read_stuff(bf);
+/*	ret+=ptb_read_items(bf);
+	ret+=ptb_read_items(bf);
+	ret+=ptb_read_items(bf);*/
 
 	return ret; 
 }
@@ -202,7 +207,9 @@ ssize_t handle_CStaff (struct ptbf *bf, const char *section) {
 	ret+=ptb_read_unknown(bf, 1); /* FIXME */
 	ret+=ptb_read(bf, &staff->extra_data, 1);
 
-	ret+=ptb_read_stuff(bf);
+	ret+=ptb_read_items(bf);
+	ret+=ptb_read_items(bf);
+	ret+=ptb_read_items(bf);
 //	ret+=ptb_read_unknown(bf, 2);
 //	ret+=ptb_read_items(bf);
 //	ret+=ptb_read_unknown(bf, staff->extra_data);
