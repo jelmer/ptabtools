@@ -22,12 +22,12 @@ PKG_CHECK_MODULES(LIBXSLT, libxslt, AC_DEFINE(HAVE_XSLT, 1, [whether libxslt is 
 
 if test "$MINGW32" = "yes"; then 
 	PROGS="$PROGS ptb.dll" 
+	DLLFLAGS="-Wl,--output-def,ptb.def,--out-implib,libptb.dll.a"
 else
-	PROGS="$PROGS libptb.so.$PACKAGE_VERSION"
+	PROGS="$PROGS libptb.so.$PACKAGE_VERSION libptb.a"
 fi
 
-PROGS="$PROGS libptb.a"
-
+AC_SUBST(DLLFLAGS)
 AC_SUBST(PROGS)
 
 # Checks for header files.
