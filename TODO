@@ -12,3 +12,6 @@ ptb2ly:
  - chorddiagram
  - finish chordtext
 
+ideas:
+ptb2gp and gp2ptb conversion utilities
+conversion utilities to abc

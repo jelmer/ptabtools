@@ -33,6 +33,13 @@
 
 #define LILYPOND_VERSION "2.4"
 
+static void foutnum(FILE *out, int id)
+{
+	do {
+		fprintf(out, "%c", 'A' + (id % 26)); id/=26;
+	} while (id > 0);
+}
+
 static void ly_write_header(FILE *out, struct gpf *gpf)
 {
 	int i;
@@ -54,15 +61,121 @@ static void ly_write_header(FILE *out, struct gpf *gpf)
 	fprintf(out, "}\n\n");
 }
 
+
+
 static void ly_write_lyrics(FILE *out, struct gpf *gpf)
 {
 	int i;
 	for (i = 0; i < gpf->num_lyrics; i++)
 	{
 		if (!gpf->lyrics[i].data || !strlen(gpf->lyrics[i].data)) continue;
-		fprintf(out, "lyrics%c = \\lyrics {\n", 'a' + gpf->lyrics[i].bar);
+		fprintf(out, "lyrics"); 
+		foutnum(out, gpf->lyrics[i].bar); 
+		fprintf(out, " = \\lyrics {\n");
 		fprintf(out, "\t%s\n", gpf->lyrics[i].data);
 		fprintf(out, "}\n");
+	}
+}
+
+static void ly_write_beat(FILE *out, struct gp_beat *b)
+{
+	if (b->properties & GP_BEAT_PROPERTY_TEXT) {
+		fprintf(out, "^\\markup { %s } ", b->text);
+	}
+
+	if (b->properties & GP_BEAT_PROPERTY_DOTTED) {
+		/* FIXME */
+	}
+
+	if (b->properties & GP_BEAT_PROPERTY_CHORD) {
+		/* FIXME */
+	}
+
+	if (b->properties & GP_BEAT_PROPERTY_EFFECT) {
+		/* FIXME */
+	}
+
+	if (b->properties & GP_BEAT_PROPERTY_CHANGE) {
+		/* FIXME */
+	}
+
+	if (b->properties & GP_BEAT_PROPERTY_TUPLET) {
+		/* FIXME */
+	}
+
+	if (b->properties & GP_BEAT_PROPERTY_REST) {
+		fprintf(out, "r%d", b->duration);
+		/* FIXME */
+	} else {
+		int j;
+		fprintf(out, " <");
+		for (j = 0; j < 7; j++) { /* FIXME: s/7/num_strings? */
+			fprintf(out, "%d-%d ", b->notes[j].value, b->notes[j].duration);
+		}
+		fprintf(out, "> ");
+	}
+}
+
+static void ly_write_track_bars(FILE *out, struct gpf *ret, int i)
+{
+	int j,k;
+	
+	for (j = 0; j < ret->num_bars; j++) 
+	{
+		fprintf(out, "Track"); 
+		foutnum(out, i); fprintf(out, "x");
+		foutnum(out, j); fprintf(out, " = {\n");
+		
+		for (k = 0; k < ret->bars[j].tracks[i].num_beats; k++)
+		{
+			ly_write_beat(out, &ret->bars[j].tracks[i].beats[k]);
+		}
+
+		fprintf(out, "}\n");
+	}
+}
+
+static void ly_write_tracks(FILE *out, struct gpf *ret)
+{
+	int i, j;
+	for (i = 0; i < ret->num_tracks; i++) {
+		struct gp_track *t = &ret->tracks[i];
+		fprintf(out, "%% Track %d: %s\n", i, t->name);
+		fprintf(out, "%% %d frets, %d strings\n", t->num_frets, t->num_strings);
+
+		ly_write_track_bars(out, ret, i);
+
+		fprintf(out, "Track"); foutnum(out, i);
+		fprintf(out, " = \\context StaffGroup <<\n");
+		fprintf(out, "\t\\context Staff { \n");
+		for (j = 0; j < ret->num_bars; j++) {
+			fprintf(out, "\t\t\\Track");
+			foutnum(out, i);
+			fprintf(out, "Bar");
+			foutnum(out, j);
+			fprintf(out, "\n");
+		}
+		fprintf(out, "\t}\n");
+		fprintf(out, "\t\\context TabStaff { \n");
+		for (j = 0; j < ret->num_bars; j++) {
+			fprintf(out, "\t\t\\Track");
+			foutnum(out, i);
+			fprintf(out, "Bar");
+			foutnum(out, j);
+			fprintf(out, "\n");
+		}
+		fprintf(out, "\t}\n");
+		fprintf(out, ">>\n\n");
+	}
+}
+
+static void ly_write_bars(FILE *out, struct gpf *ret)
+{
+	int i;
+	
+	for (i = 0; i < ret->num_tracks; i++) 
+	{
+		fprintf(out, "Bar%c = { }\n", 'A' + i);
 	}
 }
 
@@ -143,21 +256,17 @@ int main(int argc, const char **argv)
 
 	ly_write_lyrics(out, ret);
 
+	ly_write_bars(out, ret);
+
+	ly_write_tracks(out, ret);
+
 	fprintf(out, "\n\\score { << \n");
 
 	fprintf(out, "\t\\context ChordNames {\n");
 	fprintf(out, "\t}\n");
 
 	for (i = 0; i < ret->num_tracks; i++) {
-		struct gp_track *t = &ret->tracks[i];
-		fprintf(out, "\t%% Track %d: %s\n", i, t->name);
-		fprintf(out, "\t%% %d frets, %d strings\n", t->num_frets, t->num_strings);
-		fprintf(out, "\t\\context StaffGroup <<\n");
-		fprintf(out, "\t\t\\context Staff { \n");
-		fprintf(out, "\t\t}\n");
-		fprintf(out, "\t\\context TabStaff { \n");
-		fprintf(out, "\t\t}\n");
-		fprintf(out, "\t>>\n\n");
+		fprintf(out, "\t\\Track%c\n", 'A' + i);
 	}
 
 	fprintf(out, "\t>>\n");
