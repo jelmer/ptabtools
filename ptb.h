@@ -19,6 +19,7 @@
 #ifndef __PTB_H__
 #define __PTB_H__
 
+#include <sys/stat.h>
 #include <glib.h>
 
 struct ptb_hdr {
@@ -57,6 +58,13 @@ struct ptbf {
 	struct ptb_track *tracks;
 };
 
-int readptb(const char *ptb);
+struct ptb_section {
+    char *name;
+    int (*handler) (struct ptbf *, const char *section, guint8 *data, size_t len);
+};
+
+extern struct ptb_section *default_sections;
+
+struct ptbf *readptb(const char *ptb, struct ptb_section *sections);
 
 #endif /* __PTB_H__ */

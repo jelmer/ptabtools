@@ -1,4 +1,4 @@
-all: ptb2ly
+all: ptb2ly ptbsplit
 
 %.o: %.c
 	$(CC) -c $< `pkg-config --cflags glib-2.0`

@@ -26,44 +26,6 @@
 
 int debugging = 0;
 
-int handle_CGuitar (struct ptbf *bf, guint8 *data, size_t len) { return 0; }
-int handle_CFloatingText (struct ptbf *bf, guint8 *data, size_t len) { return 0; }
-int handle_CGuitarIn (struct ptbf *bf, guint8 *data, size_t len) { return 0; }
-int handle_CTempoMarker (struct ptbf *bf, guint8 *data, size_t len) { return 0; }
-int handle_CDynamic (struct ptbf *bf, guint8 *data, size_t len) { return 0; }
-int handle_CSectionSymbol (struct ptbf *bf, guint8 *data, size_t len) { return 0; }
-int handle_CSection (struct ptbf *bf, guint8 *data, size_t len) { return 0; }
-int handle_CChordText (struct ptbf *bf, guint8 *data, size_t len) { return 0; }
-int handle_CStaff (struct ptbf *bf, guint8 *data, size_t len) { return 0; }
-int handle_CPosition (struct ptbf *bf, guint8 *data, size_t len) { return 0; }
-int handle_CLineData (struct ptbf *bf, guint8 *data, size_t len) { return 0; }
-int handle_CMusicBar (struct ptbf *bf, guint8 *data, size_t len) { return 0; }
-int handle_CChordDiagram (struct ptbf *bf, guint8 *data, size_t len) { return 0; }
-int handle_CRhythmSlash (struct ptbf *bf, guint8 *data, size_t len) { return 0; }
-int handle_CDirection (struct ptbf *bf, guint8 *data, size_t len) { return 0; }
-
-struct {
-	char *name;
-	int (*handler) (struct ptbf *, guint8 *data, size_t len);
-} sections[] = {
-	{"CGuitar", handle_CGuitar },
-	{"CFloatingText", handle_CFloatingText },
-	{"CGuitarIn", handle_CGuitarIn },
-	{"CTempoMarker", handle_CTempoMarker},
-	{"CDynamic", handle_CDynamic },
-	{"CSectionSymbol", handle_CSectionSymbol },
-	{"CSection", handle_CSection },
-	{"CChordText", handle_CChordText },
-	{"CStaff", handle_CStaff },
-	{"CPosition", handle_CPosition },
-	{"CLineData", handle_CLineData },
-	{"CMusicBar", handle_CMusicBar },
-	{"CChordDiagram", handle_CChordDiagram },
-	{"CRhythmSlash", handle_CRhythmSlash },
-	{"CDirection", handle_CDirection },
-	{ 0, NULL }
-};
-
 void readstring(int fd, char **dest) {
 	guint8 shortlength;
 	guint16 length;
@@ -89,8 +51,7 @@ void readstring(int fd, char **dest) {
 	}
 }
 
-
-int ptb_read_header(int fd, struct ptb_hdr *hdr)
+static int ptb_read_header(int fd, struct ptb_hdr *hdr)
 {
 	char id[4];
 	char unknown[256];
@@ -136,58 +97,7 @@ int ptb_read_header(int fd, struct ptb_hdr *hdr)
 	return 0;
 }
 
-struct ptb_chord *ptb_read_chords(int fd)
-{
-	char unknown[256];
-	struct ptb_chord *prevchord = NULL, *firstchord = NULL;
-	
-	/* FIXME: 01 00 0d 00 */
-	read(fd, unknown, 4);
-
-}
-
-struct ptb_track *ptb_read_tracks(int fd)
-{
-	char unknown[256];
-	struct ptb_track *prevtrack = NULL, *firsttrack = NULL;
-
-	/* FIXME: 01 00 07 00 */
-	read(fd, unknown, 4);
-	//fprintf(stderr, "%2x%2x%2x%2x\n", unknown[0], unknown[1], unknown[2], unknown[3]);
-
-	/* FIXME: CGuitar */
-	read(fd, unknown, 7);
-	unknown[7] = '\0';
-	//fprintf(stderr, "%s\n", unknown);
-
-	while(1) {
-		struct ptb_track *track = calloc(sizeof(struct ptb_track), 1);
-	
-		if(firsttrack) prevtrack->next = track;
-		else firsttrack = track;
-		
-		/* Track number */
-		read(fd, &track->index, 1);
-		if(track->index == 0xff) return firsttrack;
-		readstring(fd, &track->title);
-
-		//FIXME
-		read(fd, unknown, 8);
-		fprintf(stderr, "%s %02x %02x %02x\n", debug_filename, unknown[0], unknown[1], unknown[2]);
-		fprintf(stderr, "%s %02x %02x %02x\n", debug_filename, unknown[3], unknown[4], unknown[5]);
-		fprintf(stderr, "%s %02x %02x\n", debug_filename, unknown[6], unknown[7]);
-		readstring(fd, &track->type);
-
-		//FIXME
-		read(fd, unknown, 10);
-
-		prevtrack = track;
-	}
-
-	return firsttrack;
-}
-
-struct ptbf *readptb(const char *file)
+struct ptbf *readptb(const char *file, struct ptb_section *sections)
 {
 	struct ptbf *bf = calloc(sizeof(struct ptbf), 1);
 	char eof = 0;
@@ -225,7 +135,7 @@ struct ptbf *readptb(const char *file)
 
 		read(bf->fd, unknown, 6);
 
-		fprintf(stderr, "%s: %02x %02x %02x %02x %02x %02x\n", debug_filename, unknown[0], unknown[1], unknown[2], unknown[3], unknown[4], unknown[5]);
+		fprintf(stderr, "%s: %02x %02x %02x %02x %02x %02x\n", bf->filename, unknown[0], unknown[1], unknown[2], unknown[3], unknown[4], unknown[5]);
 
 		fprintf(stderr, "%d\n", *((short *)unknown));
 
@@ -241,15 +151,17 @@ struct ptbf *readptb(const char *file)
 
 		for(i = 0; sections[i].name; i++) {
 			if(!strcmp(sections[i].name, sectionname)) {
-				if(sections[i].handler(bf, &data, l-2) != 0) {
-					fprintf(stderr, "Error parsing section '%s'\n", sectionname);
-				}
 				break;
 			}
 		}
 
-		if(!sections[i].name) {
-			fprintf(stderr, "Unknown section '%s'\n", sectionname);
+		if(!sections[i].handler) {
+			fprintf(stderr, "No handler for '%s'\n", sectionname);
+			return NULL;
+		}
+
+		if(sections[i].handler(bf, sectionname, &data, l-2) != 0) {
+			fprintf(stderr, "Error parsing section '%s'\n", sectionname);
 		}
 	}
 	
