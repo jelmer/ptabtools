@@ -50,16 +50,18 @@ int assert_is_fatal = 0;
 
 #define ptb_assert(ptb, expr) \
 	if (!(expr)) { ptb_debug("---------------------------------------------"); \
-		ptb_debug("file: %s, line: %d (%s): assertion failed: %s. Current position: 0x%lx", __FILE__, __LINE__, __PRETTY_FUNCTION__, #expr, ptb->curpos); \
+		ptb_error("file: %s, line: %d (%s): assertion failed: %s. Current position: 0x%lx", __FILE__, __LINE__, __PRETTY_FUNCTION__, #expr, ptb->curpos); \
 		if(assert_is_fatal) abort(); \
 	}
+
+#define ptb_error printf
 
 #define malloc_p(t,n) (t *) calloc(sizeof(t), n)
 
 #define GET_ITEM(bf, dest, type)  ((bf)->mode == O_WRONLY?(type *)(*(dest)):malloc_p(type, 1))
 
 #define ptb_assert_0(ptb, expr) \
-	if(expr) ptb_debug("%s == 0x%x!", #expr, expr); \
+	if(expr) ptb_error("%s == 0x%x!", #expr, expr); \
 /*	ptb_assert(ptb, (expr) == 0); */
 
 struct ptb_list {
@@ -73,7 +75,7 @@ struct ptb_section_handler {
 
 extern struct ptb_section_handler ptb_section_handlers[];
 
-void ptb_debug(const char *fmt, ...);
+static void ptb_debug(const char *fmt, ...);
 
 int debugging = 0;
 
@@ -86,7 +88,7 @@ static ssize_t ptb_read(struct ptbf *f, void *data, ssize_t length)
 		perror("read"); 
 		ptb_assert(f, 0);
 	} else if (ret != length) {
-		ptb_debug("Expected read of %d bytes, got %d\n", length, ret);
+		ptb_error("Expected read of %d bytes, got %d\n", length, ret);
 	}
 
 	f->curpos+=ret;
@@ -130,7 +132,7 @@ static ssize_t ptb_data_constant(struct ptbf *f, unsigned char expected)
 			ret = ptb_data(f, &real, 1);
 	
 		if(real != expected) {
-			ptb_debug("%04x: Expected %02x, got %02x", f->curpos-1, expected, real);
+			ptb_error("%04lx: Expected %02x, got %02x", f->curpos-1, expected, real);
 			ptb_assert(f, 0);
 		}
 	}
@@ -310,9 +312,26 @@ static ssize_t ptb_data_header(struct ptbf *f, struct ptb_hdr *hdr)
 	return 0;
 }
 
-int debug_level = 0;
+static void default_error_fn(const char *fmt, va_list ap)
+{
+	vfprintf(stderr, fmt, ap);
+	fputc('\n', stderr);
+}
 
-void ptb_debug(const char *fmt, ...) 
+static void (*error_fn) (const char *, va_list) = default_error_fn;
+void ptb_set_error_fn(void (*fn) (const char *, va_list)) { error_fn = fn; }
+
+static void ptb_error(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	if (error_fn) error_fn(fmt, ap);		
+	va_end(ap);
+}
+
+static int debug_level = 0;
+
+static void ptb_debug(const char *fmt, ...) 
 {
 	va_list ap;
 	int i;
@@ -361,7 +380,7 @@ static int ptb_read_items(struct ptbf *bf, const char *assumed_type, struct ptb_
 
 	} else if(header & 0x8000) {
 	} else { 
-		ptb_debug("Expected new item type (%s), got %04x %02x\n", assumed_type, nr_items, header);
+		ptb_error("Expected new item type (%s), got %04x %02x\n", assumed_type, nr_items, header);
 		ptb_assert(bf, 0);
 		return 0;
 	}
@@ -400,7 +419,7 @@ static int ptb_read_items(struct ptbf *bf, const char *assumed_type, struct ptb_
 		if(l < nr_items - 1) {
 			ret+=ptb_data(bf, &next_thing, 2);
 			if(!(next_thing & 0x8000)) {
-				ptb_debug("Warning: got %04x, expected | 0x8000\n", next_thing);
+				ptb_error("Warning: got %04x, expected | 0x8000\n", next_thing);
 				ptb_assert(bf, 0);
 			}
 		}
