@@ -1,7 +1,10 @@
 All changes, unless specified otherwise, made by Jelmer Vernooij
 <jelmer@samba.org>.
 
-0.4:
+0.4.2:
+ * pragma(lib) is MSVC-specific (thanks to Matthias Vogelgesang)
+
+0.4.1:
  * Remove dependency on glib
  * Support \book in lilypond output
  * (ptb2ly) triplet support

@@ -23,7 +23,7 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 
-#if defined(_WIN32) && !defined(PTB_CORE)
+#if defined(_MSC_VER) && !defined(PTB_CORE)
 #pragma comment(lib,"ptb.lib")
 #endif
 
