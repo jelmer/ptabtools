@@ -1,0 +1,4 @@
+0.2:
+ * Add chord name support
+ * Don't append length of note if not necessary
+ * Fix chord handling

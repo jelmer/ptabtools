@@ -46,19 +46,34 @@ void ly_write_header(FILE *out, struct ptbf *ret)
 	fprintf(out, "}\n");
 }
 
+char *get_basechord_name(guint8 id) {
+	return "a"; /* FIXME */
+}
+
+void ly_write_chordtext(FILE *out, struct ptb_chordtext *name)
+{
+	if(name->name[0] == name->name[1]) 
+		fprintf(out, "%s ", get_basechord_name(name->name[0]));
+	else 
+		fprintf(out, "%s/%s ",
+				get_basechord_name(name->name[0]), 
+				get_basechord_name(name->name[1]));
+}
+
 void ly_write_position(FILE *out, struct ptb_position *pos)
 {
+	static int previous = 0;
 	GList *gl = pos->linedatas;
 	int l = g_list_length(pos->linedatas);
 
 	fprintf(out, " ");
 
 	if(l == 0) {/* Rest */
-		fprintf(out, " r%d ", pos->length);
+		fprintf(out, " r");
 	}
 
 	/* Multiple notes */
-	if(l > 1) fprintf(out, " { <");
+	if(l > 1) fprintf(out, " <");
 
 	while(gl) {
 		struct ptb_linedata *d = gl->data;
@@ -85,14 +100,19 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 			for(i = 1; i < j; i++) fprintf(out, "'");
 		}
 
-		/* String */
-		fprintf(out, "%d\\%d", pos->length,string+1);
+		fprintf(out, "\\%d", string+1);
 		gl = gl->next;
 		if(gl) fprintf(out, " ");
 	}
 
 	/* Multiple notes */
-	if(l > 1) fprintf(out, "> } ");
+	if(l > 1) fprintf(out, ">");
+
+	/* String */
+	if(l == 1 && pos->length != previous) {
+		fprintf(out, "%d", pos->length);
+		previous = pos->length;
+	}
 }
 
 void ly_write_staff(FILE *out, struct ptb_staff *s) 
@@ -139,7 +159,19 @@ void ly_write_section(FILE *out, struct ptb_section *s)
 		gl = gl->next;
 	}
 
-	fprintf(out, "\t} \n");
+
+	fprintf(out, "\t\t\\context ChordNames \\chords {\n");
+	fprintf(out, "\t\t\t");
+	gl = s->chordtexts;
+	while(gl) {
+		ly_write_chordtext(out, (struct ptb_chordtext *)gl->data);
+		gl = gl->next;
+	}
+
+
+	fprintf(out, "\n\t\t}\n");
+	fprintf(out, "\t}\n");
+
 	fprintf(out, "\t\\paper { }\n");
 	fprintf(out, "\t\\midi { }\n");
 	fprintf(out, "} \n");
