@@ -7,5 +7,5 @@ Name: ptabtools
 Description: PowerTab Tools
 Version: 0.4.1
 Requires: 
-Libs: -lpopt -lptb
+Libs: -lptb
 Cflags: -I${includedir}
