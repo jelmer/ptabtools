@@ -26,23 +26,23 @@ libptb.a: $(PTBSO_OBJS)
 	$(AR) rs $@ $^
 
 ptb2xml$(EXEEXT): ptb2xml.o ptb.o
-	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(LIBXML_LIBS) $(LIBXSLT_LIBS)
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(LIBXML_LIBS) $(LIBXSLT_LIBS) $(POPT_LIBS)
 	
 ptb2ascii$(EXEEXT): ptb2ascii.o ptb.o
-	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(POPT_LIBS)
 
 ptb2ptb$(EXEEXT): ptb2ptb.o ptb.o
-	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(POPT_LIBS)
 
 ptb2ly$(EXEEXT): ptb2ly.o ptb.o
-	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(POPT_LIBS)
 
 gp2ly$(EXEEXT): gp2ly.o gp.o
-	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(POPT_LIBS)
 
 ptbinfo$(EXEEXT): ptbinfo.o ptb.o
-	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
-
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(POPT_LIBS)
+	
 install: all
 	$(INSTALL) $(PROGS) $(DESTDIR)$(bindir)
 	$(INSTALL) -d $(DESTDIR)$(mandir)/man1
