@@ -437,11 +437,8 @@ void *handle_CSection (struct ptbf *bf, const char *sectionname) {
 	ptb_read_unknown(bf, 11);
 	ptb_read(bf, &section->properties, 2);
 	ptb_read_unknown(bf, 2);
-/*	175 -> 3 staffs
-	07d -> 1 staff
-	102 -> 2  staffs
-	*/
 	ptb_read(bf, &section->end_mark, 1);
+	ptb_debug("Bla: %x", section->end_mark);
 	ptb_assert(bf, section->end_mark == END_MARK_TYPE_NORMAL 
 			   || section->end_mark == END_MARK_TYPE_DOUBLELINE
 			   || section->end_mark == END_MARK_TYPE_REPEAT);
@@ -582,14 +579,14 @@ void *handle_CPosition (struct ptbf *bf, const char *section) {
 			   & ~POSITION_PROPERTY_IN_SINGLE_BEAM
 			   & ~POSITION_PROPERTY_IN_DOUBLE_BEAM
 			   & ~POSITION_PROPERTY_FIRST_IN_BEAM
-			   & ~POSITION_PROPERTY_STACCATO
 			   & ~POSITION_PROPERTY_LAST_IN_BEAM);
 	ptb_read(bf, &position->dots, 1);
-	ptb_debug("DOts: %d", position->dots);
-	ptb_assert(bf, position->dots == 0 || 
-			   	   position->dots == 1 ||
-				   position->dots == 2);
-	ptb_read_constant(bf, 0);
+	ptb_assert(bf, position->dots == POSITION_DOTS_0 || 
+			   	   position->dots == POSITION_DOTS_1 ||
+				   position->dots == POSITION_DOTS_2 ||
+				   position->dots == POSITION_DOTS_REST);
+	ptb_read(bf, &position->palm_mute, 1);
+	ptb_assert(bf, position->palm_mute == 0 || position->palm_mute == POSITION_PALM_MUTE || position->palm_mute == POSITION_STACCATO);
 	ptb_read(bf, &position->fermenta, 1);
 	ptb_assert_0(bf, position->fermenta
 					& ~POSITION_FERMENTA_LET_RING

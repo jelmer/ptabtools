@@ -160,13 +160,19 @@ struct ptb_chordtext {
 
 struct ptb_position {
 	guint8 offset;
+#define POSITION_PALM_MUTE						0x20
+#define POSITION_STACCATO 						0x02
+	guint8 palm_mute;
 	guint8 length;
+#define POSITION_DOTS_0							0x0
+#define POSITION_DOTS_1							0x1
+#define POSITION_DOTS_2							0x2
+#define POSITION_DOTS_REST						0x4
+	guint8 dots;
 #define POSITION_PROPERTY_IN_SINGLE_BEAM		0x0080
 #define POSITION_PROPERTY_IN_DOUBLE_BEAM		0x0100
 #define POSITION_PROPERTY_FIRST_IN_BEAM 		0x0400
 #define POSITION_PROPERTY_LAST_IN_BEAM			0x2000
-#define POSITION_PROPERTY_STACCATO 				0x0002
-	guint8 dots;
 	guint16 properties;
 	guint8 let_ring;
 	guint8 fermenta;
