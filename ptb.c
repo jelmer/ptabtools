@@ -120,7 +120,7 @@ static int ptb_read_header(int fd, struct ptb_hdr *hdr)
 			break;
 		}
 
-		read(fd, &hdr->class_info.song.is_original_author_unknown, 1);
+		ptb_read(fd, &hdr->class_info.song.is_original_author_unknown, 1);
 		ptb_read_string(fd, &hdr->class_info.song.music_by);
 		ptb_read_string(fd, &hdr->class_info.song.words_by);
 		ptb_read_string(fd, &hdr->class_info.song.arranged_by);
@@ -131,36 +131,23 @@ static int ptb_read_header(int fd, struct ptb_hdr *hdr)
 		ptb_read_string(fd, &hdr->guitar_notes);
 		ptb_read_string(fd, &hdr->bass_notes);
 		break;
+	case CLASSIFICATION_LESSON:
+		ptb_read_string(fd, &hdr->class_info.lesson.title);
+		ptb_read_string(fd, &hdr->class_info.lesson.artist);
+		ptb_read(fd, &hdr->class_info.lesson.style, 2);
+		ptb_read(fd, &hdr->class_info.lesson.level, 1);
+		ptb_read_string(fd, &hdr->class_info.lesson.author);
+		ptb_read_string(fd, &hdr->guitar_notes);
+		ptb_read_string(fd, &hdr->class_info.lesson.copyright);
+		break;
+
+	default:
+		fprintf(stderr, "Unknown classification: %d\n", hdr->classification);
+		break;
+
 	}
 
-	ptb_read(fd, &hdr->class_info.song.is_original_author_unknown, 1);
-	ptb_read_string(fd, &hdr->class_info.song.music_by);
-	ptb_read_string(fd, &hdr->class_info.song.words_by);
-	ptb_read_string(fd, &hdr->class_info.song.arranged_by);
-	ptb_read_string(fd, &hdr->class_info.song.guitar_transcribed_by);
-	ptb_read_string(fd, &hdr->class_info.song.bass_transcribed_by);
-	ptb_read_string(fd, &hdr->class_info.song.copyright);
-	ptb_read_string(fd, &hdr->class_info.song.lyrics);
-	ptb_read_string(fd, &hdr->guitar_notes);
-	ptb_read_string(fd, &hdr->bass_notes);
-	break;
-case CLASSIFICATION_LESSON:
-	ptb_read_string(fd, &hdr->class_info.lesson.title);
-	ptb_read_string(fd, &hdr->class_info.lesson.artist);
-	ptb_read(fd, &hdr->class_info.lesson.style, 2);
-	ptb_read(fd, &hdr->class_info.lesson.level, 1);
-	ptb_read_string(fd, &hdr->class_info.lesson.author);
-	ptb_read_string(fd, &hdr->guitar_notes);
-	ptb_read_string(fd, &hdr->class_info.lesson.copyright);
-	break;
-
-default:
-	fprintf(stderr, "Unknown classification: %d\n", hdr->classification);
-	break;
-
-}
-
-return 0;
+	return 0;
 }
 
 int ptb_read_items(struct ptbf *bf, struct ptb_section_handler *sections) {
