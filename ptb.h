@@ -186,6 +186,7 @@ struct ptb_position {
 #define POSITION_FERMENTA_TRIPLET_1				0x20
 #define POSITION_FERMENTA_TRIPLET_2				0x40
 #define POSITION_FERMENTA_TRIPLET_3				0x80
+	guint8 conn_to_next;
 	GList *linedatas;
 };
 

@@ -279,6 +279,7 @@ GList *ptb_read_items(struct ptbf *bf, const char *assumed_type) {
 	} else if(header & 0x8000) {
 		my_section_index=header-0x8000;
 		my_section_name = g_hash_table_lookup(bf->section_indices, GINT_TO_POINTER(my_section_index));
+		ptb_debug("Found: %02x (%s)", my_section_index, my_section_name);
 		ptb_assert(bf, my_section_name);
 	} else { 
 		ptb_debug("Expected new item type (%s), got %04x %02x\n", assumed_type, nr_items, header);
@@ -301,7 +302,7 @@ GList *ptb_read_items(struct ptbf *bf, const char *assumed_type) {
 		void *tmp;
 		guint16 next_thing;
 
-		ptb_debug("%02x %02x ============= Handling %s (%d of %d) =============", bf->curpos, my_section_index, my_section_name, l+1, nr_items);
+		ptb_debug("%02x/%04x ============= Handling %s (%d of %d) ============= (%x)", my_section_index, bf->curpos, my_section_name, l+1, nr_items, section_index);
 		if(assumed_type && strcmp(assumed_type, my_section_name)) {
 			ptb_debug("Expected: %s, got: %s (%d)\n", assumed_type, my_section_name, my_section_index);
 
@@ -312,7 +313,7 @@ GList *ptb_read_items(struct ptbf *bf, const char *assumed_type) {
 		tmp = ptb_section_handlers[i].handler(bf, ptb_section_handlers[i].name);
 		debug_level--;
 
-		ptb_debug("%02x ============= END Handling %s (%d of %d) =============", my_section_index, ptb_section_handlers[i].name, l+1, nr_items);
+		ptb_debug("%02x/%04x ============= END Handling %s (%d of %d) =============", my_section_index, bf->curpos, ptb_section_handlers[i].name, l+1, nr_items);
 
 		if(!tmp) {
 			fprintf(stderr, "Error parsing section '%s'\n", ptb_section_handlers[i].name);
@@ -558,20 +559,23 @@ void *handle_CGuitarIn (struct ptbf *bf, const char *section) {
 
 void *handle_CStaff (struct ptbf *bf, const char *section) { 
 	guint16 next;
+	guint8 datasize;
 	struct ptb_staff *staff = g_new0(struct ptb_staff, 1);
 
 	ptb_read(bf, &staff->properties, 1);
 	ptb_debug("Properties: %02x", staff->properties);
 	ptb_read(bf, &staff->highest_note, 1);
 	ptb_read(bf, &staff->lowest_note, 1);
-	ptb_read_unknown(bf, 2);
+	ptb_read(bf, &datasize, 1);
+	ptb_debug("Datasize: %d", datasize);
+	ptb_read_unknown(bf, 1);
 
 	/* FIXME! */
 	staff->positions1 = ptb_read_items(bf, "CPosition");
 	/* This is ugly, but at least it works... */
 	{
 		ptb_read(bf, &next, 2);
-		lseek(bf->fd, -2, SEEK_CUR);
+		lseek(bf->fd, -2, SEEK_CUR); bf->curpos-=2;
 		if(next & 0x8000) return staff;
 	}
 
@@ -579,11 +583,13 @@ void *handle_CStaff (struct ptbf *bf, const char *section) {
 	/* This is ugly, but at least it works... */
 	{
 		ptb_read(bf, &next, 2);
-		lseek(bf->fd, -2, SEEK_CUR);
+		lseek(bf->fd, -2, SEEK_CUR);bf->curpos-=2;
 		if(next & 0x8000) return staff;
 	}
 
 	staff->musicbars = ptb_read_items(bf, "CMusicBar");
+	if(datasize == 0x1a) ptb_read_unknown(bf, 8);
+
 	return staff;
 }
 
@@ -592,7 +598,7 @@ void *handle_CPosition (struct ptbf *bf, const char *section) {
 	struct ptb_position *position = g_new0(struct ptb_position, 1);
 
 	ptb_read(bf, &position->offset, 1);
-	ptb_read(bf, &position->properties, 2); /* FIXME */
+	ptb_read(bf, &position->properties, 2); 
 	ptb_assert_0(bf, position->properties 
 			   & ~POSITION_PROPERTY_IN_SINGLE_BEAM
 			   & ~POSITION_PROPERTY_IN_DOUBLE_BEAM
@@ -611,10 +617,25 @@ void *handle_CPosition (struct ptbf *bf, const char *section) {
 					& ~POSITION_FERMENTA_TRIPLET_3
 					& ~POSITION_FERMENTA_FERMENTA);
 	ptb_read(bf, &position->length, 1);
-	ptb_read_constant(bf, 0);
+	
+	ptb_read(bf, &position->conn_to_next, 1);
+	
+	/* FIXME 
+	if(position->conn_to_next) { 
+		ptb_debug("Conn to next!: %02x", position->conn_to_next);
+		ptb_read_unknown(bf, 4*position->conn_to_next);
+	}*/
+	if(position->conn_to_next) {
+		guint8 covers, start, end;
+		ptb_debug("Conn to next: %02x", position->conn_to_next);
+		ptb_read(bf, &start, 1);
+		ptb_read(bf, &end, 1);
+		ptb_read(bf, &covers, 1);
+		ptb_read_unknown(bf, 1);
+	}
 
 	position->linedatas = ptb_read_items(bf, "CLineData");
-	
+
 	return position;
 }
 
