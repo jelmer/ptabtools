@@ -56,6 +56,39 @@ int ascii_write_position(FILE *out, struct ptb_position *pos, int string)
 	return 0;
 }
 
+
+const char *get_basechord_name(guint8 id) {
+	const char *chords[] = { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", NULL };
+	if(sizeof(chords) < id) return "_UNKNOWN_CHORD_";
+	return chords[id];
+}
+
+void ascii_write_chordtext(FILE *out, struct ptb_chordtext *name) {
+	if(name->properties & CHORDTEXT_PROPERTY_NOCHORD) {
+		fprintf(out, "N.C.");
+	}
+
+	if(name->properties & CHORDTEXT_PROPERTY_COMBINED_CHORD) {
+		fprintf(out, "(");
+	}
+
+	if(!(name->properties & CHORDTEXT_PROPERTY_NOCHORD) | 
+	   (name->properties & CHORDTEXT_PROPERTY_COMBINED_CHORD)) {
+		if(name->name[0] == name->name[1]) {
+			fprintf(out, "%s", get_basechord_name(name->name[0]));
+		} else { 
+			fprintf(out, "%s/%s", get_basechord_name(name->name[0]),
+						get_basechord_name(name->name[1]));
+		}
+	}
+
+	if(name->properties & CHORDTEXT_PROPERTY_COMBINED_CHORD) {
+		fprintf(out, ")");
+	}
+
+	fprintf(out, " ");
+}
+
 void ascii_write_staff(FILE *out, struct ptb_staff *s) 
 {
 	GList *gl;
@@ -75,12 +108,20 @@ void ascii_write_staff(FILE *out, struct ptb_staff *s)
 
 void ascii_write_section(FILE *out, struct ptb_section *s) 
 {
-	GList *gl = s->staffs;
+	GList *gl;
 
 	if(s->letter != 0x7f) {
 		fprintf(out, "%c. %s\n", s->letter, s->description);
 	}
+
+	gl = s->chordtexts;
+	while(gl) {
+		ascii_write_chordtext(out, (struct ptb_chordtext *)gl->data);
+		gl = gl->next;
+	}
+	fprintf(out, "\n");
 	
+	gl = s->staffs;
 	while(gl) {
 		ascii_write_staff(out, (struct ptb_staff *)gl->data);
 		gl = gl->next;
@@ -186,3 +227,5 @@ int main(int argc, const char **argv)
 	
 	return (ret?0:1);
 }
+
+
