@@ -143,19 +143,44 @@ struct ptb_chordtext {
 
 struct ptb_position {
 	guint8 offset;
-	guint8 length;
+	guint16 length;
+#define POSITION_PROPERTY_STACCATO 0x02
+	guint16 properties;
 };
 
+#define STAFF_TYPE_BASS_KEY	0x10
+
 struct ptb_staff {
-	guint8 offset;
+	/* Number of strings OR-ed with some settings */
+	guint8 properties;
+	guint8 child_size;
 };
 
 struct ptb_linedata {
 	guint8 tone;	
 };
 
+
+#define METER_TYPE_COMMON 	0x4000
+#define METER_TYPE_CUT    	0x8000
+#define METER_TYPE_SHOW   	0x1000
+#define METER_TYPE_BEAM_2	0x0080	
+#define METER_TYPE_BEAM_4	0x0100
+#define METER_TYPE_BEAM_3	0x0180
+#define METER_TYPE_BEAM_6	0x0200
+#define METER_TYPE_BEAM_5	0x0280
+
+#define END_MARK_TYPE_NORMAL 0x00
+#define END_MARK_TYPE_REPEAT 0x80
+
 struct ptb_section {
 	char letter;
+	/* Number of times to repeat OR-ed with end mark type */
+	guint8 end_mark;
+	guint16 meter_type;
+	guint8 beat_value;
+	guint8 metronome_pulses_per_measure;
+	guint8 child_size;
 	char *description;
 };
 

@@ -148,40 +148,37 @@ int ptb_read_items(struct ptbf *bf, struct ptb_section_handler *sections) {
 	int i;
 	guint16 unknownval;
 	guint16 l;
+	static int level = 0;
 	guint16 length;
 	guint16 header;
 	guint8 data = 0;
 	static section_index = 0;
 	guint16 nr_items;
+	int ret = 0;
 	char *sectionname;
 
-	read(bf->fd, &nr_items, 2);	
-	if(nr_items == 0x0) { fprintf(stderr, "Embedded\n"); return 0; }
+	ret+=read(bf->fd, &nr_items, 2);	
+	if(nr_items == 0x0) { fprintf(stderr, "Embedded\n"); return ret; }
+	level++;
 	section_index++;
 
-	read(bf->fd, &header, 2);
+	ret+=read(bf->fd, &header, 2);
 	fprintf(stderr, "Header: %04x\n", header);
 
 	if(header == 0xffff) { /* New section */
 
-		/* Read section */
-		if(read(bf->fd, &unknownval, 2) < 2) {
-			fprintf(stderr, "Unexpected end of file\n");
-			return -1;
-		}
+		/* Read Section */
+		ret+=read(bf->fd, &unknownval, 2);
 
 		if(unknownval != 0x0001) {
 			fprintf(stderr, "Unknownval: %04x\n", unknownval);
 			return -1;
 		}
 
-		if(read(bf->fd, &length, 2) < 2) {
-			fprintf(stderr, "Unexpected end of file\n");
-			return -1;
-		}
+		ret+=read(bf->fd, &length, 2);
 
 		sectionname = malloc(length + 1);
-		read(bf->fd, sectionname, length);
+		ret+=read(bf->fd, sectionname, length);
 		sectionname[length] = '\0';
 
 
@@ -207,24 +204,27 @@ int ptb_read_items(struct ptbf *bf, struct ptb_section_handler *sections) {
 		}
 	}
 
-	fprintf(stderr, "---- %s ----: %d (%02x) \n", sectionname, nr_items, section_index);
-
 	for(l = 0; l < nr_items; l++) {
-		char unknown[2];
+		char unknown[2]; int j, tmp;
+		for(j = 0; j < level; j++) fputc(' ', stderr);
+		fprintf(stderr, "%02x ============= Handling %s (%d of %d) =============\n", sections[i].index, sections[i].name, l+1, nr_items);
 		section_index++;
-		if(sections[i].handler(bf, sectionname) != 0) {
-			fprintf(stderr, "Error parsing section '%s'\n", sectionname);
+		tmp = sections[i].handler(bf, sections[i].name);
+		if(tmp < 0) {
+			fprintf(stderr, "Error parsing section '%s'\n", sections[i].name);
 		}
+		ret+=tmp;
 
 
 		if(l < nr_items - 1) {
-			read(bf->fd, unknown, 2);
-			fprintf(stderr, "Seperators: %02x %02x\n", unknown[0], unknown[1]);
+			unsigned char seperators[2];
+			read(bf->fd, seperators, 2);
+			g_assert(seperators[1] == 0x80);
 		}
 	}
+	level--;
 
-	fprintf(stderr, "------ End of %s ------ \n", sectionname);
-	return nr_items;
+	return ret;
 }
 
 

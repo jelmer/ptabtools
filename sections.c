@@ -26,236 +26,265 @@ int handle_unknown (struct ptbf *bf, const char *section) {
 }
 
 int handle_CGuitar (struct ptbf *bf, const char *section) {
-	char unknown[256];
 	int i;
+	int ret = 0;
 	struct ptb_guitar *guitar = calloc(sizeof(struct ptb_guitar), 1);
 
 
 	bf->guitars = g_list_append(bf->guitars, guitar);
 		
-	read(bf->fd, &guitar->index, 1);
-	ptb_read_string(bf->fd, &guitar->title);
+	ret+=read(bf->fd, &guitar->index, 1);
+	ret+=ptb_read_string(bf->fd, &guitar->title);
 
-	read(bf->fd, &guitar->midi_instrument, 1);
-	read(bf->fd, &guitar->initial_volume, 1);
-	read(bf->fd, &guitar->pan, 1);
-	read(bf->fd, &guitar->reverb, 1);
-	read(bf->fd, &guitar->chorus, 1);
-	read(bf->fd, &guitar->tremolo, 1);
+	ret+=read(bf->fd, &guitar->midi_instrument, 1);
+	ret+=read(bf->fd, &guitar->initial_volume, 1);
+	ret+=read(bf->fd, &guitar->pan, 1);
+	ret+=read(bf->fd, &guitar->reverb, 1);
+	ret+=read(bf->fd, &guitar->chorus, 1);
+	ret+=read(bf->fd, &guitar->tremolo, 1);
 
-	read(bf->fd, &guitar->simulate, 1);
-	read(bf->fd, &guitar->capo, 1);
+	ret+=read(bf->fd, &guitar->simulate, 1);
+	ret+=read(bf->fd, &guitar->capo, 1);
 		
-	ptb_read_string(bf->fd, &guitar->type);
+	ret+=ptb_read_string(bf->fd, &guitar->type);
 
-	read(bf->fd, &guitar->half_up, 1);
-	read(bf->fd, &guitar->nr_strings, 1);
+	ret+=read(bf->fd, &guitar->half_up, 1);
+	ret+=read(bf->fd, &guitar->nr_strings, 1);
 	guitar->strings = malloc(sizeof(guint8) * guitar->nr_strings);
-	read(bf->fd, guitar->strings, guitar->nr_strings);
+	ret+=read(bf->fd, guitar->strings, guitar->nr_strings);
 	
-	return 0;
+	return ret;
 }
 
 
 int handle_CFloatingText (struct ptbf *bf, const char *section) { 
 	char unknown[256];
+	int ret = 0;
 	struct ptb_floatingtext *text = calloc(sizeof(struct ptb_floatingtext), 1);
 
 	bf->floatingtexts = g_list_append(bf->floatingtexts, text);
 
-	ptb_read_string(bf->fd, &text->text);
-	read(bf->fd, &text->beginpos, 1);
-	read(bf->fd, unknown, 15);
-	ptb_read_font(bf->fd, &text->font);
-	read(bf->fd, unknown, 4);
+	ret+=ptb_read_string(bf->fd, &text->text);
+	ret+=read(bf->fd, &text->beginpos, 1);
+	ret+=read(bf->fd, unknown, 15);
+	ret+=ptb_read_font(bf->fd, &text->font);
+	ret+=read(bf->fd, unknown, 4);
 	
-	return 0; 
+	return ret;
 }
 
 int handle_CSection (struct ptbf *bf, const char *sectionname) { 
 	char unknown[256];
+	int ret = 0;
+	int cur = 0;
 	struct ptb_section *section = calloc(sizeof(struct ptb_section), 1);
 
 	bf->sections = g_list_append(bf->sections, section);
 
-	read(bf->fd, unknown, 29);
-	read(bf->fd, &section->letter, 1);
-	ptb_read_string(bf->fd, &section->description);
+	ret+=read(bf->fd, unknown, 12);
+	ret+=read(bf->fd, &section->child_size, 1);
+	ret+=read(bf->fd, unknown, 3);
+	ret+=read(bf->fd, &section->end_mark, 1);
+	ret+=read(bf->fd, unknown, 8);
+	ret+=read(bf->fd, &section->meter_type, 2);
+	ret+=read(bf->fd, &section->beat_value, 1);
+	ret+=read(bf->fd, &section->metronome_pulses_per_measure, 1);
+	ret+=read(bf->fd, &section->letter, 1);
+	ret+=ptb_read_string(bf->fd, &section->description);
 
-	read(bf->fd, unknown, 2);
+	ret+=read(bf->fd, unknown, 2);
+	fprintf(stderr, "CSection: %02x %02x\n", unknown[0], unknown[1]);
 
-	while(ptb_read_items(bf, default_section_handlers) > 0);
+	while(cur < section->child_size) { cur+=ptb_read_items(bf, default_section_handlers); }
 
-	return 0; 
+	g_assert(cur == section->child_size);
+
+	return ret; 
 }
 
 int handle_CTempoMarker (struct ptbf *bf, const char *section) {
 	char unknown[256];
+	int ret = 0;
 	struct ptb_tempomarker *tempomarker = calloc(sizeof(struct ptb_tempomarker), 1);
 
 	bf->tempomarkers = g_list_append(bf->tempomarkers, tempomarker);
 
-	read(bf->fd, unknown, 3);
-	read(bf->fd, &tempomarker->bpm, 1);
-	read(bf->fd, unknown, 3);
-	ptb_read_string(bf->fd, &tempomarker->description);
+	ret+=read(bf->fd, unknown, 3);
+	ret+=read(bf->fd, &tempomarker->bpm, 1);
+	ret+=read(bf->fd, unknown, 3);
+	ret+=ptb_read_string(bf->fd, &tempomarker->description);
 
-	return 0; 
+	return ret;
 }
 
 
 int handle_CChordDiagram (struct ptbf *bf, const char *section) { 
 	char unknown[256];
 	guint8 last;
+	int ret = 0;
 	struct ptb_chorddiagram *chorddiagram = calloc(sizeof(struct ptb_chorddiagram), 1);
 	int i;
 
 	bf->chorddiagrams = g_list_append(bf->chorddiagrams, chorddiagram);
 
-	read(bf->fd, chorddiagram->name, 2);
-		
-	read(bf->fd, unknown, 3);
-
-	read(bf->fd, &chorddiagram->type, 1);
-	read(bf->fd, &chorddiagram->frets, 1);
-	read(bf->fd, &chorddiagram->nr_strings, 1);
+	ret+=read(bf->fd, chorddiagram->name, 2);
+	ret+=read(bf->fd, unknown, 3);
+	ret+=read(bf->fd, &chorddiagram->type, 1);
+	ret+=read(bf->fd, &chorddiagram->frets, 1);
+	ret+=read(bf->fd, &chorddiagram->nr_strings, 1);
 	chorddiagram->tones = malloc(sizeof(guint8) * chorddiagram->nr_strings);
-	read(bf->fd, chorddiagram->tones, chorddiagram->nr_strings);
+	ret+=read(bf->fd, chorddiagram->tones, chorddiagram->nr_strings);
 
-	return 0;
+	return ret;
 }
 
 int handle_CLineData (struct ptbf *bf, const char *section) { 
 	char unknown[256];
 	struct ptb_linedata *linedata = calloc(sizeof(struct ptb_linedata), 1);
 	int i;
+	int ret = 0;
 
 	bf->linedatas = g_list_append(bf->linedatas, linedata);
 
-	read(bf->fd, &linedata->tone, 1);
-	read(bf->fd, unknown, 3);
+	ret+=read(bf->fd, &linedata->tone, 1);
+	ret+=read(bf->fd, unknown, 3);
 
-//		fprintf(stderr, "%02x %02x %02x %02x %02x\n", unknown[0], unknown[1], unknown[2], unknown[3], unknown[4]);
-
-	return 0; 
+	return ret;
 }
 
 
 int handle_CChordText (struct ptbf *bf, const char *section) {
 	char unknown[256];
 	guint8 last;
+	int ret = 0;
 	struct ptb_chordtext *chordtext = calloc(sizeof(struct ptb_chordtext), 1);
 
 	bf->chordtexts = g_list_append(bf->chordtexts, chordtext);
 
-	read(bf->fd, &chordtext->offset, 1);
-	read(bf->fd, chordtext->name, 2);
+	ret+=read(bf->fd, &chordtext->offset, 1);
+	ret+=read(bf->fd, chordtext->name, 2);
 
-	read(bf->fd, unknown, 1); /* FIXME */
-	read(bf->fd, &chordtext->additions, 1);
-	read(bf->fd, &chordtext->alterations, 1);
-	read(bf->fd, unknown, 1); /* FIXME */
+	ret+=read(bf->fd, unknown, 1); /* FIXME */
+	ret+=read(bf->fd, &chordtext->additions, 1);
+	ret+=read(bf->fd, &chordtext->alterations, 1);
+	ret+=read(bf->fd, unknown, 1); /* FIXME */
 
-	return 0;
+	return ret;
 }
 
 int handle_CGuitarIn (struct ptbf *bf, const char *section) { 
 	char unknown[256];
 	guint8 last;
+	int ret = 0;
 	struct ptb_guitarin *guitarin = calloc(sizeof(struct ptb_guitarin), 1);
 
 	bf->guitarins = g_list_append(bf->guitarins, guitarin);
 
-	read(bf->fd, &guitarin->offset, 1);
-	read(bf->fd, unknown, 5); /* FIXME */
+	ret+=read(bf->fd, &guitarin->offset, 1);
+	ret+=read(bf->fd, unknown, 5); /* FIXME */
 
-	return 0;
+	return ret;
 }
 
 
 int handle_CStaff (struct ptbf *bf, const char *section) { 
 	char unknown[256];
 	guint8 last;
+	int ret = 0;
+	int cur = 0;
 	struct ptb_staff *staff = calloc(sizeof(struct ptb_staff), 1);
 
 	bf->staffs = g_list_append(bf->staffs, staff);
 
-	read(bf->fd, &staff->offset, 1);
-	read(bf->fd, unknown, 4); /* FIXME */
+	ret+=read(bf->fd, &staff->properties, 1);
+	ret+=read(bf->fd, &staff->child_size, 1);
+	ret+=read(bf->fd, unknown, 3); /* FIXME */
 
-	return 0;
+//	while(cur < staff->child_size) { cur+=ptb_read_items(bf, default_section_handlers); }
+
+//	printf("Expect: %d, got: %d\n", staff->child_size, cur);
+//	g_assert(cur == staff->child_size);
+
+	return ret;
 }
 
 
 int handle_CPosition (struct ptbf *bf, const char *section) { 
 	char unknown[256];
 	guint8 last;
+	int ret = 0;
 	struct ptb_position *position = calloc(sizeof(struct ptb_position), 1);
 
 	bf->positions = g_list_append(bf->positions, position);
 
-	read(bf->fd, &position->offset, 1);
-	read(bf->fd, &position->length, 1);
-	read(bf->fd, unknown, 6); /* FIXME */
-	while(ptb_read_items(bf, default_section_handlers) > 0);
-
-	return 0;
+	ret+=read(bf->fd, &position->offset, 1);
+	ret+=read(bf->fd, &position->properties, 2); /* FIXME */
+	ret+=read(bf->fd, &position->length, 2);
+	ret+=read(bf->fd, unknown, 3);
+	fprintf(stderr, "%02x %02x %02x %02x %02x\n", unknown[0], unknown[1], unknown[2], unknown[3], unknown[4]);
+	
+	return ret + ptb_read_items(bf, default_section_handlers);
 }
 
 int handle_CDynamic (struct ptbf *bf, const char *section) { 
 	char unknown[256];
 	struct ptb_dynamic *dynamic = calloc(sizeof(struct ptb_dynamic), 1);
+	int ret = 0;
 
 	bf->dynamics = g_list_append(bf->dynamics, dynamic);
 
-	read(bf->fd, &dynamic->offset, 1);
-	read(bf->fd, unknown, 5); /* FIXME */
+	ret+=read(bf->fd, &dynamic->offset, 1);
+	ret+=read(bf->fd, unknown, 5); /* FIXME */
 
-	return 0; 
+	return ret;
 
 }
 int handle_CSectionSymbol (struct ptbf *bf, const char *section) {
 	char unknown[256];
+	int ret = 0;
 	struct ptb_sectionsymbol *sectionsymbol = calloc(sizeof(struct ptb_sectionsymbol), 1);
 
 	bf->sectionsymbols = g_list_append(bf->sectionsymbols, sectionsymbol);
 
-	read(bf->fd, unknown, 7); /* FIXME */
+	ret+=read(bf->fd, unknown, 7); /* FIXME */
 
-	return 0; 
+	return ret;
 }
 
 int handle_CMusicBar (struct ptbf *bf, const char *section) { 
 	char unknown[256];
+	int ret = 0;
 	struct ptb_musicbar *musicbar = calloc(sizeof(struct ptb_musicbar), 1);
 
 	bf->musicbars = g_list_append(bf->musicbars, musicbar);
 
-	read(bf->fd, unknown, 10); /* FIXME */
+	ret+=read(bf->fd, unknown, 10); /* FIXME */
 
-	return 0; 
+	return ret; 
 }
 
 int handle_CRhythmSlash (struct ptbf *bf, const char *section) { 
 	char unknown[256];
+	int ret = 0;
 	struct ptb_rhythmslash *rhythmslash = calloc(sizeof(struct ptb_rhythmslash), 1);
 
 	bf->rhythmslashs = g_list_append(bf->rhythmslashs, rhythmslash);
 
-	read(bf->fd, unknown, 6); /* FIXME */
+	ret+=read(bf->fd, unknown, 6); /* FIXME */
 
-	return 0; 
+	return ret;
 }
 
 int handle_CDirection (struct ptbf *bf, const char *section) { 
 	char unknown[256];
+	int ret = 0;
 	struct ptb_direction *direction = calloc(sizeof(struct ptb_direction), 1);
 
 	bf->directions = g_list_append(bf->directions, direction);
 
-	read(bf->fd, unknown, 4); /* FIXME */
+	ret+=read(bf->fd, unknown, 4); /* FIXME */
 
-	return 0; 
+	return ret;
 }
 
 struct ptb_section_handler default_section_handlers[] = {
