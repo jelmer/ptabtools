@@ -14,6 +14,7 @@ configure:
 	$(checkdir)
 	aclocal
 	autoconf
+	autoheader
 	rm -rf autom4te.cache
 
 clean:
