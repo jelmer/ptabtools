@@ -2,7 +2,9 @@ All changes, unless specified otherwise, made by Jelmer Vernooij
 <jelmer@samba.org>.
 
 0.4:
-
+ * Small fixes
+ * Default to <basename>.{txt,ly,xml} as output file and support -o - for
+ writing to stdout.
 
 0.3:
  * Put chords at the right place

@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <popt.h>
+#include <string.h>
 #include "ptb.h"
 
 void ascii_write_header(FILE *out, struct ptbf *ret) 
@@ -154,13 +155,14 @@ int ascii_write_chords(FILE *out, struct ptbf *ret)
 
 int main(int argc, const char **argv) 
 {
-	FILE *out = stdout;
+	FILE *out;
 	struct ptbf *ret;
 	int debugging = 0;
 	GList *gl;
 	int instrument = 0;
 	int c;
 	int version = 0;
+	const char *input;
 	char *output = NULL;
 	poptContext pc;
 	struct poptOption options[] = {
@@ -191,14 +193,27 @@ int main(int argc, const char **argv)
 		poptPrintUsage(pc, stderr, 0);
 		return -1;
 	}
-	ret = ptb_read_file(poptGetArg(pc));
+	input = poptGetArg(pc);
+	ret = ptb_read_file(input);
 	
 	if(!ret) {
 		perror("Read error: ");
 		return -1;
 	} 
 
-	if(output) {
+	if(!output) {
+		int baselength = strlen(input);
+		if (!strcmp(input + strlen(input) - 4, ".ptb")) {
+			baselength -= 4;
+		}
+		output = malloc(baselength + 6);
+		strncpy(output, input, baselength);
+		strcpy(output + baselength, ".txt");
+	}
+
+	if(!strcmp(output, "-")) {
+		out = stdout;
+	} else {
 		out = fopen(output, "w+");
 		if(!out) {
 			perror("open");

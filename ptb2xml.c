@@ -18,6 +18,7 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <string.h>
 #include <popt.h>
 #include <sys/time.h>
 #include <time.h>
@@ -511,6 +512,7 @@ int main(int argc, const char **argv)
 	xmlNodePtr font;
 	int c, i, musicxml = 0;
 	int version = 0;
+	const char *input = NULL;
 	char *output = NULL;
 	poptContext pc;
 	struct poptOption options[] = {
@@ -540,12 +542,24 @@ int main(int argc, const char **argv)
 		poptPrintUsage(pc, stderr, 0);
 		return -1;
 	}
-	ret = ptb_read_file(poptGetArg(pc));
+
+	input = poptGetArg(pc);
+	ret = ptb_read_file(input);
 	
 	if(!ret) {
 		perror("Read error: ");
 		return -1;
 	} 
+
+	if(!output) {
+		int baselength = strlen(input);
+		if (!strcmp(input + strlen(input) - 4, ".ptb")) {
+			baselength -= 4;
+		}
+		output = malloc(baselength + 5);
+		strncpy(output, input, baselength);
+		strcpy(output + baselength, ".ly");
+	}
 
 	doc = xmlNewDoc(BAD_CAST "1.0");
 	root_node = xmlNewNode(NULL, BAD_CAST "powertab");
@@ -571,7 +585,7 @@ int main(int argc, const char **argv)
 	font = xmlNewNode(NULL, "tablature_font"); xmlAddChild(root_node, font);
 	xmlAddChild(font, xml_write_font(&ret->tablature_font));
 
-	xmlSaveFormatFileEnc(output?output:"-", doc, "UTF-8", 1);
+	xmlSaveFormatFileEnc(output, doc, "UTF-8", 1);
 
 	xmlFreeDoc(doc);
 
