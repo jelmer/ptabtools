@@ -593,6 +593,9 @@ void *handle_CPosition (struct ptbf *bf, const char *section) {
 	ptb_read(bf, &position->fermenta, 1);
 	ptb_assert_0(bf, position->fermenta
 					& ~POSITION_FERMENTA_LET_RING
+					& ~POSITION_FERMENTA_TRIPLET_1
+					& ~POSITION_FERMENTA_TRIPLET_2
+					& ~POSITION_FERMENTA_TRIPLET_3
 					& ~POSITION_FERMENTA_FERMENTA);
 	ptb_read(bf, &position->length, 1);
 	ptb_read_constant(bf, 0);
@@ -668,6 +671,13 @@ struct ptb_section_handler ptb_section_handlers[] = {
 const char *ptb_get_tone(ptb_tone id)
 {
 	const char *chords[] = { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", NULL };
+	if(sizeof(chords) < id) return "_UNKNOWN_CHORD_";
+	return chords[id];
+}
+
+const char *ptb_get_tone_full(ptb_tone id)
+{
+	const char *chords[] = { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "c", "cis", "d", "dis", "e", "f", "fis", "g", "gis", "a", "ais", "b", NULL };
 	if(sizeof(chords) < id) return "_UNKNOWN_CHORD_";
 	return chords[id];
 }

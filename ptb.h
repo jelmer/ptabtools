@@ -172,6 +172,9 @@ struct ptb_position {
 	guint8 fermenta;
 #define POSITION_FERMENTA_LET_RING				0x08
 #define POSITION_FERMENTA_FERMENTA				0x10
+#define POSITION_FERMENTA_TRIPLET_1				0x20
+#define POSITION_FERMENTA_TRIPLET_2				0x40
+#define POSITION_FERMENTA_TRIPLET_3				0x80
 	GList *linedatas;
 };
 
@@ -193,9 +196,8 @@ struct ptb_linedata {
 #define LINEDATA_PROPERTY_MUTED					0x02
 #define LINEDATA_PROPERTY_PULLOFF				0x10
 #define LINEDATA_PROPERTY_HAMMERON				0x20
+#define LINEDATA_PROPERTY_UNKNOWN				0x08 /* Something to do with hammeron ? */
 #define LINEDATA_PROPERTY_GHOST_NOTE 			0x80
-#define LINEDATA_PROPERTY_PULLOFF_FROM_NOWHERE	0x30
-#define LINEDATA_PROPERTY_HAMMERON_FROM_NOWHERE	0x28
 	guint8 properties;
 	guint8 transcribe;
 #define LINEDATA_TRANSCRIBE_8VA					0x01
@@ -280,5 +282,6 @@ void ptb_set_asserts_fatal(int yes);
 
 const char *ptb_get_note(struct ptb_guitar *guitar, ptb_note);
 const char *ptb_get_tone(ptb_tone);
+const char *ptb_get_tone_full(ptb_tone);
 
 #endif /* __PTB_H__ */

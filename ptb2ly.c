@@ -49,7 +49,7 @@ void ly_write_header(FILE *out, struct ptbf *ret)
 void ly_write_chordtext(FILE *out, struct ptb_chordtext *name)
 {
 	if(name->properties & CHORDTEXT_PROPERTY_NOCHORD) {
-		fprintf(out, "N.C.");
+		//FIXME:fprintf(out, "N.C.");
 	} 
 
 	if(name->properties & CHORDTEXT_PROPERTY_PARENTHESES) {
@@ -59,11 +59,11 @@ void ly_write_chordtext(FILE *out, struct ptb_chordtext *name)
 	if(!(name->properties & CHORDTEXT_PROPERTY_NOCHORD) || 
 	   (name->properties & CHORDTEXT_PROPERTY_PARENTHESES)) { 
 		if(name->name[0] == name->name[1]) 
-			fprintf(out, "%s", ptb_get_tone(name->name[0]));
+			fprintf(out, "%s", ptb_get_tone_full(name->name[0]));
 		else 
 			fprintf(out, "%s/%s",
-				ptb_get_tone(name->name[0]), 
-				ptb_get_tone(name->name[1]));
+				ptb_get_tone_full(name->name[0]), 
+				ptb_get_tone_full(name->name[1]));
 	}
 
 	if(name->properties & CHORDTEXT_PROPERTY_PARENTHESES) {
