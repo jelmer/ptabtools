@@ -54,8 +54,6 @@ int assert_is_fatal = 0;
 		if(assert_is_fatal) abort(); \
 	}
 
-#define ptb_error printf
-
 #define malloc_p(t,n) (t *) calloc(sizeof(t), n)
 
 #define GET_ITEM(bf, dest, type)  ((bf)->mode == O_WRONLY?(type *)(*(dest)):malloc_p(type, 1))
