@@ -26,7 +26,7 @@
 #  include "config.h"
 #endif
 
-#define LILYPOND_VERSION "2.2"
+#define LILYPOND_VERSION "2.4"
 
 const char *num_to_string(int num, char *data)
 {
@@ -251,13 +251,13 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 		fprintf(out, "]");
 }
 
-void ly_write_staff_identifier(FILE *out, struct ptb_staff *s, struct ptb_section *section, int staff_num, int section_num) 
+void ly_write_staff_identifier(FILE *out, struct ptb_staff *s, struct ptb_section *section, int section_num, int staff_num) 
 {
 	GList *gl;
 	int i;
 
 	fprintf(out, "\n%% Notes for section %d, staff %d\n", section_num, staff_num);
-	fprintf(out, "%s = \\ {\n", get_staff_name(section_num, staff_num));
+	fprintf(out, "%s = \\relative {\n", get_staff_name(section_num, staff_num));
 	fprintf(out, "\t");
 	previous = 0.0;
 	for(i = 0; i < 2; i++) {
@@ -318,7 +318,7 @@ void ly_write_tabstaff(FILE *out, struct ptb_staff *s, struct ptb_section *secti
 	fprintf(out, "\t\t\t\t\\%s\n", get_staff_name(section_num, staff_num));
 }
 
-void ly_write_staff(FILE *out, struct ptb_staff *s, struct ptb_section *section, int staff_num, int section_num) 
+void ly_write_staff(FILE *out, struct ptb_staff *s, struct ptb_section *section, int section_num, int staff_num) 
 {
 	if(s->properties & STAFF_TYPE_BASS_KEY)
 		fprintf(out, "\t\t\t\t\\clef F\n");
