@@ -2,6 +2,8 @@ All changes, unless specified otherwise, made by Jelmer Vernooij
 <jelmer@samba.org>.
 
 0.4:
+ * Win32 build works now
+ * Add setup files for Win32 build
  * Small fixes
  * Default to <basename>.{txt,ly,xml} as output file and support -o - for
  writing to stdout.
