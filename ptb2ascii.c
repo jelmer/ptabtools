@@ -47,16 +47,14 @@ void ascii_write_header(FILE *out, struct ptbf *ret)
 
 int ascii_write_position(FILE *out, struct ptb_position *pos, int string)
 {
-	GList *gl = pos->linedatas;
+	struct ptb_linedata *d = pos->linedatas;
 
-	while(gl) {
-		struct ptb_linedata *d = gl->data;
-
+	while(d) {
 		if(string == (int)d->detailed.string) {
 			return fprintf(out, "%d", d->detailed.fret);
 		} 
 
-		gl = gl->next;
+		d = d->next;
 	}
 
 	return 0;
@@ -91,17 +89,16 @@ void ascii_write_chordtext(FILE *out, struct ptb_chordtext *name) {
 
 void ascii_write_staff(FILE *out, struct ptb_staff *s) 
 {
-	GList *gl;
 	int i;
 
 	for(i = 0; i < 6; i++) {
 		int j;
 		for(j = 0; j < 2; j++) {
-			gl = s->positions[j];
-			while(gl) {
-				int ret = ascii_write_position(out, (struct ptb_position *)gl->data, i);
+			struct ptb_position *p = s->positions[j];
+			while(p) {
+				int ret = ascii_write_position(out, p, i);
 				for(; ret < 4; ret++) fprintf(out, "-");
-				gl = gl->next;
+				p = p->next;
 			}
 		}
 
@@ -111,24 +108,23 @@ void ascii_write_staff(FILE *out, struct ptb_staff *s)
 
 void ascii_write_section(FILE *out, struct ptb_section *s) 
 {
-	GList *gl;
+	struct ptb_chordtext *ct = s->chordtexts;
+	struct ptb_staff *st = s->staffs;
 
 	if(s->letter != 0x7f) {
 		fprintf(out, "%c. %s\n", s->letter, s->description);
 	}
 
-	gl = s->chordtexts;
-	while(gl) {
-		ascii_write_chordtext(out, (struct ptb_chordtext *)gl->data);
-		gl = gl->next;
+	while(ct) {
+		ascii_write_chordtext(out, ct);
+		ct = ct->next;
 	}
 	fprintf(out, "\n");
 	
-	gl = s->staffs;
-	while(gl) {
-		ascii_write_staff(out, (struct ptb_staff *)gl->data);
-		gl = gl->next;
-		if(gl)fprintf(out, "|\n");
+	while(st) {
+		ascii_write_staff(out, st);
+		st = st->next;
+		if(st)fprintf(out, "|\n");
 	}
 }
 
@@ -163,7 +159,7 @@ int main(int argc, const char **argv)
 	FILE *out;
 	struct ptbf *ret;
 	int debugging = 0;
-	GList *gl;
+	struct ptb_section *section;
 	int instrument = 0;
 	int c;
 	int version = 0;
@@ -232,11 +228,11 @@ int main(int argc, const char **argv)
 	ascii_write_header(out, ret);
 	ascii_write_lyrics(out, ret);
 
-	gl = ret->instrument[instrument].sections;
-	while(gl) {
-		ascii_write_section(out, (struct ptb_section *)gl->data);
+	section = ret->instrument[instrument].sections;
+	while(section) {
+		ascii_write_section(out, section);
 		fprintf(out, "\n\n");
-		gl = gl->next;
+		section = section->next;
 	}
 
 	if(output)fclose(out);

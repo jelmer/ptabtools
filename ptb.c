@@ -27,26 +27,38 @@ typedef int ssize_t;
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <string.h>
+#include <stdarg.h>
 #define PTB_CORE
 #include "ptb.h"
+#include "dlinklist.h"
+
+#ifndef __PRETTY_FUNCTION__
+#define __PRETTY_FUNCTION__ ""
+#endif
 
 int assert_is_fatal = 0;
 
 #define ptb_assert(ptb, expr) \
 	if (!(expr)) { ptb_debug("---------------------------------------------"); \
-		ptb_debug("file: %s, line: %d (%s): assertion failed: %s. Current position: 0x%lx", __FILE__, __LINE__, G_GNUC_PRETTY_FUNCTION, #expr, ptb->curpos); \
+		ptb_debug("file: %s, line: %d (%s): assertion failed: %s. Current position: 0x%lx", __FILE__, __LINE__, __PRETTY_FUNCTION__, #expr, ptb->curpos); \
 		if(assert_is_fatal) abort(); \
 	}
 
-#define GET_ITEM(bf, dest, type)  ((bf)->mode == O_WRONLY?*(dest):g_new0(type, 1))
+#define GET_ITEM(bf, dest, type)  ((bf)->mode == O_WRONLY?(type *)(*(dest)):malloc_p(type, 1))
 
 #define ptb_assert_0(ptb, expr) \
 	if(expr) ptb_debug("%s == 0x%x!", #expr, expr); \
 /*	ptb_assert(ptb, (expr) == 0); */
 
+#define malloc_p(t,n) (t *) calloc(sizeof(t), n)
+
+struct ptb_list {
+	struct ptb_list *prev, *next;
+};
+
 struct ptb_section_handler {
 	char *name;
-	gboolean (*handler) (struct ptbf *, const char *section, void **ret);
+	int (*handler) (struct ptbf *, const char *section, struct ptb_list **ret);
 };
 
 extern struct ptb_section_handler ptb_section_handlers[];
@@ -143,12 +155,12 @@ static ssize_t ptb_data_unknown(struct ptbf *f, size_t length) {
 
 static ssize_t ptb_read_string(struct ptbf *f, char **dest)
 {
-	guint8 shortlength;
-	guint16 length;
+	uint8_t shortlength;
+	uint16_t length;
 	char *data;
 	ptb_data(f, &shortlength, 1);
 
-	/* If length is 0xff, this is followed by a guint16 length */
+	/* If length is 0xff, this is followed by a uint16_t length */
 	if(shortlength == 0xff) {
 		if(ptb_data(f, &length, 2) < 2) return -1;
 	} else {
@@ -156,7 +168,7 @@ static ssize_t ptb_read_string(struct ptbf *f, char **dest)
 	}
 
 	if(length) {
-		data = g_new0(char, length+1);
+		data = malloc_p(char, length+1);
 		if(ptb_data(f, data, length) < length) return -1;
 		ptb_debug("Read string: %s", data);
 		*dest = data;
@@ -170,8 +182,8 @@ static ssize_t ptb_read_string(struct ptbf *f, char **dest)
 
 static ssize_t ptb_write_string(struct ptbf *f, char **dest)
 {
-	guint8 shortlength;
-	guint16 length = 0;
+	uint8_t shortlength;
+	uint16_t length = 0;
 	
 	if (*dest == NULL) {
 		shortlength = 0;
@@ -184,7 +196,7 @@ static ssize_t ptb_write_string(struct ptbf *f, char **dest)
 	
 	ptb_data(f, &shortlength, 1);
 
-	/* If length is 0xff, this is followed by a guint16 length */
+	/* If length is 0xff, this is followed by a uint16_t length */
 	if(shortlength == 0xff) {
 		if(ptb_data(f, &length, 2) < 2) return -1;
 	} else {
@@ -294,59 +306,53 @@ void ptb_debug(const char *fmt, ...)
 {
 	va_list ap;
 	int i;
-	char *newfmt, *tmp;
 	if(debugging == 0) return;
 
 	/* Add spaces */
-	tmp = g_new0(char, debug_level+1);
-	for(i = 0; i < debug_level; i++) tmp[i] = ' ';
-	newfmt = g_strdup_printf("%s%s\n", tmp, fmt);
-	free(tmp);
+	for(i = 0; i < debug_level; i++) fprintf(stderr, " ");
 
 	va_start(ap, fmt);
-	vfprintf(stderr, newfmt, ap);
+	vfprintf(stderr, fmt, ap);
 	va_end(ap);
-
-	free(newfmt);
 }
 
-static gboolean ptb_read_items(struct ptbf *bf, const char *assumed_type, GList **result) {
+static int ptb_read_items(struct ptbf *bf, const char *assumed_type, struct ptb_list **result) {
 	int i;
-	guint16 unknownval;
-	guint16 l;
-	guint16 length;
-	guint16 header;
-	guint16 nr_items;
+	uint16_t unknownval;
+	uint16_t l;
+	uint16_t length;
+	uint16_t header;
+	uint16_t nr_items;
 	int ret = 0;
 
 	*result = NULL;
 
 	ret+=ptb_data(bf, &nr_items, 2);	
-	if(ret == 0 || nr_items == 0x0) return TRUE; 
+	if(ret == 0 || nr_items == 0x0) return 1; 
 	ret+=ptb_data(bf, &header, 2);
 
 	ptb_debug("Going to read %d items", nr_items);
 
 	if(header == 0xffff) { /* New section */
-		gchar *my_section_name;
+		char *my_section_name;
 		/* Read Section */
 		ret+=ptb_data(bf, &unknownval, 2);
 
 		if(unknownval != 0x0001) {
 			fprintf(stderr, "Unknownval: %04x\n", unknownval);
-			return FALSE;
+			return 0;
 		}
 
 		ret+=ptb_data(bf, &length, 2);
 
-		my_section_name = g_new0(char, length + 1);
+		my_section_name = malloc_p(char, length + 1);
 		ret+=ptb_data(bf, my_section_name, length);
 
 	} else if(header & 0x8000) {
 	} else { 
 		ptb_debug("Expected new item type (%s), got %04x %02x\n", assumed_type, nr_items, header);
 		ptb_assert(bf, 0);
-		return FALSE;
+		return 0;
 	}
 
 	for(i = 0; ptb_section_handlers[i].name; i++) {
@@ -357,32 +363,31 @@ static gboolean ptb_read_items(struct ptbf *bf, const char *assumed_type, GList 
 
 	if(!ptb_section_handlers[i].handler) {
 		fprintf(stderr, "Unable to find handler for section %s\n", assumed_type);
-		return FALSE;
+		return 0;
 	}
 
 	for(l = 0; l < nr_items; l++) {
-		void *tmp;
-		gboolean ret;
-		guint16 next_thing;
+		struct ptb_list *item;
+		int ret;
+		uint16_t next_thing;
 
 		ptb_debug("%04x ============= Handling %s (%d of %d) =============", bf->curpos, assumed_type, l+1, nr_items);
 		debug_level++;
-		tmp = NULL;
-		ret = ptb_section_handlers[i].handler(bf, ptb_section_handlers[i].name, &tmp);
-		if (!ret) tmp = NULL;
+		item = NULL;
+		ret = ptb_section_handlers[i].handler(bf, ptb_section_handlers[i].name, (struct ptb_list **)&item);
+		if (!ret) item = NULL;
 		debug_level--;
 
 		ptb_debug("%04x ============= END Handling %s (%d of %d) =============", bf->curpos, ptb_section_handlers[i].name, l+1, nr_items);
 
-		if(!tmp) {
+		if(!item) {
 			fprintf(stderr, "Error parsing section '%s'\n", ptb_section_handlers[i].name);
+		} else {
+			DLIST_ADD_END((*result), item, struct ptb_list *);
 		}
-
-		*result = g_list_append(*result, tmp);
 		
 		if(l < nr_items - 1) {
 			ret+=ptb_data(bf, &next_thing, 2);
-			g_hash_table_replace(bf->section_nums, (void *) assumed_type, GINT_TO_POINTER(next_thing));
 			if(!(next_thing & 0x8000)) {
 				ptb_debug("Warning: got %04x, expected | 0x8000\n", next_thing);
 				ptb_assert(bf, 0);
@@ -390,25 +395,32 @@ static gboolean ptb_read_items(struct ptbf *bf, const char *assumed_type, GList 
 		}
 	}
 
-	return TRUE;
+	return 1;
 }
 
-static gboolean ptb_write_items(struct ptbf *bf, const char *assumed_type, GList **result) 
+static int generate_header_id(struct ptbf *bf, const char *assumed_type)
+{
+	static int i = 0;
+	/* FIXME */
+	return ++i;
+}
+
+static int ptb_write_items(struct ptbf *bf, const char *assumed_type, struct ptb_list **result) 
 {
 	int i;
-	guint16 length;
-	guint16 header;
-	guint16 id = 0x20;
-	guint16 nr_items;
-	GList *gl;
+	uint16_t length;
+	uint16_t header;
+	uint16_t id = 0x20;
+	uint16_t nr_items;
+	struct ptb_list *gl;
 	int ret = 0;
 
-	nr_items = g_list_length(*result);
+	DLIST_LEN(*result, nr_items, struct ptb_list *);
 
 	ret+=ptb_data(bf, &nr_items, 2);	
-	if(nr_items == 0x0) return TRUE; 
+	if(nr_items == 0x0) return 1; 
 
-	header = GPOINTER_TO_INT(g_hash_table_lookup(bf->section_nums, assumed_type));
+	header = generate_header_id(bf, assumed_type);
 	if (header == 0) header = 0xffff;
 
 	ret+=ptb_data(bf, &header, 2);
@@ -416,14 +428,12 @@ static gboolean ptb_write_items(struct ptbf *bf, const char *assumed_type, GList
 	ptb_debug("Going to write %d items", nr_items);
 
 	if (header == 0xffff) {
-		guint16 unknownval = 0x0001; /* FIXME */
+		uint16_t unknownval = 0x0001; /* FIXME */
 
 		ret+=ptb_data(bf, &unknownval, 2);
 		length = strlen(assumed_type);
 		ret+=ptb_data(bf, &length, 2);
 		ret+=ptb_data(bf, (void *)assumed_type, length);
-		
-		g_hash_table_replace(bf->section_nums, (void *)assumed_type, GINT_TO_POINTER(id));
 	}
 
 
@@ -435,14 +445,14 @@ static gboolean ptb_write_items(struct ptbf *bf, const char *assumed_type, GList
 
 	if(!ptb_section_handlers[i].handler) {
 		fprintf(stderr, "Unable to find handler for section %s\n", assumed_type);
-		return FALSE;
+		return 0;
 	}
 
 	gl = *result;
 	while(gl) 
 	{
 		debug_level++;
-		ptb_section_handlers[i].handler(bf, ptb_section_handlers[i].name, &gl->data);
+		ptb_section_handlers[i].handler(bf, ptb_section_handlers[i].name, (struct ptb_list **)&gl);
 		debug_level--;
 
 		if(gl->next) {
@@ -451,18 +461,18 @@ static gboolean ptb_write_items(struct ptbf *bf, const char *assumed_type, GList
 		gl = gl->next;
 	}
 
-	return TRUE;
+	return 1;
 
 }
 
-static gboolean ptb_data_items(struct ptbf *bf, const char *assumed_type, GList **result)
+static int ptb_data_items(struct ptbf *bf, const char *assumed_type, struct ptb_list **result)
 {
 	switch (bf->mode) {
 	case O_RDONLY: return ptb_read_items(bf, assumed_type, result);
 	case O_WRONLY: return ptb_write_items(bf, assumed_type, result);
 	default: ptb_assert(bf, 0);
 	}
-	return FALSE;
+	return 0;
 }
 
 
@@ -473,14 +483,14 @@ void ptb_set_asserts_fatal(int y) { assert_is_fatal = y; }
 
 static void ptb_data_instrument(struct ptbf *bf, int i)
 {
-	ptb_data_items(bf, "CGuitar", &bf->instrument[i].guitars);
-	ptb_data_items(bf, "CChordDiagram", &bf->instrument[i].chorddiagrams);
-	ptb_data_items(bf, "CFloatingText", &bf->instrument[i].floatingtexts);
-	ptb_data_items(bf, "CGuitarIn", &bf->instrument[i].guitarins);
-	ptb_data_items(bf, "CTempoMarker", &bf->instrument[i].tempomarkers);
-	ptb_data_items(bf, "CDynamic", &bf->instrument[i].dynamics);
-	ptb_data_items(bf, "CSectionSymbol", &bf->instrument[i].sectionsymbols);
-	ptb_data_items(bf, "CSection", &bf->instrument[i].sections);
+	ptb_data_items(bf, "CGuitar", (struct ptb_list **)&bf->instrument[i].guitars);
+	ptb_data_items(bf, "CChordDiagram",(struct ptb_list **) &bf->instrument[i].chorddiagrams);
+	ptb_data_items(bf, "CFloatingText",(struct ptb_list **) &bf->instrument[i].floatingtexts);
+	ptb_data_items(bf, "CGuitarIn",(struct ptb_list **) &bf->instrument[i].guitarins);
+	ptb_data_items(bf, "CTempoMarker", (struct ptb_list **)&bf->instrument[i].tempomarkers);
+	ptb_data_items(bf, "CDynamic", (struct ptb_list **)&bf->instrument[i].dynamics);
+	ptb_data_items(bf, "CSectionSymbol", (struct ptb_list **)&bf->instrument[i].sectionsymbols);
+	ptb_data_items(bf, "CSection", (struct ptb_list **)&bf->instrument[i].sections);
 }
 
 static ssize_t ptb_data_file(struct ptbf *bf)
@@ -507,15 +517,14 @@ static ssize_t ptb_data_file(struct ptbf *bf)
 
 struct ptbf *ptb_read_file(const char *file)
 {
-	struct ptbf *bf = g_new0(struct ptbf, 1);
+	struct ptbf *bf = malloc_p(struct ptbf, 1);
 
-	bf->section_nums = g_hash_table_new(g_str_hash, g_str_equal);
 	bf->mode = O_RDONLY;
 	bf->fd = open(file, bf->mode);
 
 	strncpy(bf->data, "abc", 3);
 
-	bf->filename = g_strdup(file);
+	bf->filename = strdup(file);
 
 	if(bf->fd < 0) return NULL;
 
@@ -532,11 +541,10 @@ int ptb_write_file(const char *file, struct ptbf *bf)
 {
 	bf->mode = O_WRONLY;
 	bf->fd = creat(file, 0644);
-	bf->section_nums = g_hash_table_new(g_str_hash, g_str_equal);
 
 	strncpy(bf->data, "abc", 3);
 
-	bf->filename = g_strdup(file);
+	bf->filename = strdup(file);
 
 	if(bf->fd < 0) return -1;
 
@@ -549,12 +557,12 @@ int ptb_write_file(const char *file, struct ptbf *bf)
 	return 0;
 }
 
-static gboolean handle_unknown (struct ptbf *bf, const char *section, void **dest) {
+static int handle_unknown (struct ptbf *bf, const char *section, struct ptb_list **dest) {
 	fprintf(stderr, "Unknown section '%s'\n", section);	
-	return TRUE; 
+	return 1; 
 }
 
-static gboolean handle_CGuitar (struct ptbf *bf, const char *section, void **dest) {
+static int handle_CGuitar (struct ptbf *bf, const char *section, struct ptb_list **dest) {
 	struct ptb_guitar *guitar = GET_ITEM(bf, dest, struct ptb_guitar);
 
 	ptb_data(bf, &guitar->index, 1);
@@ -576,18 +584,18 @@ static gboolean handle_CGuitar (struct ptbf *bf, const char *section, void **des
 	ptb_data(bf, &guitar->nr_strings, 1);
 
 	if (bf->mode == O_RDONLY) {
-		guitar->strings = g_new(guint8, guitar->nr_strings);
+		guitar->strings = malloc_p(uint8_t, guitar->nr_strings);
 	}
 
 	ptb_data(bf, guitar->strings, guitar->nr_strings);
 
-	*dest = guitar;
+	*dest = (struct ptb_list *)guitar;
 
-	return TRUE;
+	return 1;
 }
 
 
-static gboolean handle_CFloatingText (struct ptbf *bf, const char *section, void **dest) { 
+static int handle_CFloatingText (struct ptbf *bf, const char *section, struct ptb_list **dest) { 
 	struct ptb_floatingtext *text = GET_ITEM(bf, dest, struct ptb_floatingtext);
 
 	ptb_data_string(bf, &text->text);
@@ -600,12 +608,12 @@ static gboolean handle_CFloatingText (struct ptbf *bf, const char *section, void
 				   (text->alignment &~ ALIGN_TIMESTAMP) == ALIGN_RIGHT);
 	ptb_data_font(bf, &text->font);
 	
-	*dest = text;
+	*dest = (struct ptb_list *)text;
 
-	return TRUE;
+	return 1;
 }
 
-static gboolean handle_CSection (struct ptbf *bf, const char *sectionname, void **dest) { 
+static int handle_CSection (struct ptbf *bf, const char *sectionname, struct ptb_list **dest) { 
 	struct ptb_section *section = GET_ITEM(bf, dest, struct ptb_section);
 
 	ptb_data_constant(bf, 0x32);
@@ -626,16 +634,16 @@ static gboolean handle_CSection (struct ptbf *bf, const char *sectionname, void 
 	ptb_data(bf, &section->letter, 1);
 	ptb_data_string(bf, &section->description);
 
-	ptb_data_items(bf, "CDirection", &section->directions);
-	ptb_data_items(bf, "CChordText", &section->chordtexts);
-	ptb_data_items(bf, "CRhythmSlash", &section->rhythmslashes);
-	ptb_data_items(bf, "CStaff", &section->staffs);
+	ptb_data_items(bf, "CDirection", (struct ptb_list **)&section->directions);
+	ptb_data_items(bf, "CChordText", (struct ptb_list **)&section->chordtexts);
+	ptb_data_items(bf, "CRhythmSlash", (struct ptb_list **)&section->rhythmslashes);
+	ptb_data_items(bf, "CStaff", (struct ptb_list **)&section->staffs);
 
-	*dest = section;
-	return TRUE;
+	*dest = (struct ptb_list *)section;
+	return 1;
 }
 
-static gboolean handle_CTempoMarker (struct ptbf *bf, const char *section, void **dest) {
+static int handle_CTempoMarker (struct ptbf *bf, const char *section, struct ptb_list **dest) {
 	struct ptb_tempomarker *tempomarker = GET_ITEM(bf, dest, struct ptb_tempomarker);
 
 	ptb_data(bf, &tempomarker->section, 1);
@@ -646,12 +654,12 @@ static gboolean handle_CTempoMarker (struct ptbf *bf, const char *section, void 
 	ptb_data(bf, &tempomarker->type, 2);
 	ptb_data_string(bf, &tempomarker->description);
 
-	*dest = tempomarker;
-	return TRUE;
+	*dest = (struct ptb_list *)tempomarker;
+	return 1;
 }
 
 
-static gboolean handle_CChordDiagram (struct ptbf *bf, const char *section, void **dest) { 
+static int handle_CChordDiagram (struct ptbf *bf, const char *section, struct ptb_list **dest) { 
 	struct ptb_chorddiagram *chorddiagram = GET_ITEM(bf, dest, struct ptb_chorddiagram);
 
 	ptb_data(bf, chorddiagram->name, 2);
@@ -659,14 +667,14 @@ static gboolean handle_CChordDiagram (struct ptbf *bf, const char *section, void
 	ptb_data(bf, &chorddiagram->type, 1);
 	ptb_data(bf, &chorddiagram->frets, 1);
 	ptb_data(bf, &chorddiagram->nr_strings, 1);
-	chorddiagram->tones = g_new(guint8, chorddiagram->nr_strings);
+	chorddiagram->tones = malloc_p(uint8_t, chorddiagram->nr_strings);
 	ptb_data(bf, chorddiagram->tones, chorddiagram->nr_strings);
 
-	*dest = chorddiagram;
-	return TRUE;
+	*dest = (struct ptb_list *)chorddiagram;
+	return 1;
 }
 
-static gboolean handle_CLineData (struct ptbf *bf, const char *section, void **dest) { 
+static int handle_CLineData (struct ptbf *bf, const char *section, struct ptb_list **dest) { 
 	struct ptb_linedata *linedata = GET_ITEM(bf, dest, struct ptb_linedata);
 
 	ptb_data(bf, &linedata->tone, 1);
@@ -692,12 +700,12 @@ static gboolean handle_CLineData (struct ptbf *bf, const char *section, void **d
 		ptb_data(bf, &linedata->bends, 4*linedata->conn_to_next);
 	}
 
-	*dest = linedata;
-	return TRUE;
+	*dest = (struct ptb_list *)linedata;
+	return 1;
 }
 
 
-static gboolean handle_CChordText (struct ptbf *bf, const char *section, void **dest) {
+static int handle_CChordText (struct ptbf *bf, const char *section, struct ptb_list **dest) {
 	struct ptb_chordtext *chordtext = GET_ITEM(bf, dest, struct ptb_chordtext);
 
 	ptb_data(bf, &chordtext->offset, 1);
@@ -717,11 +725,11 @@ static gboolean handle_CChordText (struct ptbf *bf, const char *section, void **
 	ptb_data(bf, &chordtext->VII, 1);
 	ptb_assert_0(bf, chordtext->VII & ~CHORDTEXT_VII);
 
-	*dest = chordtext;
-	return TRUE;
+	*dest = (struct ptb_list *)chordtext;
+	return 1;
 }
 
-static gboolean handle_CGuitarIn (struct ptbf *bf, const char *section, void **dest) { 
+static int handle_CGuitarIn (struct ptbf *bf, const char *section, struct ptb_list **dest) { 
 	struct ptb_guitarin *guitarin = GET_ITEM(bf, dest, struct ptb_guitarin);
 
 	ptb_data(bf, &guitarin->section, 1);
@@ -731,13 +739,13 @@ static gboolean handle_CGuitarIn (struct ptbf *bf, const char *section, void **d
 	ptb_data(bf, &guitarin->rhythm_slash, 1);
 	ptb_data(bf, &guitarin->staff_in, 1);
 
-	*dest = guitarin;
-	return TRUE;
+	*dest = (struct ptb_list *)guitarin;
+	return 1;
 }
 
 
-static gboolean handle_CStaff (struct ptbf *bf, const char *section, void **dest) { 
-	guint16 next;
+static int handle_CStaff (struct ptbf *bf, const char *section, struct ptb_list **dest) { 
+	uint16_t next;
 	struct ptb_staff *staff = GET_ITEM(bf, dest, struct ptb_staff);
 
 	ptb_data(bf, &staff->properties, 1);
@@ -747,37 +755,37 @@ static gboolean handle_CStaff (struct ptbf *bf, const char *section, void **dest
 	ptb_data_unknown(bf, 2);
 
 	/* FIXME! */
-	ptb_data_items(bf, "CPosition", &staff->positions[0]);
+	ptb_data_items(bf, "CPosition", (struct ptb_list **)&staff->positions[0]);
 	/* This is ugly, but at least it works... */
 	if (bf->mode == O_RDONLY) {
 		ptb_data(bf, &next, 2);
 		lseek(bf->fd, -2, SEEK_CUR); bf->curpos-=2;
 		if(next & 0x8000) {
-			*dest = staff;
+			*dest = (struct ptb_list *)staff;
 			staff->positions[1] = NULL;
-			return TRUE;
+			return 1;
 		}
 	}
 
-	ptb_data_items(bf, "CPosition", &staff->positions[1]);
+	ptb_data_items(bf, "CPosition", (struct ptb_list **)&staff->positions[1]);
 	/* This is ugly, but at least it works... */
 	if (bf->mode == O_RDONLY) {
 		ptb_data(bf, &next, 2);
 		lseek(bf->fd, -2, SEEK_CUR);bf->curpos-=2;
 		if(next & 0x8000) {
-			*dest = staff;
-			return TRUE;
+			*dest = (struct ptb_list *)staff;
+			return 1;
 		}
 	}
 
-	ptb_data_items(bf, "CMusicBar", &staff->musicbars);
+	ptb_data_items(bf, "CMusicBar", (struct ptb_list **)&staff->musicbars);
 
-	*dest = staff;
-	return TRUE;
+	*dest = (struct ptb_list *)staff;
+	return 1;
 }
 
 
-static gboolean handle_CPosition (struct ptbf *bf, const char *section, void **dest) { 
+static int handle_CPosition (struct ptbf *bf, const char *section, struct ptb_list **dest) { 
 	struct ptb_position *position = GET_ITEM(bf, dest, struct ptb_position);
 
 	ptb_data(bf, &position->offset, 1);
@@ -809,7 +817,7 @@ static gboolean handle_CPosition (struct ptbf *bf, const char *section, void **d
 		ptb_data_unknown(bf, 4*position->conn_to_next);
 	}*/
 	if(position->conn_to_next) {
-		guint8 covers, start, end;
+		uint8_t covers, start, end;
 		ptb_debug("Conn to next: %02x", position->conn_to_next);
 		ptb_data(bf, &start, 1);
 		ptb_data(bf, &end, 1);
@@ -817,13 +825,13 @@ static gboolean handle_CPosition (struct ptbf *bf, const char *section, void **d
 		ptb_data_unknown(bf, 1);
 	}
 
-	ptb_data_items(bf, "CLineData", &position->linedatas);
+	ptb_data_items(bf, "CLineData", (struct ptb_list **)&position->linedatas);
 
-	*dest = position;
-	return TRUE;
+	*dest = (struct ptb_list *)position;
+	return 1;
 }
 
-static gboolean handle_CDynamic (struct ptbf *bf, const char *section, void **dest) { 
+static int handle_CDynamic (struct ptbf *bf, const char *section, struct ptb_list **dest) { 
 	struct ptb_dynamic *dynamic = GET_ITEM(bf, dest, struct ptb_dynamic);
 
 	ptb_data(bf, &dynamic->offset, 1);
@@ -831,32 +839,32 @@ static gboolean handle_CDynamic (struct ptbf *bf, const char *section, void **de
 	ptb_data_unknown(bf, 3); /* FIXME */
 	ptb_data(bf, &dynamic->volume, 1);
 
-	*dest = dynamic;
-	return TRUE;
+	*dest = (struct ptb_list *)dynamic;
+	return 1;
 }
 
-static gboolean handle_CSectionSymbol (struct ptbf *bf, const char *section, void **dest) {
+static int handle_CSectionSymbol (struct ptbf *bf, const char *section, struct ptb_list **dest) {
 	struct ptb_sectionsymbol *sectionsymbol = GET_ITEM(bf, dest, struct ptb_sectionsymbol);
 
 	ptb_data_unknown(bf, 5); /* FIXME */
 	ptb_data(bf, &sectionsymbol->repeat_ending, 2);
 
-	*dest = sectionsymbol;
-	return TRUE;
+	*dest = (struct ptb_list *)sectionsymbol;
+	return 1;
 }
 
-static gboolean handle_CMusicBar (struct ptbf *bf, const char *section, void **dest) { 
+static int handle_CMusicBar (struct ptbf *bf, const char *section, struct ptb_list **dest) { 
 	struct ptb_musicbar *musicbar = GET_ITEM(bf, dest, struct ptb_musicbar);
 											 
 	ptb_data_unknown(bf, 8); /* FIXME */
 	ptb_data(bf, &musicbar->letter, 1);
 	ptb_data_string(bf, &musicbar->description);
 
-	*dest = musicbar; 
-	return TRUE;
+	*dest = (struct ptb_list *)musicbar; 
+	return 1;
 }
 
-static gboolean handle_CRhythmSlash (struct ptbf *bf, const char *section, void **dest) { 
+static int handle_CRhythmSlash (struct ptbf *bf, const char *section, struct ptb_list **dest) { 
 	struct ptb_rhythmslash *rhythmslash = GET_ITEM(bf, dest, struct ptb_rhythmslash);
 	
 	ptb_data(bf, &rhythmslash->offset, 1);
@@ -867,17 +875,17 @@ static gboolean handle_CRhythmSlash (struct ptbf *bf, const char *section, void 
 	ptb_data(bf, &rhythmslash->length, 1);
 	ptb_data_constant(bf, 0);
 
-	*dest = rhythmslash;
-	return TRUE;
+	*dest = (struct ptb_list *)rhythmslash;
+	return 1;
 }
 
-static gboolean handle_CDirection (struct ptbf *bf, const char *section, void **dest) { 
+static int handle_CDirection (struct ptbf *bf, const char *section, struct ptb_list **dest) { 
 	struct ptb_direction *direction = GET_ITEM(bf, dest, struct ptb_direction);
 
 	ptb_data_unknown(bf, 4); /* FIXME */
 
-	*dest = direction;
-	return TRUE;
+	*dest = (struct ptb_list *)direction;
+	return 1;
 }
 
 struct ptb_section_handler ptb_section_handlers[] = {
@@ -913,15 +921,14 @@ const char *ptb_get_tone_full(ptb_tone id)
 	return chords[id-16];
 }
 
-static GList *get_position(struct ptb_staff *staff, int offset)
+static struct ptb_position *get_position(struct ptb_staff *staff, int offset)
 {
 	int i;
 	for(i = 0; i < 2; i++) {
-		GList *gl = staff->positions[i];
-		while(gl) {
-			struct ptb_position *p = gl->data;
-			if(p->offset == offset) return gl;
-			gl = gl->next;
+		struct ptb_position *p = staff->positions[i];
+		while(p) {
+			if(p->offset == offset) return p;
+			p = p->next;
 		}
 	}
 	return NULL;
@@ -930,19 +937,18 @@ static GList *get_position(struct ptb_staff *staff, int offset)
 void ptb_get_position_difference(struct ptb_section *section, int start, int end, int *bars, int *length)
 {
 	long l = 0;
-	GList *staff = section->staffs;
-	GList *gl = NULL;
+	struct ptb_staff *staff = section->staffs;
+	struct ptb_position *gl = NULL;
 
 	while(staff) { 
-		gl = get_position(staff->data, start);
+		gl = get_position(staff, start);
 		if(gl) break;
 		staff = staff->next;
 	}
 
 	while(gl) {
-		struct ptb_position *p = gl->data;
-		if(p->offset >= end) break;
-		l += 0x100 / p->length;
+		if(gl->offset >= end) break;
+		l += 0x100 / gl->length;
 		gl = gl->next;
 	}
 

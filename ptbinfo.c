@@ -20,6 +20,7 @@
 #include <errno.h>
 #include <popt.h>
 #include "ptb.h"
+#include "dlinklist.h"
 
 #ifndef HAVE_CONFIG_H
 #  include "config.h"
@@ -112,7 +113,7 @@ int main(int argc, const char **argv)
 {
 	struct ptbf *ret;
 	int debugging = 0;
-	int c;
+	int c, tmp1, tmp2;
 	int version = 0;
 	poptContext pc;
 	struct poptOption options[] = {
@@ -163,13 +164,14 @@ int main(int argc, const char **argv)
 		break;
 	}
 
-	printf("Number of sections: \tRegular: %d Bass: %d\n", 
-		   g_list_length(ret->instrument[0].sections),
-		   g_list_length(ret->instrument[1].sections)
-		   );
-	printf("Number of guitars: \tRegular: %d Bass: %d\n", 
-		   g_list_length(ret->instrument[0].guitars),
-		   g_list_length(ret->instrument[1].guitars));
+	DLIST_LEN(ret->instrument[0].sections, tmp1, struct ptb_section *);
+	DLIST_LEN(ret->instrument[1].sections, tmp2, struct ptb_section *);
+	printf("Number of sections: \tRegular: %d Bass: %d\n", tmp1, tmp2);
+
+	DLIST_LEN(ret->instrument[0].guitars, tmp1, struct ptb_guitar *);
+	DLIST_LEN(ret->instrument[1].guitars, tmp2, struct ptb_guitar *);
+
+	printf("Number of guitars: \tRegular: %d Bass: %d\n", tmp1, tmp2);
 
 	return (ret?0:1);
 }

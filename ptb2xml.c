@@ -38,7 +38,7 @@
 #define SMART_ADD_CHILD_INT(parent, name, contents) { \
 	char tmpc[100]; \
 	xmlNodePtr tmp = xmlNewNode(NULL, name); \
-	g_snprintf(tmpc, 100, "%d", contents); \
+	snprintf(tmpc, 100, "%d", contents); \
 	xmlNodeSetContent(tmp, tmpc); \
 	xmlAddChild(parent, tmp); \
 }
@@ -46,7 +46,7 @@
 #define SMART_ADD_CHILD_XINT(parent, name, contents) { \
 	char tmpc[100]; \
 	xmlNodePtr tmp = xmlNewNode(NULL, name); \
-	g_snprintf(tmpc, 100, "%x", contents); \
+	snprintf(tmpc, 100, "%x", contents); \
 	xmlNodeSetContent(tmp, tmpc); \
 	xmlAddChild(parent, tmp); \
 }
@@ -55,36 +55,34 @@ xmlNodePtr xml_write_font(const char *name, struct ptb_font *font)
 {
 	xmlNodePtr xfont = xmlNewNode(NULL, name);
 	char tmp[100];
-	g_snprintf(tmp, 100, "%d", font->size); xmlSetProp(xfont, "size", tmp);
-	g_snprintf(tmp, 100, "%d", font->thickness); xmlSetProp(xfont, "thickness", tmp);
-	g_snprintf(tmp, 100, "%d", font->underlined); xmlSetProp(xfont, "underlined", tmp);
-	g_snprintf(tmp, 100, "%d", font->italic); xmlSetProp(xfont, "italic", tmp);
+	snprintf(tmp, 100, "%d", font->size); xmlSetProp(xfont, "size", tmp);
+	snprintf(tmp, 100, "%d", font->thickness); xmlSetProp(xfont, "thickness", tmp);
+	snprintf(tmp, 100, "%d", font->underlined); xmlSetProp(xfont, "underlined", tmp);
+	snprintf(tmp, 100, "%d", font->italic); xmlSetProp(xfont, "italic", tmp);
 	xmlSetProp(xfont, "family", font->family);
 	return xfont;
 }
 
-xmlNodePtr xml_write_directions(GList *directions)
+xmlNodePtr xml_write_directions(struct ptb_direction *directions)
 {
 	xmlNodePtr xdirections = xmlNewNode(NULL, "directions");
-	GList *gl = directions;
+	struct ptb_direction *direction = directions;
 
-	while(gl) {
-		struct ptb_direction *direction = gl->data;
+	while(direction) {
 		xmlNodePtr xdirection = xmlNewNode(NULL, "direction");
 		xmlAddChild(xdirections, xdirection);
 
-		gl = gl->next;
+		direction = direction->next;
 	}
 	return xdirections;
 }
 
-xmlNodePtr xml_write_rhythmslashes(GList *rhythmslashs)
+xmlNodePtr xml_write_rhythmslashes(struct ptb_rhythmslash *rhythmslashs)
 {
 	xmlNodePtr xrhythmslashs = xmlNewNode(NULL, "rhythmslashs");
-	GList *gl = rhythmslashs;
+	struct ptb_rhythmslash *rhythmslash = rhythmslashs;
 
-	while(gl) {
-		struct ptb_rhythmslash *rhythmslash = gl->data;
+	while(rhythmslash) {
 		xmlNodePtr xrhythmslash = xmlNewNode(NULL, "rhythmslash");
 		xmlAddChild(xrhythmslashs, xrhythmslash);
 		SMART_ADD_CHILD_INT(xrhythmslash, "properties", rhythmslash->properties);
@@ -92,19 +90,18 @@ xmlNodePtr xml_write_rhythmslashes(GList *rhythmslashs)
 		SMART_ADD_CHILD_INT(xrhythmslash, "dotted", rhythmslash->dotted);
 		SMART_ADD_CHILD_INT(xrhythmslash, "length", rhythmslash->length);
 		
-		gl = gl->next;
+		rhythmslash = rhythmslash->next;
 	}
 	
 	return xrhythmslashs;
 }
 
-xmlNodePtr xml_write_chordtexts(GList *chordtexts)
+xmlNodePtr xml_write_chordtexts(struct ptb_chordtext *chordtexts)
 {
 	xmlNodePtr xchordtexts = xmlNewNode(NULL, "chordtexts");
-	GList *gl = chordtexts;
+	struct ptb_chordtext *chordtext = chordtexts;
 
-	while(gl) {
-		struct ptb_chordtext *chordtext = gl->data;
+	while(chordtext) {
 		xmlNodePtr xchordtext = xmlNewNode(NULL, "chordtext");
 		xmlAddChild(xchordtexts, xchordtext);
 
@@ -116,38 +113,36 @@ xmlNodePtr xml_write_chordtexts(GList *chordtexts)
 		SMART_ADD_CHILD_INT(xchordtext, "properties", chordtext->properties);
 		SMART_ADD_CHILD_INT(xchordtext, "VII", chordtext->VII);
 
-		gl = gl->next;
+		chordtext = chordtext->next;
 	}
 	return xchordtexts;
 }
 
-xmlNodePtr xml_write_musicbars(GList *musicbars)
+xmlNodePtr xml_write_musicbars(struct ptb_musicbar *musicbars)
 {
 	xmlNodePtr xmusicbars = xmlNewNode(NULL, "musicbars");
-	GList *gl = musicbars;
+	struct ptb_musicbar *musicbar = musicbars;
 
-	while(gl) {
-		struct ptb_musicbar *musicbar = gl->data;
+	while(musicbar) {
 		xmlNodePtr xmusicbar = SMART_ADD_CHILD_STRING(xmusicbars, "musicbar", musicbar->description);
 
 		if(musicbar->letter != 0x7f) {
 			char tmp[100];
-			g_snprintf(tmp, 100, "%c", musicbar->letter);
+			snprintf(tmp, 100, "%c", musicbar->letter);
 			xmlSetProp(xmusicbar, "letter", tmp);
 		}
 
-		gl = gl->next;
+		musicbar = musicbar->next;
 	}
 	return xmusicbars;
 }
 
-xmlNodePtr xml_write_linedatas(GList *linedatas)
+xmlNodePtr xml_write_linedatas(struct ptb_linedata *linedatas)
 {
 	xmlNodePtr xlinedatas = xmlNewNode(NULL, "linedatas");
-	GList *gl = linedatas;
+	struct ptb_linedata *linedata = linedatas;
 
-	while(gl) {
-		struct ptb_linedata *linedata = gl->data;
+	while(linedata) {
 		xmlNodePtr xlinedata = xmlNewNode(NULL, "linedata");
 		xmlAddChild(xlinedatas, xlinedata);
 
@@ -157,18 +152,17 @@ xmlNodePtr xml_write_linedatas(GList *linedatas)
 		SMART_ADD_CHILD_INT(xlinedata, "transcribe", linedata->transcribe);
 		SMART_ADD_CHILD_INT(xlinedata, "conn_to_next", linedata->conn_to_next);
 
-		gl = gl->next;
+		linedata = linedata->next;
 	}
 	return xlinedatas;
 }
 
-xmlNodePtr xml_write_positions(GList *positions)
+xmlNodePtr xml_write_positions(struct ptb_position *positions)
 {
 	xmlNodePtr xpositions = xmlNewNode(NULL, "positions");
-	GList *gl = positions;
+	struct ptb_position *position = positions;
 
-	while(gl) {
-		struct ptb_position *position = gl->data;
+	while(position) {
 		xmlNodePtr xposition = xmlNewNode(NULL, "position");
 		xmlAddChild(xpositions, xposition);
 
@@ -180,19 +174,18 @@ xmlNodePtr xml_write_positions(GList *positions)
 
 		xmlAddChild(xposition, xml_write_linedatas(position->linedatas));
 
-		gl = gl->next;
+		position = position->next;
 	}
 	return xpositions;
 }
 
-xmlNodePtr xml_write_staffs(GList *staffs)
+xmlNodePtr xml_write_staffs(struct ptb_staff *staffs)
 {
 	xmlNodePtr xstaffs = xmlNewNode(NULL, "staffs");
-	GList *gl = staffs;
+	struct ptb_staff *staff = staffs;
 
-	while(gl) {
+	while(staff) {
 		int i;
-		struct ptb_staff *staff = gl->data;
 		xmlNodePtr xstaff = xmlNewNode(NULL, "staff");
 		xmlAddChild(xstaffs, xstaff);
 
@@ -204,18 +197,17 @@ xmlNodePtr xml_write_staffs(GList *staffs)
 			xmlAddChild(xstaff, xml_write_positions(staff->positions[i]));
 		xmlAddChild(xstaff, xml_write_musicbars(staff->musicbars));
 		
-		gl = gl->next;
+		staff = staff->next;
 	}
 	return xstaffs;
 }
 
-xmlNodePtr xml_write_sections(GList *sections) 
+xmlNodePtr xml_write_sections(struct ptb_section *sections) 
 {
 	xmlNodePtr sctns = xmlNewNode(NULL, "sections");
-	GList *gl = sections;
+	struct ptb_section *section = sections;
 
-	while(gl) {
-		struct ptb_section *section = gl->data;
+	while(section) {
 		xmlNodePtr meter_type;
 		xmlNodePtr xsection = xmlNewNode(NULL, "section");
 
@@ -223,7 +215,7 @@ xmlNodePtr xml_write_sections(GList *sections)
 
 		if(section->letter != 0x7f) {
 		char tmp[100];
-		g_snprintf(tmp, 100, "%c", section->letter);
+		snprintf(tmp, 100, "%c", section->letter);
 		xmlSetProp(xsection, "letter", tmp);
 		}
 
@@ -261,26 +253,25 @@ xmlNodePtr xml_write_sections(GList *sections)
 		xmlAddChild(xsection, xml_write_directions(section->directions));
 		xmlAddChild(xsection, xml_write_staffs(section->staffs));
 
-		gl = gl->next;
+		section = section->next;
 	}
 
 	return sctns;
 }
 
-xmlNodePtr xml_write_guitars(GList *guitars) 
+xmlNodePtr xml_write_guitars(struct ptb_guitar *guitars) 
 {
 	xmlNodePtr gtrs = xmlNewNode(NULL, "guitars");
-	GList *gl = guitars;
+	struct ptb_guitar *gtr = guitars;
 
-	while(gl) {
+	while(gtr) {
 		char tmp[100];
 		int i;
-		struct ptb_guitar *gtr = gl->data;
 		xmlNodePtr xgtr = xmlNewNode(NULL, "guitar");
 		xmlNodePtr strings;
 		xmlAddChild(gtrs, xgtr);
 
-		g_snprintf(tmp, 100, "%d", gtr->index);
+		snprintf(tmp, 100, "%d", gtr->index);
 		xmlSetProp(xgtr, "id", tmp);
 
 		strings = xmlNewNode(NULL, "strings");
@@ -302,19 +293,18 @@ xmlNodePtr xml_write_guitars(GList *guitars)
 		SMART_ADD_CHILD_INT(xgtr, "half_up", gtr->half_up);
 		SMART_ADD_CHILD_INT(xgtr, "simulate", gtr->simulate);
 
-		gl = gl->next;
+		gtr = gtr->next;
 	}
 	
 	return gtrs;
 }
 
-xmlNodePtr xml_write_guitarins(GList *guitarins)
+xmlNodePtr xml_write_guitarins(struct ptb_guitarin *guitarins)
 {
-	GList *gl = guitarins;
+	struct ptb_guitarin *guitarin = guitarins;
 	xmlNodePtr xguitarins = xmlNewNode(NULL, "guitarins");
 	
-	while(gl) {
-		struct ptb_guitarin *guitarin = gl->data;
+	while(guitarin) {
 		xmlNodePtr xguitarin = xmlNewNode(NULL, "guitarin");
 		xmlAddChild(xguitarins, xguitarin);
 		
@@ -324,19 +314,18 @@ xmlNodePtr xml_write_guitarins(GList *guitarins)
 		SMART_ADD_CHILD_INT(xguitarin, "rhythm_slash", guitarin->rhythm_slash);
 		SMART_ADD_CHILD_INT(xguitarin, "staff_in", guitarin->staff_in);
 
-		gl = gl->next;
+		guitarin = guitarin->next;
 	}
 
 	return xguitarins;
 }
 
-xmlNodePtr xml_write_tempomarkers(GList *tempomarkers)
+xmlNodePtr xml_write_tempomarkers(struct ptb_tempomarker *tempomarkers)
 {
-	GList *gl = tempomarkers;
+	struct ptb_tempomarker *tempomarker = tempomarkers;
 	xmlNodePtr xtempomarkers = xmlNewNode(NULL, "tempomarkers");
 	
-	while(gl) {
-		struct ptb_tempomarker *tempomarker = gl->data;
+	while(tempomarker) {
 		xmlNodePtr xtempomarker = SMART_ADD_CHILD_STRING(xtempomarkers, "tempomarker", tempomarker->description);
 		
 		SMART_ADD_CHILD_INT(xtempomarker, "type", tempomarker->type);
@@ -344,37 +333,35 @@ xmlNodePtr xml_write_tempomarkers(GList *tempomarkers)
 		SMART_ADD_CHILD_INT(xtempomarker, "offset", tempomarker->offset);
 		SMART_ADD_CHILD_INT(xtempomarker, "bpm", tempomarker->bpm);
 
-		gl = gl->next;
+		tempomarker = tempomarker->next;
 	}
 
 	return xtempomarkers;
 }
 
-xmlNodePtr xml_write_dynamics(GList *dynamics)
+xmlNodePtr xml_write_dynamics(struct ptb_dynamic *dynamics)
 {
-	GList *gl = dynamics;
+	struct ptb_dynamic *dynamic = dynamics;
 	xmlNodePtr xdynamics = xmlNewNode(NULL, "dynamics");
 	
-	while(gl) {
-		struct ptb_dynamic *dynamic = gl->data;
+	while(dynamic) {
 		xmlNodePtr xdynamic = xmlNewNode(NULL, "dynamic");
 		xmlAddChild(xdynamics, xdynamic);
 		
 		SMART_ADD_CHILD_INT(xdynamic, "offset", dynamic->offset);
 
-		gl = gl->next;
+		dynamic = dynamic->next;
 	}
 
 	return xdynamics;
 }
 
-xmlNodePtr xml_write_chorddiagrams(GList *chorddiagrams)
+xmlNodePtr xml_write_chorddiagrams(struct ptb_chorddiagram *chorddiagrams)
 {
-	GList *gl = chorddiagrams;
+	struct ptb_chorddiagram *chorddiagram = chorddiagrams;
 	xmlNodePtr xchorddiagrams = xmlNewNode(NULL, "chorddiagrams");
 	
-	while(gl) {
-		struct ptb_chorddiagram *chorddiagram = gl->data;
+	while(chorddiagram) {
 		int i;
 		xmlNodePtr xchorddiagram = xmlNewNode(NULL, "chorddiagram");
 		xmlNodePtr strings = xmlNewNode(NULL, "strings");
@@ -390,37 +377,35 @@ xmlNodePtr xml_write_chorddiagrams(GList *chorddiagrams)
 			SMART_ADD_CHILD_INT(strings, "string", chorddiagram->tones[i]);
 		}
 		
-		gl = gl->next;
+		chorddiagram = chorddiagram->next;
 	}
 
 	return xchorddiagrams;
 }
 
-xmlNodePtr xml_write_sectionsymbols(GList *sectionsymbols)
+xmlNodePtr xml_write_sectionsymbols(struct ptb_sectionsymbol *sectionsymbols)
 {
-	GList *gl = sectionsymbols;
+	struct ptb_sectionsymbol *sectionsymbol = sectionsymbols;
 	xmlNodePtr xsectionsymbols = xmlNewNode(NULL, "sectionsymbols");
 	
-	while(gl) {
-		struct ptb_sectionsymbol *sectionsymbol = gl->data;
+	while(sectionsymbol) {
 		xmlNodePtr xsectionsymbol = xmlNewNode(NULL, "sectionsymbol");
 		xmlAddChild(xsectionsymbols, xsectionsymbol);
 		
 		SMART_ADD_CHILD_INT(xsectionsymbol, "repeat-ending", sectionsymbol->repeat_ending);
 
-		gl = gl->next;
+		sectionsymbol = sectionsymbol->next;
 	}
 
 	return xsectionsymbols;
 }
 
-xmlNodePtr xml_write_floatingtexts(GList *floatingtexts)
+xmlNodePtr xml_write_floatingtexts(struct ptb_floatingtext *floatingtexts)
 {
-	GList *gl = floatingtexts;
+	struct ptb_floatingtext *floatingtext = floatingtexts;
 	xmlNodePtr xfloatingtexts = xmlNewNode(NULL, "floatingtexts");
 	
-	while(gl) {
-		struct ptb_floatingtext *floatingtext = gl->data;
+	while(floatingtext) {
 		xmlNodePtr xfloatingtext = SMART_ADD_CHILD_STRING(xfloatingtexts, "floatingtext", floatingtext->text);
 		
 		SMART_ADD_CHILD_INT(xfloatingtext, "beginpos", floatingtext->beginpos);
@@ -439,7 +424,7 @@ xmlNodePtr xml_write_floatingtexts(GList *floatingtexts)
 
 		xmlAddChild(xfloatingtext, xml_write_font("font", &floatingtext->font));
 
-		gl = gl->next;
+		floatingtext = floatingtext->next;
 	}
 
 	return xfloatingtexts;
@@ -449,7 +434,7 @@ xmlNodePtr xml_write_instrument(struct ptbf *bf, int i)
 {
 	char tmp[100];
 	xmlNodePtr instrument = xmlNewNode(NULL, "instrument");
-	g_snprintf(tmp, 100, "%d", i);
+	snprintf(tmp, 100, "%d", i);
 	xmlSetProp(instrument, "id", tmp);
 
 	xmlAddChild(instrument, xml_write_guitars(bf->instrument[i].guitars));

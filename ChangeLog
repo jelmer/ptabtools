@@ -2,6 +2,7 @@ All changes, unless specified otherwise, made by Jelmer Vernooij
 <jelmer@samba.org>.
 
 0.4:
+ * Remove dependency on glib
  * Support \book in lilypond output
  * (ptb2ly) triplet support
  * Write support (ptabtools can read ptb files it writes out, I'm not sure

@@ -21,18 +21,18 @@
 #define __GP_H__
 
 #include <sys/stat.h>
-#include <glib.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #if defined(_WIN32) && !defined(PTB_CORE)
 #pragma comment(lib,"ptb.lib")
 #endif
 
 struct gp_color {
-	guint8 unknown;
-	guint8 red;
-	guint8 green;
-	guint8 blue;
+	uint8_t unknown;
+	uint8_t red;
+	uint8_t green;
+	uint8_t blue;
 };
 
 struct gpf {
@@ -48,30 +48,30 @@ struct gpf {
 	const char *instruction;
 	const char *author;
 	const char *copyright;
-	guint32 notice_num_lines;
+	uint32_t notice_num_lines;
 	const char **notice;
 
-	guint8 shuffle;
+	uint8_t shuffle;
 
-	guint32 lyrics_track;
+	uint32_t lyrics_track;
 
-	guint32 num_lyrics;
+	uint32_t num_lyrics;
 	struct gp_lyric {
-		guint32 bar;
+		uint32_t bar;
 		const char *data;
 	} *lyrics;
 
-	guint32 bpm;
+	uint32_t bpm;
 
-	guint32 num_instruments;
+	uint32_t num_instruments;
 	struct gp_instrument {
 	} *instrument;
 
-	guint32 num_bars;
-	guint32 num_tracks;
+	uint32_t num_bars;
+	uint32_t num_tracks;
 
 	struct gp_bar {
-		guint8 properties;
+		uint8_t properties;
 #define GP_BAR_PROPERTY_CUSTOM_RHYTHM_1 0x01
 #define GP_BAR_PROPERTY_CUSTOM_RHYTHM_2	0x02
 #define GP_BAR_PROPERTY_REPEAT_OPEN		0x04
@@ -81,28 +81,28 @@ struct gpf {
 #define GP_BAR_PROPERTY_CHANGE_ARMOR	0x40
 #define GP_BAR_PROPERTY_DOUBLE_ENDING	0x80
 		
-		guint8 rhythm_1;
-		guint8 rhythm_2;
+		uint8_t rhythm_1;
+		uint8_t rhythm_2;
 		struct {
-			guint8 volta;
+			uint8_t volta;
 		} repeat_close;
 		struct {
-			guint8 type;
+			uint8_t type;
 		} alternate_ending;
 		struct {
 			const char *name;
 			struct gp_color color;
 		} marker;
 		struct {
-			guint8 armor_jumps;
-			guint8 minor;
+			uint8_t armor_jumps;
+			uint8_t minor;
 		} change_armor;
 		struct gp_bar_track
 		{
-			guint32 num_beats;
+			uint32_t num_beats;
 			struct gp_beat
 			{
-				guint8 properties;
+				uint8_t properties;
 #define GP_BEAT_PROPERTY_DOTTED	0x01
 #define GP_BEAT_PROPERTY_CHORD	0x02
 #define GP_BEAT_PROPERTY_TEXT	0x04
@@ -111,9 +111,9 @@ struct gpf {
 #define GP_BEAT_PROPERTY_TUPLET	0x20
 #define GP_BEAT_PROPERTY_REST	0x40
 				struct { 
-					guint8 complete;
+					uint8_t complete;
 					const char *name;
-					guint32 top_fret;
+					uint32_t top_fret;
 				} chord;
 				struct {
 #define GP_BEAT_EFFECT1_VIBRATO				0x01
@@ -127,33 +127,33 @@ struct gpf {
 #define GP_BEAT_EFFECT2_RASGUEADO			0x01
 #define GP_BEAT_EFFECT2_PICK_STROCKE		0x02
 #define GP_BEAT_EFFECT2_TREMOLO_BAR			0x04
-					guint8 properties1;
-					guint8 properties2;
+					uint8_t properties1;
+					uint8_t properties2;
 					struct {
-						guint32 num_points;
+						uint32_t num_points;
 					} tremolo_bar;
 				} effect;
 				struct {
-					guint8 new_instrument;
-					guint8 new_volume;
-					guint8 new_reverb;
-					guint8 new_pan;
-					guint8 new_chorus;
-					guint8 new_phaser;
-					guint32 new_tempo;
-					guint8 new_tremolo;
+					uint8_t new_instrument;
+					uint8_t new_volume;
+					uint8_t new_reverb;
+					uint8_t new_pan;
+					uint8_t new_chorus;
+					uint8_t new_phaser;
+					uint32_t new_tempo;
+					uint8_t new_tremolo;
 				} change;
 				struct {
-					guint32 n_tuplet;
+					uint32_t n_tuplet;
 				} tuplet;
-				guint8 duration;
+				uint8_t duration;
 				const char *text;
-				guint8 strings_present;
+				uint8_t strings_present;
 				struct gp_note {
-					guint8 duration;
-					guint8 new_nuance;
-					guint8 value;
-					guint8 properties;
+					uint8_t duration;
+					uint8_t new_nuance;
+					uint8_t value;
+					uint8_t properties;
 #define GP_NOTE_PROPERTY_DURATION_SPECIAL	0x01
 #define GP_NOTE_PROPERTY_DOTTED				0x02
 #define GP_NOTE_PROPERTY_GHOST				0x04
@@ -162,17 +162,17 @@ struct gpf {
 #define GP_NOTE_PROPERTY_ALTERATION			0x20
 #define GP_NOTE_PROPERTY_ACCENTUATED		0x40
 #define GP_NOTE_PROPERTY_FINGERING			0x80
-					guint8 alteration;
+					uint8_t alteration;
 #define GP_NOTE_ALTERATION_LINKED			0x02
 #define GP_NOTE_ALTERATION_DEAD				0x03
 					struct {
-						guint8 properties1;
+						uint8_t properties1;
 #define GP_NOTE_EFFECT1_BEND				0x01
 #define GP_NOTE_EFFECT1_HAMMER				0x02
 #define GP_NOTE_EFFECT1_SLIDE				0x04
 #define GP_NOTE_EFFECT1_LET_RING			0x08
 #define GP_NOTE_EFFECT1_APPOGIATURE			0x10
-						guint8 properties2;
+						uint8_t properties2;
 #define GP_NOTE_EFFECT2_STACCATO			0x01
 #define GP_NOTE_EFFECT2_PALM_MUTE			0x02
 #define GP_NOTE_EFFECT2_TREMOLO_PICKING		0x04
@@ -181,39 +181,39 @@ struct gpf {
 #define GP_NOTE_EFFECT2_TRILL				0x20
 #define GP_NOTE_EFFECT2_VIBRATO				0x40
 						struct {
-							guint32 num_points;
+							uint32_t num_points;
 							struct gp_note_effect_bend_point 
 							{
-								guint32 pitch;
+								uint32_t pitch;
 							} *points;
 						} bend;
 
 						struct {
-							guint8 duration;
+							uint8_t duration;
 						} tremolo_picking;
 
 						struct {
-							guint8 type;
+							uint8_t type;
 						} slide;
 
 						struct {
-							guint8 type;
+							uint8_t type;
 						} harmonic;
 
 						struct {
-							guint8 note_value;
-							guint8 frequency;
+							uint8_t note_value;
+							uint8_t frequency;
 						} trill;
 
 						struct {
-							guint8 duration;
-							guint8 previous_note;
-							guint8 transition;
+							uint8_t duration;
+							uint8_t previous_note;
+							uint8_t transition;
 						} appogiature;
 					} effect;
 					struct {
-						guint8 left_hand;
-						guint8 right_hand;
+						uint8_t left_hand;
+						uint8_t right_hand;
 					} fingering;
 				} notes[7];
 			} *beats;
@@ -222,17 +222,17 @@ struct gpf {
 
 	struct gp_track {
 		const char *name;
-		guint8 spc;
-		guint32 num_frets;
-		guint32 num_strings;
-		guint32 midi_port;
-		guint32 channel1;
-		guint32 channel2;
+		uint8_t spc;
+		uint32_t num_frets;
+		uint32_t num_strings;
+		uint32_t midi_port;
+		uint32_t channel1;
+		uint32_t channel2;
 		struct gp_track_string {
-			guint32 pitch;
+			uint32_t pitch;
 		} *strings;
 		struct gp_color color;
-		guint32 capo;
+		uint32_t capo;
 	} *tracks;
 
 };

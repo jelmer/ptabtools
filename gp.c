@@ -27,19 +27,22 @@
 #include <sys/stat.h>
 #include <string.h>
 #include "gp.h"
-#include <glib.h>
 #include <ctype.h>
+#include <assert.h>
+
+#define malloc_p(t, n) (t *) calloc(sizeof(t), n)
 
 static void gp_read(struct gpf *gpf, void *data, size_t len)
 {
-	g_assert(read(gpf->fd, data, len) == len);
+	int ret = read(gpf->fd, data, len);
+	assert(ret == len);
 }
 
 static void gp_read_unknown(struct gpf *gpf, size_t num)
 {
-	char *tmp = g_new0(char, num);
+	char *tmp = malloc_p(char, num);
 	gp_read(gpf, tmp, num);
-	g_free(tmp);
+	free(tmp);
 }
 
 static void gp_read_string(struct gpf *gpf, const char **dest)
@@ -47,27 +50,27 @@ static void gp_read_string(struct gpf *gpf, const char **dest)
 	unsigned char len = 0;
 	char *ret;
 	gp_read(gpf, &len, 1);
-	ret = g_new0(char, len+1);
+	ret = malloc_p(char, len+1);
 	gp_read(gpf, ret, len);
 	*dest = ret;
 }
 
-static void gp_read_uint8(struct gpf *gpf, guint8 *n)
+static void gp_read_uint8(struct gpf *gpf, uint8_t *n)
 {
-	gp_read(gpf, n, sizeof(guint8));
+	gp_read(gpf, n, sizeof(uint8_t));
 }
 
-static void gp_read_uint32(struct gpf *gpf, guint32 *n)
+static void gp_read_uint32(struct gpf *gpf, uint32_t *n)
 {
-	gp_read(gpf, n, sizeof(guint32));
+	gp_read(gpf, n, sizeof(uint32_t));
 }
 
 static void gp_read_long_string(struct gpf *gpf, const char **dest)
 {
-	guint32 l;
+	uint32_t l;
 	char *ret;
 	gp_read_uint32(gpf, &l);
-	ret = g_new0(char, l + 1);
+	ret = malloc_p(char, l + 1);
 	gp_read(gpf, ret, l);
 	*dest = ret;
 }
@@ -82,10 +85,10 @@ static void gp_read_color(struct gpf *gpf, struct gp_color *color)
 
 static void gp_read_nstring(struct gpf *gpf, const char **dest, size_t len)
 {
-	guint8 _len;
-	char *ret = g_new0(char, len + 1);
+	uint8_t _len;
+	char *ret = malloc_p(char, len + 1);
 	gp_read_uint8(gpf, &_len);
-	g_assert(_len <= len);
+	assert(_len <= len);
 	gp_read(gpf, ret, len);
 	ret[_len] = '\0';
 	*dest = ret;
@@ -94,7 +97,7 @@ static void gp_read_nstring(struct gpf *gpf, const char **dest, size_t len)
 static void gp_read_header(struct gpf *gpf)
 {
 	if (gpf->version >= 3.0) {
-		guint32 i;
+		uint32_t i;
 		gp_read_long_string(gpf, &gpf->title);
 		gp_read_long_string(gpf, &gpf->subtitle);
 		gp_read_long_string(gpf, &gpf->artist);
@@ -105,7 +108,7 @@ static void gp_read_header(struct gpf *gpf)
 		gp_read_long_string(gpf, &gpf->instruction);
 
 		gp_read_uint32(gpf, &gpf->notice_num_lines);
-		gpf->notice = g_new0(const char *, gpf->notice_num_lines);
+		gpf->notice = malloc_p(const char *, gpf->notice_num_lines);
 		for (i = 0; i < gpf->notice_num_lines; i++) 
 		{
 			gp_read_long_string(gpf, &gpf->notice[i]);
@@ -127,12 +130,12 @@ static void gp_read_lyrics(struct gpf *gpf)
 {
 	if (gpf->version >= 4.0) 
 	{
-		guint32 i;
+		uint32_t i;
 		gp_read_uint32(gpf, &gpf->lyrics_track);
 
 		gpf->num_lyrics = 5;
 
-		gpf->lyrics = g_new0(struct gp_lyric, gpf->num_lyrics);
+		gpf->lyrics = malloc_p(struct gp_lyric, gpf->num_lyrics);
 		
 		for (i = 0; i < gpf->num_lyrics; i++) {
 			gp_read_uint32(gpf, &gpf->lyrics[i].bar);
@@ -144,18 +147,18 @@ static void gp_read_lyrics(struct gpf *gpf)
 static void gp_read_instruments(struct gpf *gpf)
 {
 	if (gpf->version >= 3.0) {
-		guint32 i;
+		uint32_t i;
 		gpf->num_instruments = 64; 
-		gpf->instrument = g_new(struct gp_instrument, gpf->num_instruments);
+		gpf->instrument = malloc_p(struct gp_instrument, gpf->num_instruments);
 		for (i = 0; i < gpf->num_instruments; i++) 
 		{
 			gp_read_unknown(gpf, 12);
 		}
 	} else {
-		guint32 i;
+		uint32_t i;
 		for (i = 0; i < 8; i++) 
 		{
-			guint32 x;
+			uint32_t x;
 			gp_read_uint32(gpf, &x);
 			gp_read_unknown(gpf, x * 4);
 		}
@@ -164,14 +167,14 @@ static void gp_read_instruments(struct gpf *gpf)
 
 static void gp_read_bars(struct gpf *gpf)
 {
-	guint32 i;
-	gpf->bars = g_new0(struct gp_bar, gpf->num_bars);
+	uint32_t i;
+	gpf->bars = malloc_p(struct gp_bar, gpf->num_bars);
 
 	for (i = 0; i < gpf->num_bars; i++) 
 	{
 		gp_read_uint8(gpf, &gpf->bars[i].properties);
 
-		g_assert((	gpf->bars[i].properties 
+		assert((	gpf->bars[i].properties 
 					&~ GP_BAR_PROPERTY_CUSTOM_RHYTHM_1 
 					&~ GP_BAR_PROPERTY_CUSTOM_RHYTHM_2
 					&~ GP_BAR_PROPERTY_REPEAT_OPEN
@@ -215,21 +218,21 @@ static void gp_read_bars(struct gpf *gpf)
 
 static void gp_read_tracks(struct gpf *gpf)
 {
-	guint32 i;
+	uint32_t i;
 
-	gpf->tracks = g_new0(struct gp_track, gpf->num_tracks);
+	gpf->tracks = malloc_p(struct gp_track, gpf->num_tracks);
 
 	if (gpf->version >= 3.0) 
 	{
 		for (i = 0; i < gpf->num_tracks; i++) 
 		{
-			guint32 j;
+			uint32_t j;
 			gp_read_uint8(gpf, &gpf->tracks[i].spc);
 			gp_read_nstring(gpf, &gpf->tracks[i].name, 40);
 			gp_read_uint32(gpf, &gpf->tracks[i].num_strings);
-			gpf->tracks[i].strings = g_new0(struct gp_track_string, gpf->tracks[i].num_strings);
+			gpf->tracks[i].strings = malloc_p(struct gp_track_string, gpf->tracks[i].num_strings);
 			for (j = 0; j < 7; j++) {
-				guint32 string_pitch;
+				uint32_t string_pitch;
 				gp_read_uint32(gpf, &string_pitch);
 				if (j < gpf->tracks[i].num_strings) {
 					gpf->tracks[i].strings[j].pitch = string_pitch;
@@ -260,7 +263,7 @@ static void gp_read_beat(struct gpf *gpf, struct gp_beat *beat)
 {
 	int i;
 	gp_read_uint8(gpf, &beat->properties);
-	g_assert((beat->properties 
+	assert((beat->properties 
 			 &~ GP_BEAT_PROPERTY_DOTTED	
 			 &~ GP_BEAT_PROPERTY_CHORD
 			 &~ GP_BEAT_PROPERTY_TEXT
@@ -421,7 +424,7 @@ static void gp_read_beat(struct gpf *gpf, struct gp_beat *beat)
 				int k;
 				gp_read_unknown(gpf, 5);
 				gp_read_uint32(gpf, &n->effect.bend.num_points);
-				n->effect.bend.points = g_new0(struct gp_note_effect_bend_point, n->effect.bend.num_points);
+				n->effect.bend.points = malloc_p(struct gp_note_effect_bend_point, n->effect.bend.num_points);
 				for (k = 0; k < n->effect.bend.num_points; k++)
 				{
 					gp_read_unknown(gpf, 4);
@@ -464,14 +467,14 @@ static void gp_read_beat(struct gpf *gpf, struct gp_beat *beat)
 
 static void gp_read_data(struct gpf *gpf)
 {
-	guint32 i, j, k;
+	uint32_t i, j, k;
 	for (i = 0; i < gpf->num_bars; i++) 
 	{
-		gpf->bars[i].tracks = g_new0(struct gp_bar_track, gpf->num_tracks);
+		gpf->bars[i].tracks = malloc_p(struct gp_bar_track, gpf->num_tracks);
 		for (j = 0; j < gpf->num_tracks; j++) 
 		{
 			gp_read_uint32(gpf, &gpf->bars[i].tracks[j].num_beats);
-			gpf->bars[i].tracks[j].beats = g_new0(struct gp_beat, gpf->bars[i].tracks[j].num_beats);
+			gpf->bars[i].tracks[j].beats = malloc_p(struct gp_beat, gpf->bars[i].tracks[j].num_beats);
 			for (k = 0; k < gpf->bars[i].tracks[j].num_beats; k++) 
 			{
 				gp_read_beat(gpf, &gpf->bars[i].tracks[j].beats[k]);
@@ -491,7 +494,7 @@ static double find_version(const char *name)
 struct gpf *gp_read_file(const char *filename)
 {
 	
-	struct gpf *gpf = g_new0(struct gpf, 1);
+	struct gpf *gpf = malloc_p(struct gpf, 1);
 	gpf->fd = open(filename, O_RDONLY);
 
 	if (gpf->fd < 0) {

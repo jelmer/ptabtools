@@ -21,6 +21,7 @@
 #include <popt.h>
 #include <string.h>
 #include "ptb.h"
+#include "dlinklist.h"
 
 #ifndef HAVE_CONFIG
 #  include "config.h"
@@ -50,7 +51,7 @@ const char *num_to_string(int num, char *data)
 const char *get_staff_name(int sec_num, int staff_num)
 {
 	static char name[30], num[2][30];
-	g_snprintf(name, sizeof(name), "staff%sx%s", num_to_string(sec_num, num[0]), num_to_string(staff_num, num[1]));
+	snprintf(name, sizeof(name), "staff%sx%s", num_to_string(sec_num, num[0]), num_to_string(staff_num, num[1]));
 	return name;
 }
 
@@ -96,7 +97,7 @@ void ly_write_header(FILE *out, struct ptbf *ret)
 	fprintf(out, "}\n");
 }
 
-void ly_write_chordname_full(FILE *out, guint8 base, guint8 properties, guint8 additions, int len)
+void ly_write_chordname_full(FILE *out, uint8_t base, uint8_t properties, uint8_t additions, int len)
 {
 	fprintf(out, "%s", ptb_get_tone_full(base));
 	if(len) {
@@ -178,15 +179,14 @@ static double previous = 0.0;
 void ly_write_position(FILE *out, struct ptb_position *pos)
 {
 	double this = 0.0;
-	gboolean print_length = FALSE;
-	GList *gl = pos->linedatas;
-	int l = g_list_length(pos->linedatas);
+	char print_length = 0;
+	struct ptb_linedata *d = pos->linedatas;
 
 	this = pos->length * (pos->dots & POSITION_DOTS_1?1.5:1.0) 
 		* (pos->dots & POSITION_DOTS_2?1.5*1.5:1.0);
 	
 	if(this != previous) {
-		print_length = TRUE;
+		print_length = 1;
 		previous = this;
 	}
 
@@ -198,15 +198,14 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 	}
 
 	/* Rest */
-	if(l == 0) {
+	if(!d) {
 		fprintf(out, " r");
 	}
 
 	/* Multiple notes */
-	if(l > 1 || print_length) fprintf(out, " <");
+	if((d && d->next) || print_length) fprintf(out, " <");
 
-	while(gl) {
-		struct ptb_linedata *d = gl->data;
+	while(d) {
 		int note = d->detailed.fret;
 		int i;
 		int octave;
@@ -241,12 +240,13 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 
 		fprintf(out, "\\%d", d->detailed.string+1);
 		if(pos->properties & LINEDATA_PROPERTY_TIE) fprintf(out, " ~");
-		gl = gl->next;
-		if(gl) fprintf(out, " ");
+		d = d->next;
+		if(d) fprintf(out, " ");
 	}
 
 	/* Multiple notes */
-	if(l > 1 || print_length) fprintf(out, ">");
+	if((pos->linedatas && pos->linedatas->next) || print_length) 
+		fprintf(out, ">");
 
 	/* String */
 	if(print_length) {
@@ -269,7 +269,6 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 
 void ly_write_staff_identifier(FILE *out, struct ptb_staff *s, struct ptb_section *section, int section_num, int staff_num) 
 {
-	GList *gl;
 	int i;
 
 	if (warn_unsupported && s->musicbars) {
@@ -281,10 +280,10 @@ void ly_write_staff_identifier(FILE *out, struct ptb_staff *s, struct ptb_sectio
 	fprintf(out, "\t");
 	previous = 0.0;
 	for(i = 0; i < 2; i++) {
-		gl = s->positions[i];
-		while(gl) {
-			ly_write_position(out, (struct ptb_position *)gl->data);
-			gl = gl->next;
+		struct ptb_position *p = s->positions[i];
+		while(p) {
+			ly_write_position(out, p);
+			p = p->next;
 		}
 	}
 	fprintf(out, "\n");
@@ -294,21 +293,20 @@ void ly_write_staff_identifier(FILE *out, struct ptb_staff *s, struct ptb_sectio
 void ly_write_chords_identifier(FILE *out, struct ptb_section *s, int section_num)
 {
 	int bars, length, i;
-	GList *gl;
 	char num[20];
 
-	gl = s->chordtexts;
+	struct ptb_chordtext *ct = s->chordtexts;
 
 	fprintf(out, "\n%% Chords for section %d\n", section_num);
 	fprintf(out, "chords%s = \\chords {", num_to_string(section_num, num));
-	if (gl) {
-		ptb_get_position_difference(s, 0, ((struct ptb_chordtext *)gl->data)->offset, &bars, &length);
+	if (ct) {
+		ptb_get_position_difference(s, 0, ct->offset, &bars, &length);
 		for(i = 0; i < bars; i++) fprintf(out, "r1 ");
 		if(length) fprintf(out, "r%d ", length);
 
-		while(gl) {
-			ly_write_chordtext(out, s, (struct ptb_chordtext *)gl->data, (struct ptb_chordtext *)gl->next?gl->next->data:NULL);
-			gl = gl->next;
+		while(ct) {
+			ly_write_chordtext(out, s, ct, ct->next?ct->next:NULL);
+			ct = ct->next;
 		}
 	}
 
@@ -320,7 +318,7 @@ void ly_write_chords_identifier(FILE *out, struct ptb_section *s, int section_nu
 void ly_write_section_identifier(FILE *out, struct ptb_section *s, int section_num) 
 {
 	int staff_num = 0;
-	GList *gl;
+	struct ptb_staff *st = s->staffs;
 
 	if (s->description) {
 		fprintf(out, "\n%% %c: %s\n", s->letter, s->description);
@@ -391,11 +389,9 @@ void ly_write_section_identifier(FILE *out, struct ptb_section *s, int section_n
 
 	ly_write_chords_identifier(out, s, section_num);
 
-	gl = s->staffs;
-	
-	while(gl) {
-		ly_write_staff_identifier(out, (struct ptb_staff *)gl->data, s, section_num, staff_num);
-		gl = gl->next;
+	while(st) {
+		ly_write_staff_identifier(out, st, s, section_num, staff_num);
+		st = st->next;
 		staff_num++;
 	}
 }
@@ -448,11 +444,11 @@ int ly_write_chorddiagram(FILE *out, struct ptb_chorddiagram *ret)
 	 * */
 
 	/* FIXME: Fret offset
-		guint8 frets;
+		uint8_t frets;
 	 */
 
 	/* FIXME: Type
-	guint8 type;
+	uint8_t type;
 	 */
 
 	for (i = 0; i < ret->nr_strings; i++) {
@@ -473,12 +469,12 @@ int ly_write_chorddiagram(FILE *out, struct ptb_chorddiagram *ret)
 
 int ly_write_chorddiagrams_identifiers(FILE *out, struct ptb_instrument *instrument)
 {
-	GList *gl = instrument->chorddiagrams;
+	struct ptb_chorddiagram *cd = instrument->chorddiagrams;
 
-	while(gl)
+	while(cd)
 	{
-		ly_write_chorddiagram(out, gl->data);
-		gl = gl->next;
+		ly_write_chorddiagram(out, cd);
+		cd = cd->next;
 	}
 
 	return 1;
@@ -488,7 +484,7 @@ int ly_write_chorddiagrams_identifiers(FILE *out, struct ptb_instrument *instrum
 int ly_write_book_section(FILE *out, struct ptb_section *s, int section_num)
 {
 	int staff_num = 0;
-	GList *gl;
+	struct ptb_staff *st = s->staffs;
 
 	fprintf(out, "\t\\score {  \n");
 	fprintf(out, "\t\\header { \n");
@@ -500,18 +496,16 @@ int ly_write_book_section(FILE *out, struct ptb_section *s, int section_num)
 	ly_write_chords(out, s, section_num);
 	fprintf(out, "\t}\n");
 
-	gl = s->staffs;
-	
-	while(gl) {
+	while(st) {
 		fprintf(out, "\t\\context StaffGroup = \"Staff%d\" <<\n", staff_num);
 		fprintf(out, "\t\t\\context Staff { \n");
-		ly_write_staff(out, (struct ptb_staff *)gl->data, s, section_num, staff_num);
+		ly_write_staff(out, st, s, section_num, staff_num);
 		fprintf(out, "\t\t}\n");
 		fprintf(out, "\t\\context TabStaff { \n");
-		ly_write_tabstaff(out, (struct ptb_staff *)gl->data, s, section_num, staff_num);
+		ly_write_tabstaff(out, st, s, section_num, staff_num);
 		fprintf(out, "\t\t}\n");
 		fprintf(out, "\t>>\n");
-		gl = gl->next;
+		st = st->next;
 		staff_num++;
 	}
 
@@ -522,14 +516,13 @@ int ly_write_book_section(FILE *out, struct ptb_section *s, int section_num)
 
 int ly_write_main_book(FILE *out, struct ptb_instrument *instrument)
 {
-	GList *gl;
+	struct ptb_section *s = instrument->sections;
 	int i = 0;
 	fprintf(out, "\\book {\n");
 
-	gl = instrument->sections;
-	while(gl) {
-		ly_write_book_section(out, (struct ptb_section *)gl->data, i);
-		gl = gl->next;
+	while(s) {
+		ly_write_book_section(out, s, i);
+		s = s->next;
 		i++;
 	}
 
@@ -550,13 +543,13 @@ int main(int argc, const char **argv)
 	int have_lyrics;
 	struct ptbf *ret;
 	int debugging = 0;
-	GList *gl;
 	int instrument = 0;
 	int c, i = 0;
 	int version = 0;
 	int singlepiece = 0;
 	int quiet = 0;
 	const char *input;
+	struct ptb_section *section;
 	char *output = NULL;
 	poptContext pc;
 	struct poptOption options[] = {
@@ -657,10 +650,10 @@ int main(int argc, const char **argv)
 	ly_write_chorddiagrams_identifiers(out, &ret->instrument[instrument]);
 	
 	i = 1;
-	gl = ret->instrument[instrument].sections;
-	while(gl) {
-		ly_write_section_identifier(out, (struct ptb_section *)gl->data, i-1);
-		gl = gl->next;
+	section = ret->instrument[instrument].sections;
+	while(section) {
+		ly_write_section_identifier(out, section, i-1);
+		section = section->next;
 		i++;
 	}
 
