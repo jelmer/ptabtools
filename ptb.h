@@ -206,6 +206,7 @@ struct ptb_chordtext {
 #define CHORDTEXT_ADD_9						0x40
 	uint8_t additions;
 	uint8_t alterations;
+#define CHORDTEXT_VII_OPEN					0x01
 #define CHORDTEXT_VII						0x08
 	uint8_t VII;
 };
@@ -222,7 +223,9 @@ struct ptb_position {
 #define POSITION_DOTS_1							0x01
 #define POSITION_DOTS_2							0x02
 #define POSITION_DOTS_REST						0x04
-#define POSITION_DOTS_ARPEGGIO_UP				0x10
+#define POSITION_DOTS_VIBRATO					0x08
+#define POSITION_DOTS_ARPEGGIO_UP				0x20
+#define POSITION_DOTS_ARPEGGIO_DOWN				0x40
 	uint8_t dots;
 #define POSITION_PROPERTY_IN_SINGLE_BEAM		0x0080
 #define POSITION_PROPERTY_IN_DOUBLE_BEAM		0x0100
@@ -233,6 +236,7 @@ struct ptb_position {
 	uint16_t properties;
 	uint8_t let_ring;
 	uint8_t fermenta;
+#define POSITION_FERMENTA_ACCIACCATURA			0x01
 #define POSITION_FERMENTA_LET_RING				0x08
 #define POSITION_FERMENTA_FERMENTA				0x10
 #define POSITION_FERMENTA_TRIPLET_1				0x20
@@ -297,8 +301,8 @@ struct ptb_linedata {
 	uint8_t transcribe;
 #define LINEDATA_TRANSCRIBE_8VA					0x01
 #define LINEDATA_TRANSCRIBE_15MA				0x02
-#define LINEDATA_TRANSCRIBE_8VB					0x03
-#define LINEDATA_TRANSCRIBE_15MB				0x04
+#define LINEDATA_TRANSCRIBE_8VB					0x04
+#define LINEDATA_TRANSCRIBE_15MB				0x08
 	uint8_t conn_to_next;
 	struct ptb_bend *bends;
 };

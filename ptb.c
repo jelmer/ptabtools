@@ -761,7 +761,10 @@ static int handle_CChordText (struct ptbf *bf, const char *section, struct ptb_l
 			   & ~CHORDTEXT_PLUS_5);
 	ptb_data(bf, &chordtext->alterations, 1);
 	ptb_data(bf, &chordtext->VII, 1);
-	ptb_assert_0(bf, chordtext->VII & ~CHORDTEXT_VII);
+	ptb_assert_0(bf, chordtext->VII 
+				 & ~CHORDTEXT_VII 
+				 & ~CHORDTEXT_VII_OPEN
+				 	);
 
 	*dest = (struct ptb_list *)chordtext;
 	return 1;
@@ -835,12 +838,18 @@ static int handle_CPosition (struct ptbf *bf, const char *section, struct ptb_li
 			   & ~POSITION_PROPERTY_MIDDLE_IN_BEAM
 			   & ~POSITION_PROPERTY_LAST_IN_BEAM);
 	ptb_data(bf, &position->dots, 1);
-	ptb_assert_0(bf, position->dots &~ POSITION_DOTS_1 
-				 	 & ~POSITION_DOTS_2 & ~POSITION_DOTS_REST & ~POSITION_DOTS_ARPEGGIO_UP);
+	ptb_assert_0(bf, position->dots 
+				 	&~ POSITION_DOTS_1 
+				 	& ~POSITION_DOTS_2 
+					& ~POSITION_DOTS_REST 
+					& ~POSITION_DOTS_ARPEGGIO_UP 
+					& ~POSITION_DOTS_ARPEGGIO_DOWN
+					& ~POSITION_DOTS_VIBRATO);
 	ptb_data(bf, &position->palm_mute, 1);
 	ptb_assert_0(bf, position->palm_mute & ~POSITION_PALM_MUTE & ~POSITION_STACCATO & ~POSITION_ACCENT);
 	ptb_data(bf, &position->fermenta, 1);
 	ptb_assert_0(bf, position->fermenta
+					& ~POSITION_FERMENTA_ACCIACCATURA
 					& ~POSITION_FERMENTA_LET_RING
 					& ~POSITION_FERMENTA_TRIPLET_1
 					& ~POSITION_FERMENTA_TRIPLET_2
