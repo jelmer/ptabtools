@@ -11,7 +11,13 @@ ptb2xml.o: ptb2xml.c
 	$(CC) $(CFLAGS) -c $< 
 
 ptb.dll: $(PTBSO_OBJS)
-	$(CC) -shared $(CFLAGS) -o $@ $^ $(DLLFLAGS) 
+	$(CC) -shared $(CFLAGS) -o $@ $^ 
+
+ptb.lib: $(PTBSO_OBJS)
+	$(DLLTOOL) -l $@ $(PTBSO_OBJS)
+
+ptb.def: $(PTBSO_OBJS)
+	$(DLLTOOL) -e $@ $(PTBSO_OBJS)
 
 libptb.so.$(VERSION): $(PTBSO_OBJS)
 	$(CC) -shared $(CFLAGS) -o $@ $^
@@ -20,22 +26,22 @@ libptb.a: $(PTBSO_OBJS)
 	$(AR) rs $@ $^
 
 ptb2xml$(EXEEXT): ptb2xml.o ptb.o
-	$(CC) $(LDFLAGS) -o $@ $^ $(POPT_LIBS) $(LIBXML_LIBS) $(LIBXSLT_LIBS)
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(LIBXML_LIBS) $(LIBXSLT_LIBS)
 	
 ptb2ascii$(EXEEXT): ptb2ascii.o ptb.o
-	$(CC) $(LDFLAGS) -o $@ $^ $(POPT_LIBS)
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 ptb2ptb$(EXEEXT): ptb2ptb.o ptb.o
-	$(CC) $(LDFLAGS) -o $@ $^ $(POPT_LIBS)
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 ptb2ly$(EXEEXT): ptb2ly.o ptb.o
-	$(CC) $(LDFLAGS) -o $@ $^ $(POPT_LIBS)
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 gp2ly$(EXEEXT): gp2ly.o gp.o
-	$(CC) $(LDFLAGS) -o $@ $^ $(POPT_LIBS)
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 ptbinfo$(EXEEXT): ptbinfo.o ptb.o
-	$(CC) $(LDFLAGS) -o $@ $^ $(POPT_LIBS)
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 install: all
 	$(INSTALL) $(PROGS) $(DESTDIR)$(bindir)
