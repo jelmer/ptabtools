@@ -6,13 +6,15 @@ package=ptabtools
 
 build: configure
 	$(checkdir)
+	./configure --prefix=/usr
 	$(MAKE)
 	touch build
 
 configure:
 	$(checkdir)
-	./configure --prefix=/usr
-	touch configure
+	aclocal
+	autoconf
+	rm -rf autom4te.cache
 
 clean:
 	$(checkdir)
