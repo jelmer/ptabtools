@@ -102,6 +102,8 @@ struct ptb_guitar {
 
 struct ptb_dynamic {
 	guint8 offset;
+	guint8 staff;
+	guint8 volume;
 };
 
 struct ptb_guitarin {
@@ -204,6 +206,15 @@ struct ptb_staff {
 	GList *musicbars;
 };
 
+struct bend
+{
+	guint8 bend_pitch:4;
+	guint8 release_pitch:4;
+	guint8 bend1;
+	guint8 bend2;
+	guint8 bend3;
+};
+
 struct ptb_linedata {
 	union {
 		struct {
@@ -225,8 +236,8 @@ struct ptb_linedata {
 #define LINEDATA_TRANSCRIBE_8VB					0x03
 #define LINEDATA_TRANSCRIBE_15MB				0x04
 	guint8 conn_to_next;
+	struct bend *bends;
 };
-
 
 #define METER_TYPE_BEAM_2	0x0080	
 #define METER_TYPE_BEAM_4	0x0100

@@ -481,8 +481,8 @@ void *handle_CLineData (struct ptbf *bf, const char *section) {
 	ptb_read(bf, &linedata->conn_to_next, 1);
 	
 	if(linedata->conn_to_next) { 
-		ptb_debug("Conn to next!: %02x", linedata->conn_to_next);
-		ptb_read_unknown(bf, 4*linedata->conn_to_next);
+		linedata->bends = calloc(linedata->conn_to_next, sizeof(struct bend));
+		ptb_read(bf, &linedata->bends, 4*linedata->conn_to_next);
 	}
 
 	return linedata;
@@ -612,7 +612,9 @@ void *handle_CDynamic (struct ptbf *bf, const char *section) {
 	struct ptb_dynamic *dynamic = g_new0(struct ptb_dynamic, 1);
 
 	ptb_read(bf, &dynamic->offset, 1);
-	ptb_read_unknown(bf, 5); /* FIXME */
+	ptb_read(bf, &dynamic->staff, 1);
+	ptb_read_unknown(bf, 3); /* FIXME */
+	ptb_read(bf, &dynamic->volume, 1);
 
 	return dynamic;
 }
