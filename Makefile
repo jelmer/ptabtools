@@ -15,5 +15,8 @@ all: $(PROGS)
 ptb2ly: $(PTB2LY_OBJS)
 	$(CC) $(CFLAGS) -o $@ $(PTB2LY_OBJS) `pkg-config --libs glib-2.0`
 
+tags:
+	ctags *.c *.h
+
 clean: 
 	rm -f *.o core $(PROGS)
