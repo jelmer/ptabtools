@@ -252,6 +252,7 @@ void ly_write_staff_identifier(FILE *out, struct ptb_staff *s, struct ptb_sectio
 	GList *gl;
 	int i;
 
+	fprintf(out, "\n%% Notes for section %d, staff %d\n", section_num, staff_num);
 	fprintf(out, "%s = \\ {\n", get_staff_name(section_num, staff_num));
 	fprintf(out, "\t");
 	previous = 0.0;
@@ -274,6 +275,7 @@ void ly_write_chords_identifier(FILE *out, struct ptb_section *s, int section_nu
 
 	gl = s->chordtexts;
 
+	fprintf(out, "\n%% Chords for section %d\n", section_num);
 	fprintf(out, "chords%s = \\chords {", num_to_string(section_num, num));
 	if (gl) {
 		ptb_get_position_difference(s, 0, ((struct ptb_chordtext *)gl->data)->offset, &bars, &length);
