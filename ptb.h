@@ -211,6 +211,8 @@ struct ptb_sectionsymbol {
 };
 
 struct ptb_musicbar {
+	char letter;
+	char *description;
 };
 
 struct ptb_rhythmslash {

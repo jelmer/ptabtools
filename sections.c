@@ -97,13 +97,13 @@ ssize_t handle_CSection (struct ptbf *bf, const char *sectionname) {
 	ret+=ptb_read(bf, &section->letter, 1);
 	ret+=ptb_read_string(bf, &section->description);
 
-	ret+=ptb_read_unknown(bf, 2);
-
 	ptb_debug("Section prt 1");
 	ret+=ptb_read_items(bf);
 	ptb_debug("Section prt 2");
 	ret+=ptb_read_items(bf);
 	ptb_debug("Section prt 3");
+	ret+=ptb_read_items(bf);
+	ptb_debug("Section prt 4");
 	ret+=ptb_read_items(bf);
 //	ret+=ptb_read_stuff(bf);
 /*	ret+=ptb_read_items(bf);
@@ -158,7 +158,8 @@ ssize_t handle_CLineData (struct ptbf *bf, const char *section) {
 	ret+=ptb_read(bf, &linedata->conn_to_next, 1);
 	
 	if(linedata->conn_to_next) { 
-		ptb_read_unknown(bf, 4);
+		ptb_debug("Conn to next!: %02x", linedata->conn_to_next);
+		ptb_read_unknown(bf, 4*linedata->conn_to_next);
 	}
 
 	return ret;
@@ -270,7 +271,9 @@ ssize_t handle_CMusicBar (struct ptbf *bf, const char *section) {
 
 	bf->musicbars = g_list_append(bf->musicbars, musicbar);
 
-	ret+=ptb_read_unknown(bf, 10); /* FIXME */
+	ret+=ptb_read_unknown(bf, 8); /* FIXME */
+	ret+=ptb_read(bf, &musicbar->letter, 1);
+	ret+=ptb_read_string(bf, &musicbar->description);
 
 	return ret; 
 }

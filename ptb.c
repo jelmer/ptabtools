@@ -291,7 +291,8 @@ int ptb_read_items(struct ptbf *bf) {
 			ret+=ptb_read(bf, &next_thing, 2);
 			if(next_thing != 0x8000 + ptb_section_handlers[i].index) {
 				ptb_debug("Warning: got %04x, expected %04x\n", next_thing, 0x8000 + ptb_section_handlers[i].index);
-				if(next_thing & 0x8000) ptb_section_handlers[i].index = next_thing - 0x8000;
+				g_assert(next_thing & 0x8000);
+				ptb_section_handlers[i].index = next_thing - 0x8000;
 			}
 		}
 	}
