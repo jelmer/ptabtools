@@ -60,7 +60,6 @@ void *handle_CFloatingText (struct ptbf *bf, const char *section) {
 	ptb_read_unknown(bf, 15);
 	ptb_read(bf, &text->alignment, 1);
 	ptb_read_font(bf, &text->font);
-	ptb_read_unknown(bf, 4);
 	
 	return text;
 }
@@ -88,16 +87,10 @@ void *handle_CSection (struct ptbf *bf, const char *sectionname) {
 	ptb_read(bf, &section->letter, 1);
 	ptb_read_string(bf, &section->description);
 
-	ptb_debug("Section prt 1");
-	ptb_read_items(bf, "");
+	section->directions = ptb_read_items(bf, "CDirection");
 	section->chordtexts = ptb_read_items(bf, "CChordText");
 	section->rhythmslashes = ptb_read_items(bf, "CRhythmSlash");
-	ptb_debug("Section prt 4");
 	section->staffs = ptb_read_items(bf, "CStaff");
-//	ptb_read_stuff(bf);
-/*	ptb_read_items(bf);
-	ptb_read_items(bf);
-	ptb_read_items(bf);*/
 
 	return section; 
 }
@@ -185,14 +178,9 @@ void *handle_CStaff (struct ptbf *bf, const char *section) {
 	ptb_read_unknown(bf, 1); /* FIXME */
 	ptb_read(bf, &staff->extra_data, 1);
 
-	ptb_debug("Staff prt 1");
-	staff->positions = ptb_read_items(bf, "CPosition");
-	ptb_debug("Staff prt 2");
-	ptb_read_items(bf, "");
+	staff->positions1 = ptb_read_items(bf, "CPosition");
+	staff->positions2 = ptb_read_items(bf, "CPosition");
 	staff->musicbars = ptb_read_items(bf, "CMusicBar");
-//	ptb_read_unknown(bf, 2);
-//	ptb_read_items(bf);
-//	ptb_read_unknown(bf, staff->extra_data);
 	return staff;
 }
 

@@ -47,7 +47,11 @@ ssize_t ptb_read_constant(struct ptbf *f, unsigned char expected)
 	unsigned char real;
 	ssize_t ret = ptb_read(f, &real, 1);
 	
-	g_assert(real == expected);
+	if(real != expected) {
+		ptb_debug("%04x: Expected %02x, got %02x", f->curpos-1, expected, real);
+		g_assert(0);
+	}
+
 	return ret;
 }
 
@@ -74,6 +78,7 @@ ssize_t ptb_read_font(struct ptbf *f, struct ptb_font *dest) {
 	ret+=ptb_read_unknown(f, 2);
 	ret+=ptb_read(f, &dest->italic, 1);
 	ret+=ptb_read(f, &dest->underlined, 1);
+	ret+=ptb_read_unknown(f, 4);
 	return ret;
 }
 
@@ -295,7 +300,7 @@ GList *ptb_read_items(struct ptbf *bf, const char *assumed_type) {
 struct ptbf *ptb_read_file(const char *file)
 {
 	struct ptbf *bf = g_new0(struct ptbf, 1);
-	int ret = 1;
+	int i;
 	bf->fd = open(file, O_RDONLY);
 
 	strncpy(bf->data, "abc", 3);
@@ -315,35 +320,20 @@ struct ptbf *ptb_read_file(const char *file)
 		fprintf(stderr, "Header parsed correctly\n");
 	}
 
-	bf->regular.guitars = ptb_read_items(bf, "CGuitar");
-	printf("e\n");
-	bf->regular.chorddiagrams = ptb_read_items(bf, "CChordDiagram");
-	printf("f\n");
-	ptb_read_items(bf, "");
-	bf->regular.guitarins = ptb_read_items(bf, "CGuitarIn");
-	bf->regular.tempomarkers = ptb_read_items(bf, "CTempoMarker");
-	bf->regular.dynamics = ptb_read_items(bf, "CDynamic");
-	printf("5\n");
-	ptb_read_items(bf, "");
-	bf->regular.sections = ptb_read_items(bf, "CSection");
-	bf->bass.guitars = ptb_read_items(bf, "CGuitar");
-	bf->bass.chorddiagrams = ptb_read_items(bf, "CChordDiagram");
-	printf("8\n");
-	ptb_read_items(bf, "");
-	printf("9\n");
-	ptb_read_items(bf, "");
-	bf->bass.guitarins = ptb_read_items(bf, "CGuitarIn");
-	bf->bass.tempomarkers = ptb_read_items(bf, "CTempoMarker");
-	bf->bass.dynamics = ptb_read_items(bf, "CDynamic");
-	printf("12\n");
-	ptb_read_items(bf, "");
-	printf("13\n");
-	ptb_read_items(bf, "");
-	bf->bass.sections = ptb_read_items(bf, "CSection");
+	for(i = 0; i < 2; i++) {
+		bf->instrument[i].guitars = ptb_read_items(bf, "CGuitar");
+		bf->instrument[i].chorddiagrams = ptb_read_items(bf, "CChordDiagram");
+		bf->instrument[i].floatingtexts = ptb_read_items(bf, "CFloatingText");
+		bf->instrument[i].guitarins = ptb_read_items(bf, "CGuitarIn");
+		bf->instrument[i].tempomarkers = ptb_read_items(bf, "CTempoMarker");
+		bf->instrument[i].dynamics = ptb_read_items(bf, "CDynamic");
+		bf->instrument[i].sectionsymbols = ptb_read_items(bf, "CSectionSymbol");
+		bf->instrument[i].sections = ptb_read_items(bf, "CSection");
+	}
 
-	ptb_read_font(bf, bf->tablature_font);
-	ptb_read_font(bf, bf->chord_name_font);
-	ptb_read_font(bf, bf->default_font);
+	ptb_read_font(bf, &bf->tablature_font);
+	ptb_read_font(bf, &bf->chord_name_font);
+	ptb_read_font(bf, &bf->default_font);
 
 	close(bf->fd);
 	return bf;

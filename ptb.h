@@ -168,7 +168,8 @@ struct ptb_staff {
 	guint8 extra_data;
 	guint8 highest_note;
 	guint8 lowest_note;
-	GList *positions;
+	GList *positions1;
+	GList *positions2;
 	GList *musicbars;
 };
 
@@ -201,6 +202,7 @@ struct ptb_section {
 	GList *staffs;
 	GList *chordtexts;
 	GList *rhythmslashes;
+	GList *directions;
 	/* Number of times to repeat OR-ed with end mark type */
 	guint8 end_mark;
 	guint16 meter_type;
@@ -239,14 +241,13 @@ struct ptbf {
 		GList *chorddiagrams;
 		GList *tempomarkers;
 		GList *dynamics;
-	} regular, bass;
+		GList *floatingtexts;
+		GList *sectionsymbols;
+	} instrument[2];
 	off_t curpos;
-	GList *floatingtexts;
-	GList *sectionsymbols;
-	GList *directions;
-	struct ptb_font *default_font;
-	struct ptb_font *chord_name_font;
-	struct ptb_font *tablature_font;
+	struct ptb_font default_font;
+	struct ptb_font chord_name_font;
+	struct ptb_font tablature_font;
 };
 
 struct ptbf *ptb_read_file(const char *ptb);
