@@ -208,6 +208,7 @@ struct ptb_direction {
 };
 
 struct ptbf {
+	char data[3];
 	int fd;
 	char *filename;
 	struct stat st_buf;

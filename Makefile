@@ -1,5 +1,5 @@
 PROGS = ptb2ly
-CFLAGS = -g3 -Wall
+CFLAGS = -g -Wall
 
 PTB2LY_OBJS = ptb2ly.o ptb.o sections.o
 

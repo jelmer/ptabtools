@@ -20,13 +20,13 @@
 #include <stdio.h>
 
 
-int handle_unknown (struct ptbf *bf, const char *section) {
+ssize_t handle_unknown (struct ptbf *bf, const char *section) {
 	fprintf(stderr, "Unknown section '%s'\n", section);	
 	return -1; 
 }
 
-int handle_CGuitar (struct ptbf *bf, const char *section) {
-	int ret = 0;
+ssize_t handle_CGuitar (struct ptbf *bf, const char *section) {
+	ssize_t ret = 0;
 	struct ptb_guitar *guitar = g_new0(struct ptb_guitar, 1);
 
 
@@ -56,8 +56,8 @@ int handle_CGuitar (struct ptbf *bf, const char *section) {
 }
 
 
-int handle_CFloatingText (struct ptbf *bf, const char *section) { 
-	int ret = 0;
+ssize_t handle_CFloatingText (struct ptbf *bf, const char *section) { 
+	ssize_t ret = 0;
 	struct ptb_floatingtext *text = g_new0(struct ptb_floatingtext, 1);
 
 	bf->floatingtexts = g_list_append(bf->floatingtexts, text);
@@ -71,8 +71,8 @@ int handle_CFloatingText (struct ptbf *bf, const char *section) {
 	return ret;
 }
 
-int handle_CSection (struct ptbf *bf, const char *sectionname) { 
-	int ret = 0;
+ssize_t handle_CSection (struct ptbf *bf, const char *sectionname) { 
+	ssize_t ret = 0;
 	int cur = 0;
 	struct ptb_section *section = g_new0(struct ptb_section, 1);
 
@@ -100,8 +100,8 @@ int handle_CSection (struct ptbf *bf, const char *sectionname) {
 	return ret; 
 }
 
-int handle_CTempoMarker (struct ptbf *bf, const char *section) {
-	int ret = 0;
+ssize_t handle_CTempoMarker (struct ptbf *bf, const char *section) {
+	ssize_t ret = 0;
 	struct ptb_tempomarker *tempomarker = g_new0(struct ptb_tempomarker, 1);
 
 	bf->tempomarkers = g_list_append(bf->tempomarkers, tempomarker);
@@ -116,8 +116,8 @@ int handle_CTempoMarker (struct ptbf *bf, const char *section) {
 }
 
 
-int handle_CChordDiagram (struct ptbf *bf, const char *section) { 
-	int ret = 0;
+ssize_t handle_CChordDiagram (struct ptbf *bf, const char *section) { 
+	ssize_t ret = 0;
 	struct ptb_chorddiagram *chorddiagram = g_new0(struct ptb_chorddiagram, 1);
 
 	bf->chorddiagrams = g_list_append(bf->chorddiagrams, chorddiagram);
@@ -133,9 +133,9 @@ int handle_CChordDiagram (struct ptbf *bf, const char *section) {
 	return ret;
 }
 
-int handle_CLineData (struct ptbf *bf, const char *section) { 
+ssize_t handle_CLineData (struct ptbf *bf, const char *section) { 
 	struct ptb_linedata *linedata = g_new0(struct ptb_linedata, 1);
-	int ret = 0;
+	ssize_t ret = 0;
 
 	bf->linedatas = g_list_append(bf->linedatas, linedata);
 
@@ -148,8 +148,8 @@ int handle_CLineData (struct ptbf *bf, const char *section) {
 }
 
 
-int handle_CChordText (struct ptbf *bf, const char *section) {
-	int ret = 0;
+ssize_t handle_CChordText (struct ptbf *bf, const char *section) {
+	ssize_t ret = 0;
 	struct ptb_chordtext *chordtext = g_new0(struct ptb_chordtext, 1);
 
 	bf->chordtexts = g_list_append(bf->chordtexts, chordtext);
@@ -165,8 +165,8 @@ int handle_CChordText (struct ptbf *bf, const char *section) {
 	return ret;
 }
 
-int handle_CGuitarIn (struct ptbf *bf, const char *section) { 
-	int ret = 0;
+ssize_t handle_CGuitarIn (struct ptbf *bf, const char *section) { 
+	ssize_t ret = 0;
 	struct ptb_guitarin *guitarin = g_new0(struct ptb_guitarin, 1);
 
 	bf->guitarins = g_list_append(bf->guitarins, guitarin);
@@ -178,8 +178,8 @@ int handle_CGuitarIn (struct ptbf *bf, const char *section) {
 }
 
 
-int handle_CStaff (struct ptbf *bf, const char *section) { 
-	int ret = 0;
+ssize_t handle_CStaff (struct ptbf *bf, const char *section) { 
+	ssize_t ret = 0;
 	struct ptb_staff *staff = g_new0(struct ptb_staff, 1);
 
 	bf->staffs = g_list_append(bf->staffs, staff);
@@ -198,8 +198,8 @@ int handle_CStaff (struct ptbf *bf, const char *section) {
 }
 
 
-int handle_CPosition (struct ptbf *bf, const char *section) { 
-	int ret = 0;
+ssize_t handle_CPosition (struct ptbf *bf, const char *section) { 
+	ssize_t ret = 0;
 	struct ptb_position *position = g_new0(struct ptb_position, 1);
 
 	bf->positions = g_list_append(bf->positions, position);
@@ -214,9 +214,9 @@ int handle_CPosition (struct ptbf *bf, const char *section) {
 	return ret + ptb_read_items(bf);
 }
 
-int handle_CDynamic (struct ptbf *bf, const char *section) { 
+ssize_t handle_CDynamic (struct ptbf *bf, const char *section) { 
 	struct ptb_dynamic *dynamic = g_new0(struct ptb_dynamic, 1);
-	int ret = 0;
+	ssize_t ret = 0;
 
 	bf->dynamics = g_list_append(bf->dynamics, dynamic);
 
@@ -226,8 +226,8 @@ int handle_CDynamic (struct ptbf *bf, const char *section) {
 	return ret;
 
 }
-int handle_CSectionSymbol (struct ptbf *bf, const char *section) {
-	int ret = 0;
+ssize_t handle_CSectionSymbol (struct ptbf *bf, const char *section) {
+	ssize_t ret = 0;
 	struct ptb_sectionsymbol *sectionsymbol = g_new0(struct ptb_sectionsymbol, 1);
 
 	bf->sectionsymbols = g_list_append(bf->sectionsymbols, sectionsymbol);
@@ -238,8 +238,8 @@ int handle_CSectionSymbol (struct ptbf *bf, const char *section) {
 	return ret;
 }
 
-int handle_CMusicBar (struct ptbf *bf, const char *section) { 
-	int ret = 0;
+ssize_t handle_CMusicBar (struct ptbf *bf, const char *section) { 
+	ssize_t ret = 0;
 	struct ptb_musicbar *musicbar = g_new0(struct ptb_musicbar, 1);
 
 	bf->musicbars = g_list_append(bf->musicbars, musicbar);
@@ -249,8 +249,8 @@ int handle_CMusicBar (struct ptbf *bf, const char *section) {
 	return ret; 
 }
 
-int handle_CRhythmSlash (struct ptbf *bf, const char *section) { 
-	int ret = 0;
+ssize_t handle_CRhythmSlash (struct ptbf *bf, const char *section) { 
+	ssize_t ret = 0;
 	struct ptb_rhythmslash *rhythmslash = g_new0(struct ptb_rhythmslash, 1);
 
 	bf->rhythmslashs = g_list_append(bf->rhythmslashs, rhythmslash);
@@ -260,8 +260,8 @@ int handle_CRhythmSlash (struct ptbf *bf, const char *section) {
 	return ret;
 }
 
-int handle_CDirection (struct ptbf *bf, const char *section) { 
-	int ret = 0;
+ssize_t handle_CDirection (struct ptbf *bf, const char *section) { 
+	ssize_t ret = 0;
 	struct ptb_direction *direction = g_new0(struct ptb_direction, 1);
 
 	bf->directions = g_list_append(bf->directions, direction);

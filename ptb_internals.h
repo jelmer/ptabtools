@@ -29,10 +29,12 @@ ssize_t ptb_read_font(struct ptbf *, struct ptb_font *);
 
 struct ptb_section_handler {
 	char *name;
-	int (*handler) (struct ptbf *, const char *section);
+	ssize_t (*handler) (struct ptbf *, const char *section);
 	int index;
 };
 
 extern struct ptb_section_handler ptb_section_handlers[];
+
+#define read DONT_USE_READ
 
 #endif /* __PTB_H__ */

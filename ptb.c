@@ -19,7 +19,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <sys/mman.h>
 #include <sys/stat.h>
 #include <string.h>
 #include "ptb_internals.h"
@@ -28,9 +27,17 @@
 int debugging = 0;
 
 ssize_t ptb_read(struct ptbf *f, void *data, size_t length){
+#undef read
 	ssize_t ret = read(f->fd, data, length);
+#define read DONT_USE_READ
+
+	if(ret == -1) { 
+		perror("read"); 
+		g_assert(0);
+	}
+
 	f->curpos+=ret;
-	fprintf(stderr, "(%d) Offset: %lu\n", length, f->curpos);
+	
 	return ret;
 }
 
@@ -80,8 +87,7 @@ ssize_t ptb_read_string(struct ptbf *f, char **dest) {
 
 static ssize_t ptb_read_header(struct ptbf *f, struct ptb_hdr *hdr)
 {
-	char id[4];
-
+	char id[5];
 	ptb_read(f, id, 4);
 	id[4] = '\0';
 	if(strcmp(id, "ptab")) return -1;
@@ -206,12 +212,12 @@ int ptb_read_items(struct ptbf *bf) {
 		}
 	} else { 
 		fprintf(stderr, "Expected new item type, got %04x %02x\n", nr_items, header);
-		g_assert(0); 
+		return -1;
 	}
 
 	if(!ptb_section_handlers[i].handler) {
 		fprintf(stderr, "Unable to find handler for section %s\n", sectionname);
-		return ret;
+		return -1;
 	}
 
 	for(l = 0; l < nr_items; l++) {
@@ -221,6 +227,7 @@ int ptb_read_items(struct ptbf *bf) {
 		fprintf(stderr, "%02x ============= Handling %s (%d of %d) =============\n", ptb_section_handlers[i].index, ptb_section_handlers[i].name, l+1, nr_items);
 		section_index++;
 		tmp = ptb_section_handlers[i].handler(bf, ptb_section_handlers[i].name);
+
 
 		if(tmp < 0) {
 			fprintf(stderr, "Error parsing section '%s'\n", ptb_section_handlers[i].name);
@@ -245,6 +252,8 @@ struct ptbf *ptb_read_file(const char *file)
 	struct ptbf *bf = g_new0(struct ptbf, 1);
 	bf->fd = open(file, O_RDONLY);
 
+	strncpy(bf->data, "abc", 3);
+
 	bf->filename = g_strdup(file);
 
 	if(bf < 0) return NULL;
@@ -260,10 +269,10 @@ struct ptbf *ptb_read_file(const char *file)
 		fprintf(stderr, "Header parsed correctly\n");
 	}
 
-	printf("Pos: %ld\n", bf->curpos);
-
 	while(bf->curpos < bf->st_buf.st_size) {
-		if(ptb_read_items(bf) < 0) return NULL;
+		if(ptb_read_items(bf) < 0) { 
+			return NULL;
+		}
 	}
 
 	ptb_read_font(bf, bf->tablature_font);
