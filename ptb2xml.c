@@ -200,7 +200,6 @@ xmlNodePtr xml_write_staffs(struct ptb_staff *staffs)
 
 		for(i = 0; i < 2; i++) 
 			xmlAddChild(xstaff, xml_write_positions(staff->positions[i]));
-		xmlAddChild(xstaff, xml_write_musicbars(staff->musicbars));
 		
 		staff = staff->next;
 	}
@@ -257,6 +256,8 @@ xmlNodePtr xml_write_sections(struct ptb_section *sections)
 		xmlAddChild(xsection, xml_write_rhythmslashes(section->rhythmslashes));
 		xmlAddChild(xsection, xml_write_directions(section->directions));
 		xmlAddChild(xsection, xml_write_staffs(section->staffs));
+
+		xmlAddChild(xsection, xml_write_musicbars(section->musicbars));
 
 		section = section->next;
 	}

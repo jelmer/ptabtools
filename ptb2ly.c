@@ -276,10 +276,6 @@ void ly_write_staff_identifier(FILE *out, struct ptb_staff *s, struct ptb_sectio
 {
 	int i;
 
-	if (warn_unsupported && s->musicbars) {
-		fprintf(stderr, "Warning: Ignoring musicbars\n");
-	}
-
 	fprintf(out, "\n%% Notes for section %d, staff %d\n", section_num, staff_num);
 	fprintf(out, "%s = {\n", get_staff_name(section_num, staff_num));
 	fprintf(out, "\t");
@@ -324,6 +320,8 @@ void ly_write_section_identifier(FILE *out, struct ptb_section *s, int section_n
 {
 	int staff_num = 0;
 	struct ptb_staff *st = s->staffs;
+
+
 
 	if (s->description) {
 		fprintf(out, "\n%% %c: %s\n", s->letter, s->description);
@@ -398,6 +396,10 @@ void ly_write_section_identifier(FILE *out, struct ptb_section *s, int section_n
 		ly_write_staff_identifier(out, st, s, section_num, staff_num);
 		st = st->next;
 		staff_num++;
+	}
+
+	if (warn_unsupported && s->musicbars) {
+		fprintf(stderr, "Warning: Ignoring musicbars\n");
 	}
 }
 

@@ -18,6 +18,11 @@ PTB_TESTFILES = $(wildcard *.ptb)
 %.pdf: %.ly
 	lilypond-snapshot "$<"
 
-all: $(patsubst %.ptb,%.info,$(PTB_TESTFILES))
+%.ptb.2: %.ptb
+	../ptb2ptb "$<"
+
+all: ptb info
+info: $(patsubst %.ptb,%.info,$(PTB_TESTFILES))
+ptb: $(patsubst %.ptb,%.ptb.2,$(PTB_TESTFILES))
 clean: 
 	rm -f *.info *.ly *.txt *.pdf
