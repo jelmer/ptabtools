@@ -73,6 +73,7 @@ int main(int argc, const char **argv)
 	int c;
 	int version = 0;
 	int quiet = 0;
+	int i;
 	const char *input;
 	char *output = NULL;
 	poptContext pc;
@@ -141,18 +142,23 @@ int main(int argc, const char **argv)
 	ly_write_header(out, ret);
 
 	ly_write_lyrics(out, ret);
-		
+
 	fprintf(out, "\n\\score { << \n");
 
 	fprintf(out, "\t\\context ChordNames {\n");
 	fprintf(out, "\t}\n");
 
-	fprintf(out, "\t\\context StaffGroup <<\n");
-	fprintf(out, "\t\t\\context Staff { \n");
-	fprintf(out, "\t\t}\n");
-	fprintf(out, "\t\\context TabStaff { \n");
-	fprintf(out, "\t\t}\n");
-	fprintf(out, "\t>>\n");
+	for (i = 0; i < ret->num_tracks; i++) {
+		struct gp_track *t = &ret->tracks[i];
+		fprintf(out, "\t%% Track %d: %s\n", i, t->name);
+		fprintf(out, "\t%% %d frets, %d strings\n", t->num_frets, t->num_strings);
+		fprintf(out, "\t\\context StaffGroup <<\n");
+		fprintf(out, "\t\t\\context Staff { \n");
+		fprintf(out, "\t\t}\n");
+		fprintf(out, "\t\\context TabStaff { \n");
+		fprintf(out, "\t\t}\n");
+		fprintf(out, "\t>>\n\n");
+	}
 
 	fprintf(out, "\t>>\n");
 	

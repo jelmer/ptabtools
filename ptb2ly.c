@@ -491,7 +491,7 @@ int ly_write_book_section(FILE *out, struct ptb_section *s, int section_num)
 	int staff_num = 0;
 	struct ptb_staff *st = s->staffs;
 
-	fprintf(out, "\t\\score {  \n");
+	fprintf(out, "\\score {  \n");
 	fprintf(out, "\t\\header { \n");
 	if (s->description) {
 		fprintf(out, "\t\tpiece = \"%c: %s\"\n", s->letter, s->description);
