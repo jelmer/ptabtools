@@ -22,6 +22,10 @@
 #include <string.h>
 #include "ptb.h"
 
+#ifndef HAVE_CONFIG_H
+#  include "config.h"
+#endif
+
 void ascii_write_header(FILE *out, struct ptbf *ret) 
 {
 	if(ret->hdr.classification == CLASSIFICATION_SONG) {
@@ -180,7 +184,7 @@ int main(int argc, const char **argv)
 	while((c = poptGetNextOpt(pc)) >= 0) {
 		switch(c) {
 		case 'v':
-			printf("ptb2ascii Version "PTB_VERSION"\n");
+			printf("ptb2ascii Version "PACKAGE_VERSION"\n");
 			printf("(C) 2004 Jelmer Vernooij <jelmer@samba.org>\n");
 			exit(0);
 			break;

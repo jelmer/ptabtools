@@ -23,8 +23,6 @@
 #include <glib.h>
 #include <stdlib.h>
 
-#define PTB_VERSION "0.4"
-
 #if defined(_WIN32) && !defined(PTB_CORE)
 #pragma comment(lib,"ptb.lib")
 #endif

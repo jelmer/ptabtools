@@ -22,7 +22,11 @@
 #include <string.h>
 #include "ptb.h"
 
-#define LILYPOND_VERSION "0.4"
+#ifndef HAVE_CONFIG
+#  include "config.h"
+#endif
+
+#define LILYPOND_VERSION "2.2"
 
 const char *num_to_string(int num, char *data)
 {
@@ -94,7 +98,7 @@ void ly_write_chordname_full(FILE *out, guint8 base, guint8 properties, guint8 a
 {
 	fprintf(out, "%s", ptb_get_tone_full(base));
 	if(len) {
-		int i, newl, dots;
+		int i, newl = 0, dots = 0;
 		for(i = 1; i < 64; i*=2) {
 			if(len >= i && len < i*2) {
 				newl = i;
@@ -400,7 +404,7 @@ int main(int argc, const char **argv)
 	while((c = poptGetNextOpt(pc)) >= 0) {
 		switch(c) {
 		case 'v':
-			printf("ptb2ly Version "PTB_VERSION"\n");
+			printf("ptb2ly Version "PACKAGE_VERSION"\n");
 			printf("(C) 2004 Jelmer Vernooij <jelmer@samba.org>\n");
 			exit(0);
 			break;

@@ -21,6 +21,10 @@
 #include <popt.h>
 #include "ptb.h"
 
+#ifndef HAVE_CONFIG_H
+#  include "config.h"
+#endif
+
 #define COND_PRINTF(desc,field) if(field) printf("%s: %s\n", desc, field);
 
 void write_praudio_info(struct ptb_hdr *hdr)
@@ -123,7 +127,7 @@ int main(int argc, const char **argv)
 	while((c = poptGetNextOpt(pc)) >= 0) {
 		switch(c) {
 		case 'v':
-			printf("ptbinfo Version "PTB_VERSION"\n");
+			printf("ptbinfo Version "PACKAGE_VERSION"\n");
 			printf("(C) 2004 Jelmer Vernooij <jelmer@samba.org>\n");
 			exit(0);
 			break;
