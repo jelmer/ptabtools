@@ -192,11 +192,13 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 
 	fprintf(out, " ");
 
+	/* Triplet */
 	if (pos->fermenta & POSITION_FERMENTA_TRIPLET_1) {
 		fprintf(out, "\\times 2/3 { ");
 	}
 
-	if(l == 0) {/* Rest */
+	/* Rest */
+	if(l == 0) {
 		fprintf(out, " r");
 	}
 
@@ -324,6 +326,57 @@ void ly_write_section_identifier(FILE *out, struct ptb_section *s, int section_n
 		fprintf(out, "\n%% %c: %s\n", s->letter, s->description);
 	}
 
+	if (s->end_mark != 0) 
+	{
+		fprintf(out, "%% endmark: \\bar \"");
+		if (s->end_mark & END_MARK_TYPE_DOUBLELINE) {
+			fprintf(out, "|");
+		}
+
+		if (s->end_mark & END_MARK_TYPE_REPEAT) {
+			fprintf(out, ":");
+		}
+
+		fprintf(out, "\" %d times\n", s->end_mark
+				&~ END_MARK_TYPE_DOUBLELINE 
+				&~ END_MARK_TYPE_REPEAT);
+	}
+
+	if (s->meter_type & METER_TYPE_COMMON)
+	{
+		fprintf(out, "%% \\time 4/4\n");
+	} 
+
+	if (s->meter_type & METER_TYPE_CUT)
+	{
+		fprintf(out, "%% \\time 2/2\n");
+	}
+
+	if (warn_unsupported && (s->meter_type & METER_TYPE_BEAM_2)) 
+	{
+		fprintf(stderr, "Warning: METER_TYPE_BEAM_2 ignored\n");
+	}
+
+	if (warn_unsupported && (s->meter_type & METER_TYPE_BEAM_3)) 
+	{
+		fprintf(stderr, "Warning: METER_TYPE_BEAM_3 ignored\n");
+	}
+
+	if (warn_unsupported && (s->meter_type & METER_TYPE_BEAM_4)) 
+	{
+		fprintf(stderr, "Warning: METER_TYPE_BEAM_4 ignored\n");
+	}
+
+	if (warn_unsupported && (s->meter_type & METER_TYPE_BEAM_5)) 
+	{
+		fprintf(stderr, "Warning: METER_TYPE_BEAM_5 ignored\n");
+	}
+
+	if (warn_unsupported && (s->meter_type & METER_TYPE_BEAM_6)) 
+	{
+		fprintf(stderr, "Warning: METER_TYPE_BEAM_6 ignored\n");
+	}
+
 	if (warn_unsupported && s->rhythmslashes) {
 		fprintf(stderr, "Warning: Ignoring rhythmslashes information\n");
 	}
@@ -333,7 +386,7 @@ void ly_write_section_identifier(FILE *out, struct ptb_section *s, int section_n
 	}
 
 	if (warn_unsupported) {
-		fprintf(stderr, "Warning: Ignoring end_mark, meter_type, properties\n");
+		fprintf(stderr, "Warning: Ignoring properties\n");
 	}
 
 	ly_write_chords_identifier(out, s, section_num);
