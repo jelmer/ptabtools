@@ -1,0 +1,25 @@
+This is the roadmap for ptabtools, e.g. what I plan to implement for which 
+version and estimated release dates. Please send comments/additions/requests
+to jelmer@vernstok.nl
+
+0.5 (Estimated release date somewhere at the end of January 2005):
+ - Working ptb2ly (for pretty much all ptb files). Minor glitches allowed..
+ - Very basic gp2ly
+ - Working write support for ptb files
+
+0.6:
+ - Working gp2ly
+ - More fixes to ptb2ly
+ - Cleaner ptb2ly output
+ - Initial gp2ptb
+
+0.7: 
+ - Support the rest of GuitarPro files
+ - ptb2gp
+ - Working gp2xml --musicxml
+
+...
+
+1.0:
+ - Perfectly working ptb2ly, ptb2ascii, ptbinfo, gp2ptb, ptb2gp
+ - ptb2abc / gp2abc?
