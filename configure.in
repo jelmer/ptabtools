@@ -27,9 +27,5 @@ AC_CHECK_HEADERS([stdlib.h string.h unistd.h popt.h sys/time.h ctype.h])
 AC_C_CONST
 AC_TYPE_SIZE_T
 
-# Checks for library functions.
-AC_FUNC_MALLOC
-AC_FUNC_REALLOC
-
 AC_CONFIG_FILES([Makefile ptabtools.spec])
 AC_OUTPUT
