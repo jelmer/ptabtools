@@ -158,6 +158,7 @@ struct ptb_chordtext {
 #define CHORDTEXT_PROPERTY_FORMULA_MAJ7		0x08
 	guint8 properties;
 	guint8 offset;
+#define CHORDTEXT_ADD_9						0x40
 	guint8 additions;
 	guint8 alterations;
 #define CHORDTEXT_VII						0x08

@@ -504,6 +504,8 @@ void *handle_CChordText (struct ptbf *bf, const char *section) {
 			   & ~CHORDTEXT_PROPERTY_FORMULA_M
 			   & ~CHORDTEXT_PROPERTY_FORMULA_MAJ7);
 	ptb_read(bf, &chordtext->additions, 1);
+	ptb_assert_0(bf, chordtext->additions 
+			   & ~CHORDTEXT_ADD_9);
 	ptb_read(bf, &chordtext->alterations, 1);
 	ptb_read(bf, &chordtext->VII, 1);
 	ptb_assert_0(bf, chordtext->VII & ~CHORDTEXT_VII);

@@ -62,13 +62,21 @@ void ly_write_header(FILE *out, struct ptbf *ret)
 	fprintf(out, "}\n");
 }
 
-void ly_write_chordname_full(FILE *out, guint8 base, guint8 properties, int len)
+void ly_write_chordname_full(FILE *out, guint8 base, guint8 properties, guint8 additions, int len)
 {
 	fprintf(out, "%s", ptb_get_tone_full(base));
 	if(len) fprintf(out, "%d", len);
 
-	if(properties & CHORDTEXT_PROPERTY_FORMULA_MAJ7)fprintf(out, ":maj7");
-	if(properties & CHORDTEXT_PROPERTY_FORMULA_M)fprintf(out, ":m");
+	if(properties & CHORDTEXT_PROPERTY_FORMULA_MAJ7 ||
+	   properties & CHORDTEXT_PROPERTY_FORMULA_M ||
+	   additions) {
+		fprintf(out, ":");
+		if(additions & CHORDTEXT_ADD_9)
+			fprintf(out, "9");
+
+		if(properties & CHORDTEXT_PROPERTY_FORMULA_MAJ7)fprintf(out, "maj7");
+		if(properties & CHORDTEXT_PROPERTY_FORMULA_M)fprintf(out, "m");
+	}
 }
 
 void ly_write_chordtext_helper(FILE *out, struct ptb_chordtext *name, int length)
@@ -84,12 +92,12 @@ void ly_write_chordtext_helper(FILE *out, struct ptb_chordtext *name, int length
 
 	if(!(name->properties & CHORDTEXT_PROPERTY_NOCHORD) || 
 	   (name->properties & CHORDTEXT_PROPERTY_PARENTHESES)) { 
-		ly_write_chordname_full(out, name->name[1], name->properties, length);
+		ly_write_chordname_full(out, name->name[1], name->properties, name->additions, length);
 
 		/* Different bass note */
 		if(name->name[0] != name->name[1] && name->name[0] >= 16 && name->name[0] <= 28) {
 			fprintf(out, "/+");
-			ly_write_chordname_full(out, name->name[0], 0, 0);
+			ly_write_chordname_full(out, name->name[0], 0, 0, 0);
 		}
 
 	} /*
