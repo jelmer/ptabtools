@@ -501,6 +501,7 @@ int main(int argc, const char **argv)
 	xmlNodePtr root_node;
 	xmlDocPtr doc;
 	xmlNodePtr comment;
+	xmlNodePtr font;
 	int c, i;
 	int version = 0;
 	char *output = NULL;
@@ -552,6 +553,15 @@ int main(int argc, const char **argv)
 	for(i = 0; i < 2; i++) {
 		xmlAddChild(root_node, xml_write_instrument(ret, i));
 	}
+
+	font = xmlNewNode(NULL, "default_font"); xmlAddChild(root_node, font);
+	xmlAddChild(font, xml_write_font(&ret->default_font));
+
+	font = xmlNewNode(NULL, "chord_name_font"); xmlAddChild(root_node, font);
+	xmlAddChild(font, xml_write_font(&ret->chord_name_font));
+
+	font = xmlNewNode(NULL, "tablature_font"); xmlAddChild(root_node, font);
+	xmlAddChild(font, xml_write_font(&ret->tablature_font));
 
 	xmlSaveFormatFileEnc(output?output:"-", doc, "UTF-8", 1);
 
