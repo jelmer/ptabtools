@@ -8,3 +8,5 @@ EXPORTS
 	ptb_get_tone
 	ptb_get_tone_full
 	ptb_get_position_difference
+	ptb_read_tuning_dict
+	ptb_free_tuning_dict

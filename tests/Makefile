@@ -16,7 +16,10 @@ PTB_TESTFILES = $(wildcard *.ptb)
 	../gp2ly "$<"
 
 %.pdf: %.ly
-	lilypond-snapshot "$<"
+	lilypond-snapshot --pdf "$<"
+
+%.png: %.ly
+	lilypond-snapshot --png "$<"
 
 %.ptb.2: %.ptb
 	../ptb2ptb "$<"
@@ -24,5 +27,6 @@ PTB_TESTFILES = $(wildcard *.ptb)
 all: ptb info
 info: $(patsubst %.ptb,%.info,$(PTB_TESTFILES))
 ptb: $(patsubst %.ptb,%.ptb.2,$(PTB_TESTFILES))
+pdf: $(patsubst %.ptb,%.pdf,$(PTB_TESTFILES))
 clean: 
 	rm -f *.info *.ly *.txt *.pdf
