@@ -28,6 +28,8 @@
 
 #define LILYPOND_VERSION "2.4"
 
+int warn_unsupported = 0;
+
 const char *num_to_string(int num, char *data)
 {
 	int i;
@@ -176,7 +178,7 @@ static double previous = 0.0;
 void ly_write_position(FILE *out, struct ptb_position *pos)
 {
 	double this = 0.0;
-	char print_length = 0;
+	gboolean print_length = False;
 	GList *gl = pos->linedatas;
 	int l = g_list_length(pos->linedatas);
 
@@ -184,7 +186,7 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 		* (pos->dots & POSITION_DOTS_2?1.5*1.5:1.0);
 	
 	if(this != previous) {
-		print_length = 1;
+		print_length = True;
 		previous = this;
 	}
 
@@ -227,6 +229,10 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 		if(pos->palm_mute & POSITION_ACCENT)
 			fprintf(out, "->");
 
+		if(warn_unsupported && pos->palm_mute & POSITION_PALM_MUTE) {
+			fprintf(stderr, "Warning: Ignoring Palm Mute\n");
+		}
+
 		fprintf(out, "\\%d", d->detailed.string+1);
 		if(pos->properties & LINEDATA_PROPERTY_TIE) fprintf(out, " ~");
 		gl = gl->next;
@@ -249,12 +255,17 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 
 	if(pos->properties & POSITION_PROPERTY_LAST_IN_BEAM)
 		fprintf(out, "]");
+
 }
 
 void ly_write_staff_identifier(FILE *out, struct ptb_staff *s, struct ptb_section *section, int section_num, int staff_num) 
 {
 	GList *gl;
 	int i;
+
+	if (warn_unsupported && s->musicbars) {
+		fprintf(stderr, "Warning: Ignoring musicbars\n");
+	}
 
 	fprintf(out, "\n%% Notes for section %d, staff %d\n", section_num, staff_num);
 	fprintf(out, "%s = {\n", get_staff_name(section_num, staff_num));
@@ -303,9 +314,20 @@ void ly_write_section_identifier(FILE *out, struct ptb_section *s, int section_n
 	GList *gl;
 
 	if (s->description) {
-		fprintf(out, "\n%% %s\n", s->description);
+		fprintf(out, "\n%% %c: %s\n", s->letter, s->description);
 	}
 
+	if (warn_unsupported && s->rhythmslashes) {
+		fprintf(stderr, "Warning: Ignoring rhythmslashes information\n");
+	}
+
+	if (warn_unsupported && s->directions) {
+		fprintf(stderr, "Warning: Ignoring directions information\n");
+	}
+
+	if (warn_unsupported) {
+		fprintf(stderr, "Warning: Ignoring end_mark, meter_type, properties\n");
+	}
 
 	ly_write_chords_identifier(out, s, section_num);
 
@@ -349,6 +371,60 @@ int ly_write_lyrics(FILE *out, struct ptbf *ret)
 	return 1;
 }
 
+int ly_write_tempomarker(FILE *out, struct ptb_tempomarker *ret)
+{
+	fprintf(out, "%% Tempomarker: %s\n", ret->description);
+	fprintf(out, "\\tempo 4 = %d\n", ret->bpm);
+	return 1;
+}
+
+int ly_write_chorddiagram(FILE *out, struct ptb_chorddiagram *ret)
+{
+	int i;
+	fprintf(out, "%% \\markup \\fret-diagram #\"");
+
+	/* FIXME: Chord name 
+	 * ptb_chord name[2];
+	 * */
+
+	/* FIXME: Fret offset
+		guint8 frets;
+	 */
+
+	/* FIXME: Type
+	guint8 type;
+	 */
+
+	for (i = 0; i < ret->nr_strings; i++) {
+		fprintf(out, "%d-", i+1);
+		if (ret->tones[i] == 0xFE) {
+			fprintf(out, "x");
+		} else if (ret->tones[i] == 0) {
+			fprintf(out, "o");
+		} else {
+			fprintf(out, "%d", ret->tones[i]);
+		} 
+		fprintf(out, ";");
+	}
+
+	fprintf(out, "\"\n");
+	return 1;
+}
+
+int ly_write_chorddiagrams_identifiers(FILE *out, struct ptb_instrument *instrument)
+{
+	GList *gl = instrument->chorddiagrams;
+
+	while(gl)
+	{
+		ly_write_chorddiagram(out, gl->data);
+		gl = gl->next;
+	}
+
+	return 1;
+}
+
+
 int ly_write_book_section(FILE *out, struct ptb_section *s, int section_num)
 {
 	int staff_num = 0;
@@ -357,7 +433,7 @@ int ly_write_book_section(FILE *out, struct ptb_section *s, int section_num)
 	fprintf(out, "\t\\score {  \n");
 	fprintf(out, "\t\\header { \n");
 	if (s->description) {
-		fprintf(out, "\t\tpiece = \"%s\"\n", s->description);
+		fprintf(out, "\t\tpiece = \"%c: %s\"\n", s->letter, s->description);
 	}
 	fprintf(out, "\t} << \n");
 	fprintf(out, "\t\\context ChordNames {\n");
@@ -428,6 +504,7 @@ int main(int argc, const char **argv)
 		{"debug", 'd', POPT_ARG_NONE, &debugging, 0, "Turn on debugging output" },
 		{"outputfile", 'o', POPT_ARG_STRING, &output, 0, "Write to specified file", "FILE" },
 		{"regular", 'r', POPT_ARG_NONE, &instrument, 0, "Write tabs for regular guitar" },
+		{"warn-unsupported", 'u', POPT_ARG_NONE, &warn_unsupported, 1, "Warn about unsupported PTB elements" },
 		{"bass", 'b', POPT_ARG_NONE, &instrument, 1, "Write tabs for bass guitar"},
 		{"quiet", 'q', POPT_ARG_NONE, &quiet, 1, "Be quiet (no output to stderr)" },
 		{"single", 's', POPT_ARG_NONE, &singlepiece, 1, "Write single piece instead of \\book (experimental)" },
@@ -492,6 +569,32 @@ int main(int argc, const char **argv)
 		
 	ly_write_header(out, ret);
 	have_lyrics = ly_write_lyrics(out, ret);
+
+	if (warn_unsupported && ret->instrument[instrument].guitars) {
+		fprintf(stderr, "Warning: Ignoring guitar information\n");
+	} 
+
+	if (warn_unsupported && ret->instrument[instrument].guitarins) {
+		fprintf(stderr, "Warning: Ignoring guitar in information\n");
+	} 
+
+	if (warn_unsupported && ret->instrument[instrument].tempomarkers) {
+		fprintf(stderr, "Warning: Ignoring tempomarkers\n");
+	} 
+
+	if (warn_unsupported && ret->instrument[instrument].dynamics) {
+		fprintf(stderr, "Warning: Ignoring dynamics\n");
+	}
+
+	if (warn_unsupported && ret->instrument[instrument].floatingtexts) {
+		fprintf(stderr, "Warning: Ignoring floating texts\n");
+	}
+
+	if (warn_unsupported && ret->instrument[instrument].sectionsymbols) {
+		fprintf(stderr, "Warning: Ignoring section symbols\n");
+	}
+
+	ly_write_chorddiagrams_identifiers(out, &ret->instrument[instrument]);
 	
 	i = 1;
 	gl = ret->instrument[instrument].sections;
