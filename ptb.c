@@ -267,7 +267,7 @@ GList *ptb_read_items(struct ptbf *bf, const char *assumed_type) {
 			if(ptb_section_handlers[i].index == header) break;
 		}
 	} else { 
-		fprintf(stderr, "Expected new item type, got %04x %02x\n", nr_items, header);
+		fprintf(stderr, "Expected new item type (%s), got %04x %02x\n", assumed_type, nr_items, header);
 		return NULL;
 	}
 
@@ -469,7 +469,7 @@ void *handle_CLineData (struct ptbf *bf, const char *section) {
 	
 	if(linedata->conn_to_next) { 
 		ptb_debug("Conn to next!: %02x", linedata->conn_to_next);
-		ptb_read_unknown(bf, 4*linedata->conn_to_next);
+//		ptb_read_unknown(bf, 4*linedata->conn_to_next);
 	}
 
 	return linedata;
@@ -511,10 +511,9 @@ void *handle_CStaff (struct ptbf *bf, const char *section) {
 	ptb_read(bf, &staff->highest_note, 1);
 	ptb_read(bf, &staff->lowest_note, 1);
 	ptb_read_unknown(bf, 1); /* FIXME */
-	ptb_read(bf, &staff->extra_data, 1);
+	ptb_read_constant(bf, 0x3);
 
 	staff->positions1 = ptb_read_items(bf, "CPosition");
-	staff->positions2 = ptb_read_items(bf, "CPosition");
 	staff->musicbars = ptb_read_items(bf, "CMusicBar");
 	return staff;
 }
@@ -529,9 +528,15 @@ void *handle_CPosition (struct ptbf *bf, const char *section) {
 	ptb_read_unknown(bf, 2);
 	ptb_read(bf, &position->fermenta, 1);
 	ptb_read(bf, &position->length, 1);
-	ptb_read_constant(bf, 0x00);
+	ptb_read(bf, &position->swell, 1);
+	if(position->swell ) {
+		ptb_debug("Swell: %02x", position->swell);
+		ptb_read_unknown(bf, 4);
+	}
+
 
 	position->linedatas = ptb_read_items(bf, "CLineData");
+
 	
 	return position;
 }

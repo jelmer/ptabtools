@@ -162,6 +162,7 @@ struct ptb_position {
 	guint16 properties;
 	guint8 let_ring;
 	guint8 fermenta;
+	guint8 swell;
 	GList *linedatas;
 };
 

@@ -30,10 +30,10 @@ ptb2ly: $(PTB2LY_OBJS)
 install: all
 	$(INSTALL) ptb2ly $(DESTDIR)$(bindir)
 	$(INSTALL) ptb2ascii $(DESTDIR)$(bindir)
-	$(INSTALL) ptb2ly.1 $(DESTDIR)$(mandir)/man1
-	$(INSTALL) ptb2ascii.1 $(DESTDIR)$(mandir)/man1
+	$(INSTALL) -m 644 ptb2ly.1 $(DESTDIR)$(mandir)/man1
+	$(INSTALL) -m 644 ptb2ascii.1 $(DESTDIR)$(mandir)/man1
 	$(INSTALL) libptb-$(PTB_VERSION).so $(DESTDIR)$(libdir)
-	$(INSTALL) ptb.h $(DESTDIR)$(includedir)
+	$(INSTALL) -m 644 ptb.h $(DESTDIR)$(includedir)
 
 tags:
 	ctags *.c *.h
