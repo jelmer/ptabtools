@@ -27,10 +27,14 @@
 #pragma comment(lib,"ptb.lib")
 #endif
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned long uint32_t;
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 struct gp_color {
@@ -245,5 +249,9 @@ struct gpf {
 
 extern struct gpf *gp_read_file(const char *filename);
 extern void gp_free(struct gpf *);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __GP_H__ */

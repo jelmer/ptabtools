@@ -15,7 +15,7 @@ LIBXSLT_CFLAGS = @LIBXSLT_CFLAGS@
 LIBXSLT_LIBS = @LIBXSLT_LIBS@
 
 PROGS = @PROGS@
-LIBS = libptb.so.$(VERSION) libptb-$(VERSION).a
+LIBS = libptb.so.$(VERSION) libptb.a
 PROGS_MANPAGES = $(patsubst %,%.1,$(PROGS))
 INSTALL = @INSTALL@
 CFLAGS = @CFLAGS@ -g -Wall 
@@ -36,7 +36,7 @@ ptb2xml.o: ptb2xml.c
 libptb.so.$(VERSION): $(PTBSO_OBJS)
 	$(CC) -shared $(CFLAGS) -o $@ $^
 
-libptb-$(VERSION).a: $(PTBSO_OBJS)
+libptb.a: $(PTBSO_OBJS)
 	$(AR) rs $@ $^
 
 ptb2xml: ptb2xml.o ptb.o
