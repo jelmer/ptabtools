@@ -271,7 +271,6 @@ struct ptbf {
 	char data[3];
 	int fd;
 	char *filename;
-	GHashTable *section_indices;
 	struct ptb_hdr hdr;
 	struct {
 		GList *guitars;
