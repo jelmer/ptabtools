@@ -22,11 +22,11 @@
 
 int main(int argc, char **argv) 
 {
-	int ret = readptb(argv[1]);
+	struct ptbf *ret = ptb_read_file(argv[1], default_sections);
 	if(ret == 0) {
 		printf("Read successful!\n");
 	} else {
 		perror("Read error: ");
 	}
-	return ret;
+	return (ret?0:1);
 }

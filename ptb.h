@@ -60,11 +60,13 @@ struct ptbf {
 
 struct ptb_section {
     char *name;
-    int (*handler) (struct ptbf *, const char *section, guint8 *data, size_t len);
+    int (*handler) (struct ptbf *, const char *section);
 };
 
-extern struct ptb_section *default_sections;
+extern struct ptb_section default_sections[];
 
-struct ptbf *readptb(const char *ptb, struct ptb_section *sections);
+struct ptbf *ptb_read_file(const char *ptb, struct ptb_section *sections);
+int ptb_read_string(int fd, char **);
+int ptb_end_of_section(int fd);
 
 #endif /* __PTB_H__ */

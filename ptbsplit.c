@@ -18,15 +18,37 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <fcntl.h>
 #include "ptb.h"
+
+int write_section(struct ptbf *bf, const char *sectionname)
+{
+	int efd;
+	char *outname = g_strdup_printf("%s_%s", bf->filename, sectionname);
+	printf("Going to try to open '%s'\n", outname);
+	efd = creat(outname, 0755);
+	if(efd < 0) perror("Open");
+	while(!ptb_end_of_section(bf->fd)) {
+		char byte;
+		read(bf->fd, &byte, 1);
+		if(efd) write(efd, byte, 1);
+	}
+
+	close(efd);
+	return 0;
+}
+
+struct ptb_section sections[] = {
+	{NULL, write_section }
+};
 
 int main(int argc, char **argv) 
 {
-	int ret = readptb(argv[1]);
+	struct ptbf *ret = ptb_read_file(argv[1], sections);
 	if(ret == 0) {
 		printf("Read successful!\n");
 	} else {
 		perror("Read error: ");
 	}
-	return ret;
+	return (ret?0:1);
 }

@@ -17,71 +17,71 @@
 */
 
 #include "ptb.h"
+#include <stdio.h>
 
-int handle_CGuitar (struct ptbf *bf, const char *section, guint8 *data, size_t len) { return 0; }
 
-int handle_unknown (struct ptbf *bf, const char *section, guint8 *data, size_t len) { 
+int handle_unknown (struct ptbf *bf, const char *section) {
 	fprintf(stderr, "Unknown section '%s'\n", section);	
 	return -1; 
 }
 
-struct ptb_track *ptb_read_tracks(int fd)
-{
+
+int handle_CGuitar (struct ptbf *bf, const char *section) {
 	char unknown[256];
-	struct ptb_track *prevtrack = NULL, *firsttrack = NULL;
+	struct ptb_track *prevtrack = NULL;
 
 	/* FIXME: 01 00 07 00 */
-	read(fd, unknown, 4);
+	read(bf->fd, unknown, 4);
 	//fprintf(stderr, "%2x%2x%2x%2x\n", unknown[0], unknown[1], unknown[2], unknown[3]);
 
 	/* FIXME: CGuitar */
-	read(fd, unknown, 7);
+	read(bf->fd, unknown, 7);
 	unknown[7] = '\0';
 	//fprintf(stderr, "%s\n", unknown);
 
 	while(1) {
 		struct ptb_track *track = calloc(sizeof(struct ptb_track), 1);
 	
-		if(firsttrack) prevtrack->next = track;
-		else firsttrack = track;
+		if(bf->tracks) prevtrack->next = track;
+		else bf->tracks = track;
 		
 		/* Track number */
-		read(fd, &track->index, 1);
-		if(track->index == 0xff) return firsttrack;
-		readstring(fd, &track->title);
+		read(bf->fd, &track->index, 1);
+		if(track->index == 0xff) return 0;
+		ptb_read_string(bf->fd, &track->title);
 
 		//FIXME
-		read(fd, unknown, 8);
-		fprintf(stderr, "%s %02x %02x %02x\n", debug_filename, unknown[0], unknown[1], unknown[2]);
-		fprintf(stderr, "%s %02x %02x %02x\n", debug_filename, unknown[3], unknown[4], unknown[5]);
-		fprintf(stderr, "%s %02x %02x\n", debug_filename, unknown[6], unknown[7]);
-		readstring(fd, &track->type);
+		read(bf->fd, unknown, 8);
+		fprintf(stderr, "%s %02x %02x %02x\n", bf->filename, unknown[0], unknown[1], unknown[2]);
+		fprintf(stderr, "%s %02x %02x %02x\n", bf->filename, unknown[3], unknown[4], unknown[5]);
+		fprintf(stderr, "%s %02x %02x\n", bf->filename, unknown[6], unknown[7]);
+		ptb_read_string(bf->fd, &track->type);
 
 		//FIXME
-		read(fd, unknown, 10);
+		read(bf->fd, unknown, 10);
 
 		prevtrack = track;
 	}
 
-	return firsttrack;
+	return 0;
 }
 
 
-int handle_CFloatingText (struct ptbf *bf, const char *section, guint8 *data, size_t len) { return 0; }
+int handle_CFloatingText (struct ptbf *bf, const char *section) { return 0; }
 
-int handle_CGuitarIn (struct ptbf *bf, const char *section, guint8 *data, size_t len) { return 0; }
-int handle_CTempoMarker (struct ptbf *bf, const char *section, guint8 *data, size_t len) { return 0; }
-int handle_CDynamic (struct ptbf *bf, const char *section, guint8 *data, size_t len) { return 0; }
-int handle_CSectionSymbol (struct ptbf *bf, const char *section, guint8 *data, size_t len) { return 0; }
-int handle_CSection (struct ptbf *bf, const char *section, guint8 *data, size_t len) { return 0; }
-int handle_CChordText (struct ptbf *bf, const char *section, guint8 *data, size_t len) { return 0; }
-int handle_CStaff (struct ptbf *bf, const char *section, guint8 *data, size_t len) { return 0; }
-int handle_CPosition (struct ptbf *bf, const char *section, guint8 *data, size_t len) { return 0; }
-int handle_CLineData (struct ptbf *bf, const char *section, guint8 *data, size_t len) { return 0; }
-int handle_CMusicBar (struct ptbf *bf, const char *section, guint8 *data, size_t len) { return 0; }
-int handle_CChordDiagram (struct ptbf *bf, const char *section, guint8 *data, size_t len) { return 0; }
-int handle_CRhythmSlash (struct ptbf *bf, const char *section, guint8 *data, size_t len) { return 0; }
-int handle_CDirection (struct ptbf *bf, const char *section, guint8 *data, size_t len) { return 0; }
+int handle_CGuitarIn (struct ptbf *bf, const char *section) { return 0; }
+int handle_CTempoMarker (struct ptbf *bf, const char *section) { return 0; }
+int handle_CDynamic (struct ptbf *bf, const char *section) { return 0; }
+int handle_CSectionSymbol (struct ptbf *bf, const char *section) { return 0; }
+int handle_CSection (struct ptbf *bf, const char *section) { return 0; }
+int handle_CChordText (struct ptbf *bf, const char *section) { return 0; }
+int handle_CStaff (struct ptbf *bf, const char *section) { return 0; }
+int handle_CPosition (struct ptbf *bf, const char *section) { return 0; }
+int handle_CLineData (struct ptbf *bf, const char *section) { return 0; }
+int handle_CMusicBar (struct ptbf *bf, const char *section) { return 0; }
+int handle_CChordDiagram (struct ptbf *bf, const char *section) { return 0; }
+int handle_CRhythmSlash (struct ptbf *bf, const char *section) { return 0; }
+int handle_CDirection (struct ptbf *bf, const char *section) { return 0; }
 
 struct ptb_section default_sections[] = {
 	{"CGuitar", handle_CGuitar },

@@ -1,7 +1,14 @@
 all: ptb2ly ptbsplit
 
+PTB2LY_OBJS = ptb2ly.o ptb.o sections.o
+PTBSPLIT_OBJS = ptb.o ptbsplit.o
+
 %.o: %.c
 	$(CC) -c $< `pkg-config --cflags glib-2.0`
 
-ptb2ly: ptb2ly.o ptb.o
-	$(CC) -o $@ ptb2ly.o ptb.o `pkg-config --libs glib-2.0`
+
+ptbsplit: $(PTBSPLIT_OBJS)
+	$(CC) -o $@ $(PTBSPLIT_OBJS) `pkg-config --libs glib-2.0`
+
+ptb2ly: $(PTB2LY_OBJS)
+	$(CC) -o $@ $(PTB2LY_OBJS) `pkg-config --libs glib-2.0`

@@ -26,7 +26,19 @@
 
 int debugging = 0;
 
-void readstring(int fd, char **dest) {
+int ptb_end_of_section(int fd)
+{
+	guint16 data;
+	if(read(fd, &data, 2) < 2) return 1;
+
+	if(data == 0xffff) return 1;
+
+	lseek(fd, -2, SEEK_CUR);
+
+	return 0;
+}
+
+int ptb_read_string(int fd, char **dest) {
 	guint8 shortlength;
 	guint16 length;
 	char *data;
@@ -34,14 +46,14 @@ void readstring(int fd, char **dest) {
 	
 	/* If length is 0xff, this is followed by a guint16 length */
 	if(shortlength == 0xff) {
-		read(fd, &length, 2);
+		if(read(fd, &length, 2) < 2) return -1;
 	} else {
 		length = shortlength;
 	}
 	
 	if(length) {
 		data = malloc(length+1);
-		read(fd, data, length);
+		if(read(fd, data, length) < length) return -1;
 		data[length] = '\0';
 		if(debugging) printf("Read string: %s\n", data);
 		*dest = data;
@@ -49,6 +61,8 @@ void readstring(int fd, char **dest) {
 		if(debugging) printf("Empty string\n");
 		*dest = NULL;
 	}
+
+	return length;
 }
 
 static int ptb_read_header(int fd, struct ptb_hdr *hdr)
@@ -66,25 +80,25 @@ static int ptb_read_header(int fd, struct ptb_hdr *hdr)
 	/* FIXME: 0000 / 0003 */
 	read(fd, unknown, 2);
 //	fprintf(stderr, "%s: %02x %02x : %lx\n", debug_filename, unknown[0], unknown[1], *((guint16 *)unknown));
-	readstring(fd, &hdr->title);
-	readstring(fd, &hdr->artist);
+	ptb_read_string(fd, &hdr->title);
+	ptb_read_string(fd, &hdr->artist);
 
 	/* FIXME: REcord type ? */
 	read(fd, unknown, 2);
 //	fprintf(stderr, "%s: %02x %02x : %lx\n", debug_filename, unknown[0], unknown[1], *((guint16 *)unknown));
-	readstring(fd, &hdr->album);
+	ptb_read_string(fd, &hdr->album);
 	
 	/* d4 0700 00 */
 	read(fd, unknown, 4);
-	readstring(fd, &hdr->music_by);
-	readstring(fd, &hdr->words_by);
-	readstring(fd, &hdr->arranged_by);
-	readstring(fd, &hdr->guitar_transcribed_by);
-	readstring(fd, &hdr->bass_transcribed_by);
-	readstring(fd, &hdr->lyrics);
-	readstring(fd, &hdr->copyright);
-	readstring(fd, &hdr->guitar_notes);
-	readstring(fd, &hdr->bass_notes);
+	ptb_read_string(fd, &hdr->music_by);
+	ptb_read_string(fd, &hdr->words_by);
+	ptb_read_string(fd, &hdr->arranged_by);
+	ptb_read_string(fd, &hdr->guitar_transcribed_by);
+	ptb_read_string(fd, &hdr->bass_transcribed_by);
+	ptb_read_string(fd, &hdr->lyrics);
+	ptb_read_string(fd, &hdr->copyright);
+	ptb_read_string(fd, &hdr->guitar_notes);
+	ptb_read_string(fd, &hdr->bass_notes);
 
 	/* FIXME Integer indicating something ? */
 	read(fd, unknown, 2);
@@ -97,7 +111,7 @@ static int ptb_read_header(int fd, struct ptb_hdr *hdr)
 	return 0;
 }
 
-struct ptbf *readptb(const char *file, struct ptb_section *sections)
+struct ptbf *ptb_read_file(const char *file, struct ptb_section *sections)
 {
 	struct ptbf *bf = calloc(sizeof(struct ptbf), 1);
 	char eof = 0;
@@ -114,7 +128,7 @@ struct ptbf *readptb(const char *file, struct ptb_section *sections)
 
 	debugging = 1;
 
-	while(!eof) {
+	while(lseek(bf->fd, 0, SEEK_CUR) < bf->st_buf.st_size) {
 		guint16 unknownval;
 		guint16 l;
 		guint16 length;
@@ -135,19 +149,7 @@ struct ptbf *readptb(const char *file, struct ptb_section *sections)
 
 		read(bf->fd, unknown, 6);
 
-		fprintf(stderr, "%s: %02x %02x %02x %02x %02x %02x\n", bf->filename, unknown[0], unknown[1], unknown[2], unknown[3], unknown[4], unknown[5]);
-
-		fprintf(stderr, "%d\n", *((short *)unknown));
-
-		l = 0;
-		while(data != 0xff) {
-			l++;
-			if(read(bf->fd, &data, 1) < 1) { eof = 1; break; }
-			if(data == 0xff)  {
-				l++;
-				if(read(bf->fd, &data, 1) < 1) { eof = 1; break; }
-			}
-		}
+		//fprintf(stderr, "%s: %02x %02x %02x %02x %02x %02x\n", bf->filename, unknown[0], unknown[1], unknown[2], unknown[3], unknown[4], unknown[5]);
 
 		for(i = 0; sections[i].name; i++) {
 			if(!strcmp(sections[i].name, sectionname)) {
@@ -160,7 +162,7 @@ struct ptbf *readptb(const char *file, struct ptb_section *sections)
 			return NULL;
 		}
 
-		if(sections[i].handler(bf, sectionname, &data, l-2) != 0) {
+		if(sections[i].handler(bf, sectionname) != 0) {
 			fprintf(stderr, "Error parsing section '%s'\n", sectionname);
 		}
 	}
