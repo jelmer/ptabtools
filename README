@@ -1,4 +1,4 @@
-	ptabtools 0.1
+	ptabtools 0.2
 =====================
 This package contains a utility to convert PowerTab files, as generated 
 by the PowerTab editor, to GNU LilyPond files and a library that 
