@@ -148,9 +148,9 @@ xmlNodePtr xml_write_positions(GList *positions)
 		xmlAddChild(xpositions, xposition);
 
 		SMART_ADD_CHILD_INT(xposition, "offset", position->offset);
+		SMART_ADD_CHILD_INT(xposition, "dots", position->dots);
 		SMART_ADD_CHILD_INT(xposition, "length", position->length);
 		SMART_ADD_CHILD_INT(xposition, "properties", position->properties);
-		SMART_ADD_CHILD_INT(xposition, "let_ring", position->let_ring);
 		SMART_ADD_CHILD_INT(xposition, "fermenta", position->fermenta);
 
 		xmlAddChild(xposition, xml_write_linedatas(position->linedatas));

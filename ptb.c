@@ -417,6 +417,7 @@ void *handle_CFloatingText (struct ptbf *bf, const char *section) {
 	ptb_read(bf, &text->beginpos, 1);
 	ptb_read_unknown(bf, 15);
 	ptb_read(bf, &text->alignment, 1);
+	ptb_assert(bf, text->alignment == ALIGN_LEFT || text->alignment == ALIGN_CENTER || text->alignment == ALIGN_RIGHT);
 	ptb_read_font(bf, &text->font);
 	
 	return text;
@@ -434,6 +435,8 @@ void *handle_CSection (struct ptbf *bf, const char *sectionname) {
 	102 -> 2  staffs
 	*/
 	ptb_read(bf, &section->end_mark, 1);
+	ptb_assert(bf, section->end_mark == END_MARK_TYPE_NORMAL 
+			   || section->end_mark == END_MARK_TYPE_REPEAT);
 	ptb_read(bf, &section->position_width, 1);
 	ptb_read_unknown(bf, 5);
 	ptb_read(bf, &section->key_extra, 1);
@@ -487,8 +490,16 @@ void *handle_CLineData (struct ptbf *bf, const char *section) {
 	ptb_read(bf, &linedata->tone, 1);
 	ptb_read(bf, &linedata->properties, 1);
 	ptb_debug("Properties: %02x", linedata->properties);
+	ptb_assert(bf, 0 == (linedata->properties
+			   & ~LINEDATA_PROPERTY_GHOST_NOTE
+			   & ~LINEDATA_PROPERTY_MUTED));
 	ptb_read(bf, &linedata->transcribe, 1);
 	ptb_debug("Transcribe: %02x", linedata->transcribe);
+	ptb_assert(bf, linedata->transcribe == LINEDATA_TRANSCRIBE_8VA 
+			   ||  linedata->transcribe == LINEDATA_TRANSCRIBE_15MA
+			   ||  linedata->transcribe == LINEDATA_TRANSCRIBE_8VB
+			   ||  linedata->transcribe == LINEDATA_TRANSCRIBE_15MB);
+			   
 	ptb_read(bf, &linedata->conn_to_next, 1);
 	
 	if(linedata->conn_to_next) { 
@@ -507,6 +518,9 @@ void *handle_CChordText (struct ptbf *bf, const char *section) {
 	ptb_read(bf, chordtext->name, 2);
 
 	ptb_read(bf, &chordtext->properties, 1);
+	ptb_assert(bf, (chordtext->properties 
+			   & ~CHORDTEXT_PROPERTY_NOCHORD
+			   & ~CHORDTEXT_PROPERTY_COMBINED_CHORD) == 0);
 	ptb_read(bf, &chordtext->additions, 1);
 	ptb_read(bf, &chordtext->alterations, 1);
 	ptb_read_unknown(bf, 1); /* FIXME */
@@ -518,7 +532,7 @@ void *handle_CGuitarIn (struct ptbf *bf, const char *section) {
 	struct ptb_guitarin *guitarin = g_new0(struct ptb_guitarin, 1);
 
 	ptb_read(bf, &guitarin->section, 1);
-	ptb_read_unknown(bf, 1); /* FIXME */
+	ptb_read_constant(bf, 0x0); /* FIXME */
 	ptb_read(bf, &guitarin->staff, 1);
 	ptb_read(bf, &guitarin->offset, 1);
 	ptb_read(bf, &guitarin->rhythm_slash, 1);
@@ -551,8 +565,18 @@ void *handle_CPosition (struct ptbf *bf, const char *section) {
 	ptb_read(bf, &position->offset, 1);
 	ptb_read(bf, &position->properties, 2); /* FIXME */
 	ptb_debug("Properties: %04x", position->properties);
-	ptb_read_unknown(bf, 2);
+	ptb_assert(bf, (position->properties 
+			   & ~POSITION_PROPERTY_FIRST_IN_BIND
+			   & ~POSITION_PROPERTY_LEFT_BOUND
+			   & ~POSITION_PROPERTY_STACCATO
+			   & ~POSITION_PROPERTY_LAST_IN_BIND) == 0);
+	ptb_read(bf, &position->dots, 1);
+	ptb_assert(bf, position->dots == 0 || 
+			   	   position->dots == 1 ||
+				   position->dots == 2);
+	ptb_read_unknown(bf, 1);
 	ptb_read(bf, &position->fermenta, 1);
+	ptb_debug("Fermenta: %x", position->fermenta);
 	ptb_read(bf, &position->length, 1);
 	ptb_read_unknown(bf, 1);
 

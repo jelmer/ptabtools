@@ -150,8 +150,6 @@ struct ptb_chordtext {
 	ptb_chord name[2];
 #define CHORDTEXT_PROPERTY_NOCHORD 			0x10
 #define CHORDTEXT_PROPERTY_COMBINED_CHORD	0x20
-#define CHORDTEXT_PROPERTY_UNKNOWN_1		0x40
-#define CHORDTEXT_PROPERTY_UNKNOWN_2		0x80
 	guint8 properties;
 	guint8 offset;
 	guint8 additions;
@@ -161,10 +159,11 @@ struct ptb_chordtext {
 struct ptb_position {
 	guint8 offset;
 	guint8 length;
-#define POSITION_PROPERTY_STACCATO 		0x0002
 #define POSITION_PROPERTY_FIRST_IN_BIND	0x0004
-#define POSITION_PROPERTY_IN_BIND		0x0001
-#define POSITION_PROPERTY_LAST_IN_BIND	0x0021
+#define POSITION_PROPERTY_LEFT_BOUND	0x0001
+#define POSITION_PROPERTY_STACCATO 		0x0002
+#define POSITION_PROPERTY_LAST_IN_BIND	0x0020
+	guint8 dots;
 	guint16 properties;
 	guint8 let_ring;
 	guint8 fermenta;
@@ -185,12 +184,16 @@ struct ptb_staff {
 
 struct ptb_linedata {
 	guint8 tone;	
-#define LINEDATA_PROPERTIES_GHOST_NOTE 				0x01
-#define LINEDATA_PROPERTIES_MUTED					0x02
-#define LINEDATA_PROPERTIES_PULLOFF_FROM_NOWHERE	0x30
-#define LINEDATA_PROPERTIES_HAMMERON_FROM_NOWHERE	0x28
+#define LINEDATA_PROPERTY_GHOST_NOTE 			0x01
+#define LINEDATA_PROPERTY_MUTED					0x02
+#define LINEDATA_PROPERTY_PULLOFF_FROM_NOWHERE	0x30
+#define LINEDATA_PROPERTY_HAMMERON_FROM_NOWHERE	0x28
 	guint8 properties;
 	guint8 transcribe;
+#define LINEDATA_TRANSCRIBE_8VA					0x01
+#define LINEDATA_TRANSCRIBE_15MA				0x02
+#define LINEDATA_TRANSCRIBE_8VB					0x03
+#define LINEDATA_TRANSCRIBE_15MB				0x04
 	guint8 conn_to_next;
 };
 
