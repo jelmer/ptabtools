@@ -82,11 +82,6 @@ struct ptb_hdr {
 	guint16 version;
 };
 
-struct ptb_chord {
-
-	struct ptb_chord *next;
-};
-
 struct ptb_guitar {
 	guint8 index;
 	char *title;
@@ -108,6 +103,10 @@ struct ptb_guitar {
 
 struct ptb_font {
 	guint8 size;
+	enum { ALIGN_LEFT = 1, ALIGN_CENTER, ALIGN_RIGHT } alignment;
+	guint8 thickness;
+	guint8 underlined;
+	guint8 italic;
 	char *family;
 };
 
@@ -124,12 +123,20 @@ struct ptb_tempomarker {
 };
 
 struct ptb_chorddiagram {
-	ptb_chord name;
+	ptb_chord name[2];
 	guint8 frets;
 	guint8 nr_strings;
 	guint8 type;
 	ptb_tone *tones;
 	struct ptb_chorddiagram *next;
+};
+
+struct ptb_chordtext {
+	ptb_chord name[2];
+	guint8 offset;
+	guint8 additions;
+	guint8 alterations;
+	struct ptb_chordtext *next;
 };
 
 struct ptb_linedata {
@@ -143,10 +150,11 @@ struct ptbf {
 	struct stat st_buf;
 	struct ptb_hdr hdr;
 	struct ptb_guitar *guitars;
-	struct ptb_floatingtext *floating_texts;
+	struct ptb_floatingtext *floatingtexts;
 	struct ptb_tempomarker *tempomarkers;
 	struct ptb_chorddiagram *chorddiagrams;
 	struct ptb_linedata *linedatas;
+	struct ptb_chordtext *chordtexts;
 };
 
 struct ptb_section {

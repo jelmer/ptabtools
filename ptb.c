@@ -39,9 +39,18 @@ int ptb_end_of_section(int fd)
 }
 
 int ptb_read_font(int fd, struct ptb_font *dest) {
-	int ret = ptb_read_string(fd, &dest->family);
-	read(fd, &dest->size, 1);
-	return ret + 1;
+	char unknown[256];
+	int ret = 0;
+	ret+=read(fd, &dest->alignment, 1);
+	ret+=ptb_read_string(fd, &dest->family);
+	ret+=read(fd, &dest->size, 1);
+	ret+=read(fd, unknown, 5);
+	ret+=read(fd, &dest->thickness, 1);
+	ret+=read(fd, unknown, 2);
+	ret+=read(fd, &dest->italic, 1);
+	ret+=read(fd, &dest->underlined, 1);
+	
+	return ret;
 }
 
 int ptb_read_string(int fd, char **dest) {
@@ -61,10 +70,10 @@ int ptb_read_string(int fd, char **dest) {
 		data = malloc(length+1);
 		if(read(fd, data, length) < length) return -1;
 		data[length] = '\0';
-		if(debugging) printf("Read string: %s\n", data);
+		if(debugging) fprintf(stderr, "Read string: %s\n", data);
 		*dest = data;
 	} else {
-		if(debugging) printf("Empty string\n");
+		if(debugging) fprintf(stderr, "Empty string\n");
 		*dest = NULL;
 	}
 
@@ -204,7 +213,7 @@ struct ptbf *ptb_read_file(const char *file, struct ptb_section *sections)
 		sectionname = malloc(length + 1);
 		read(bf->fd, sectionname, length);
 		sectionname[length] = '\0';
-		printf("---- %s ---- \n", sectionname);
+		fprintf(stderr, "---- %s ---- \n", sectionname);
 
 		for(i = 0; sections[i].name; i++) {
 			if(!strcmp(sections[i].name, sectionname)) {
