@@ -63,8 +63,14 @@ void ly_write_chordtext(FILE *out, struct ptb_chordtext *name)
 void ly_write_position(FILE *out, struct ptb_position *pos)
 {
 	static int previous = 0;
+	char print_length = 0;
 	GList *gl = pos->linedatas;
 	int l = g_list_length(pos->linedatas);
+
+	if(pos->length != previous) {
+		print_length = 1;
+		previous = pos->length;
+	}
 
 	fprintf(out, " ");
 
@@ -73,7 +79,7 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 	}
 
 	/* Multiple notes */
-	if(l > 1) fprintf(out, " <");
+	if(l > 1 || print_length) fprintf(out, " <");
 
 	while(gl) {
 		struct ptb_linedata *d = gl->data;
@@ -106,12 +112,11 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 	}
 
 	/* Multiple notes */
-	if(l > 1) fprintf(out, ">");
+	if(l > 1 || print_length) fprintf(out, ">");
 
 	/* String */
-	if(l == 1 && pos->length != previous) {
+	if(print_length) {
 		fprintf(out, "%d", pos->length);
-		previous = pos->length;
 	}
 }
 
