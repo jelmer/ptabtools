@@ -9,7 +9,7 @@ AC_CONFIG_HEADER([config.h])
 AC_PROG_CC
 AC_PROG_INSTALL
 
-PROGS="ptb2ly ptb2ascii ptbinfo"
+PROGS="ptb2ly ptb2ascii ptbinfo gp2ly"
 
 # Checks for libraries.
 AC_CHECK_LIB([popt], [poptGetArg], , AC_MSG_ERROR([Popt is required]))

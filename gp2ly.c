@@ -20,11 +20,16 @@
 #include <errno.h>
 #include <popt.h>
 #include <string.h>
-#include "gp.h"
 
 #ifndef HAVE_CONFIG
 #  include "config.h"
 #endif
+
+#ifdef HAVE_STDINT_H
+#  include <stdint.h>
+#endif
+
+#include "gp.h"
 
 #define LILYPOND_VERSION "2.4"
 

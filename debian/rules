@@ -4,10 +4,15 @@
 
 package=ptabtools
 
-build:
+build: configure
 	$(checkdir)
 	$(MAKE)
 	touch build
+
+configure:
+	$(checkdir)
+	./configure --prefix=/usr
+	touch configure
 
 clean:
 	$(checkdir)

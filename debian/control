@@ -9,8 +9,8 @@ Package: ptabtools
 Architecture: any
 Depends: ${shlibs:Depends}
 Description: Tools for parsing PowerTab files
- This package contains a utilities for using PowerTab files
+ This package contains a utilities for using PowerTab and GuitarPro files
  on Linux. It includes utilities for converting PowerTab files to 
  to GNU LilyPond files, plain ASCII files and MusicXML files. 
  It also contains a library that can be used by other programs 
- for reading PowerTab files.
+ for reading PowerTab and GuitarPro files.
