@@ -42,7 +42,6 @@ void ascii_write_header(FILE *out, struct ptbf *ret)
 int ascii_write_position(FILE *out, struct ptb_position *pos, int string)
 {
 	GList *gl = pos->linedatas;
-	int l = g_list_length(pos->linedatas);
 
 	while(gl) {
 		struct ptb_linedata *d = gl->data;
@@ -66,7 +65,7 @@ void ascii_write_staff(FILE *out, struct ptb_staff *s)
 		gl = s->positions1;
 		while(gl) {
 			int ret = ascii_write_position(out, (struct ptb_position *)gl->data, i);
-			for(; ret < 4; ret++) fprintf(out, "=");
+			for(; ret < 4; ret++) fprintf(out, "-");
 			gl = gl->next;
 		}
 
