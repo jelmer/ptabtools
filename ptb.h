@@ -241,6 +241,8 @@ extern struct ptb_section_handler default_section_handlers[];
 
 struct ptbf *ptb_read_file(const char *ptb, struct ptb_section_handler *sections);
 int ptb_read_string(int fd, char **);
+int ptb_read(int fd, void *data, size_t len);
+int ptb_read_unknown(int fd, size_t len);
 int ptb_read_items(struct ptbf *bf, struct ptb_section_handler *sections);
 
 extern int debugging;

@@ -29,6 +29,8 @@ void ly_write_header(FILE *out, struct ptbf *ret)
 		if(ret->hdr.class_info.song.words_by) fprintf(out, "  poet = \"%s\"\n", ret->hdr.class_info.song.words_by);
 		if(ret->hdr.class_info.song.copyright) fprintf(out, "  copyright = \"%s\"\n", ret->hdr.class_info.song.copyright);
 		if(ret->hdr.class_info.song.guitar_transcribed_by) fprintf(out, "  arranger = \"%s\"\n", ret->hdr.class_info.song.guitar_transcribed_by);
+		if(ret->hdr.class_info.song.release_type == RELEASE_TYPE_PR_AUDIO &&
+		   ret->hdr.class_info.song.release_info.pr_audio.album_title) fprintf(out, "  xtitle = \"%s\"\n", ret->hdr.class_info.song.release_info.pr_audio.album_title);
 	} else if(ret->hdr.classification == CLASSIFICATION_LESSON) {
 		if(ret->hdr.class_info.lesson.title) 	fprintf(out, "  title = \"%s\"\n", ret->hdr.class_info.lesson.title);
 		if(ret->hdr.class_info.lesson.artist) fprintf(out, "  composer = \"%s\"\n", ret->hdr.class_info.lesson.artist);
@@ -38,17 +40,37 @@ void ly_write_header(FILE *out, struct ptbf *ret)
 	fprintf(out, "}\n");
 }
 
-void ly_write_lyrics(FILE *out, struct ptbf *ret)
+int ly_write_lyrics(FILE *out, struct ptbf *ret)
 {
-	if(ret->hdr.classification != CLASSIFICATION_SONG || !ret->hdr.class_info.song.lyrics) return;
+	if(ret->hdr.classification != CLASSIFICATION_SONG || !ret->hdr.class_info.song.lyrics) return 0;
 	fprintf(out, "text = \\lyrics {\n");
 	fprintf(out, "%s\n", ret->hdr.class_info.song.lyrics);
 	fprintf(out, "%s\n", "}\n");
+	return 1;
+}
+
+int ly_write_chords(FILE *out, struct ptbf *ret)
+{
+	/* FIXME:
+	 * acc =  \chords {
+    % why don't \skip, s4 work?
+        c2 c f c
+        f c g:7 c
+    g f c  g:7 % urg, bug!
+        g f c  g:7
+    % copy 1-8
+        c2 c f c
+        f c g:7 c
+}
+*/
+
+	return 0;
 }
 
 int main(int argc, char **argv) 
 {
 	FILE *out = stdout;
+	int have_lyrics, have_chords;
 	struct ptbf *ret;
 	debugging = 1;
 	ret = ptb_read_file(argv[1], default_section_handlers);
@@ -63,16 +85,21 @@ int main(int argc, char **argv)
 	fprintf(out, "\\version \"1.9.8\"\n\n");
 
 	ly_write_header(out, ret);
-	ly_write_lyrics(out, ret);
+	have_chords = ly_write_chords(out, ret);
+	have_lyrics = ly_write_lyrics(out, ret);
 
 	fprintf(out, "\\score{\n");
 	fprintf(out, "       <<\n");
-    if(ret->hdr.classification == CLASSIFICATION_SONG && ret->hdr.class_info.song.lyrics) {
+    if(have_lyrics) {
 		fprintf(out, "    \\addlyrics\n"
     	  "		\\context Staff = one {\n"
        	  "		\\property Staff.autoBeaming = ##f\n"
       	  "		}\n"
 		  " \\context Lyrics \\text\n");
+	}
+
+	if(have_chords) {
+		fprintf(out, " \\context ChordNames \\acc\n");
 	}
 
 
