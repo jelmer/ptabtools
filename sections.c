@@ -82,6 +82,8 @@ int handle_CSection (struct ptbf *bf, const char *sectionname) {
 	read(bf->fd, &section->letter, 1);
 	ptb_read_string(bf->fd, &section->description);
 
+	read(bf->fd, unknown, 2);
+
 	while(ptb_read_items(bf, default_section_handlers) > 0);
 
 	return 0; 
@@ -131,7 +133,7 @@ int handle_CLineData (struct ptbf *bf, const char *section) {
 	bf->linedatas = g_list_append(bf->linedatas, linedata);
 
 	read(bf->fd, &linedata->tone, 1);
-	read(bf->fd, unknown, 5);
+	read(bf->fd, unknown, 3);
 
 //		fprintf(stderr, "%02x %02x %02x %02x %02x\n", unknown[0], unknown[1], unknown[2], unknown[3], unknown[4]);
 

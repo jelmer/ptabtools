@@ -156,7 +156,7 @@ int ptb_read_items(struct ptbf *bf, struct ptb_section_handler *sections) {
 	char *sectionname;
 
 	read(bf->fd, &nr_items, 2);	
-	if(nr_items == 0x0) { return 0; }
+	if(nr_items == 0x0) { fprintf(stderr, "Embedded\n"); return 0; }
 	section_index++;
 
 	read(bf->fd, &header, 2);
@@ -183,7 +183,6 @@ int ptb_read_items(struct ptbf *bf, struct ptb_section_handler *sections) {
 		sectionname = malloc(length + 1);
 		read(bf->fd, sectionname, length);
 		sectionname[length] = '\0';
-		fprintf(stderr, "---- %s ----: %d (%02x) \n", sectionname, nr_items, section_index);
 
 
 		for(i = 0; sections[i].name; i++) {
@@ -206,9 +205,9 @@ int ptb_read_items(struct ptbf *bf, struct ptb_section_handler *sections) {
 		for(i = 0; sections[i].name; i++) {
 			if(sections[i].index == header) break;
 		}
-
-		printf("%d means %s\n", i, sections[i].name);
 	}
+
+	fprintf(stderr, "---- %s ----: %d (%02x) \n", sectionname, nr_items, section_index);
 
 	for(l = 0; l < nr_items; l++) {
 		char unknown[2];
