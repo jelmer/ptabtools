@@ -50,13 +50,15 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 	GList *gl = pos->linedatas;
 	int l = g_list_length(pos->linedatas);
 
+	fprintf(out, " ");
+
 	if(l == 0) {/* Rest */
 		fprintf(out, " r%d ", pos->length);
 		/* FIXME */
 	}
 
 	/* Multiple notes */
-	if(l > 1) fprintf(out, " << ");
+	if(l > 1) fprintf(out, " { <");
 
 	while(gl) {
 		struct ptb_linedata *d = gl->data;
@@ -84,12 +86,13 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 		}
 
 		/* String */
-		fprintf(out, "%d\\%d ", pos->length,string+1);
+		fprintf(out, "%d\\%d", pos->length,string+1);
 		gl = gl->next;
+		if(gl) fprintf(out, " ");
 	}
 
 	/* Multiple notes */
-	if(l > 1) fprintf(out, " >> ");
+	if(l > 1) fprintf(out, "> } ");
 }
 
 void ly_write_staff(FILE *out, struct ptb_staff *s) 
@@ -100,27 +103,27 @@ void ly_write_staff(FILE *out, struct ptb_staff *s)
 	fprintf(out, "\t\t\\context StaffGroup <<\n");
 	fprintf(out, "\t\t\t\\context Staff <<\n"
 			"\t\t\t\t\\clef \"G_8\"\n");
-	fprintf(out, "\t\t\\notes {\n");
-	fprintf(out, "\t\t\t");
+	fprintf(out, "\t\t\t\t\\notes {\n");
+	fprintf(out, "\t\t\t\t\t\t");
 	gl = s->positions1;
 	while(gl) {
 		ly_write_position(out, (struct ptb_position *)gl->data);
 		gl = gl->next;
 	}
 	fprintf(out, "\n");
-	fprintf(out, "\t\t}\n");
+	fprintf(out, "\t\t\t\t\t}\n");
 
 	fprintf(out, "\t\t\t>>\n");
 	fprintf(out, "\t\t\t\\context TabStaff <<\n");
-	fprintf(out, "\t\t\\notes {\n");
-	fprintf(out, "\t\t\t");
+	fprintf(out, "\t\t\t\t\\notes {\n");
+	fprintf(out, "\t\t\t\t\t");
 	gl = s->positions1;
 	while(gl) {
 		ly_write_position(out, (struct ptb_position *)gl->data);
 		gl = gl->next;
 	}
 	fprintf(out, "\n");
-	fprintf(out, "\t\t}\n");
+	fprintf(out, "\t\t\t\t}\n");
 
 
 	fprintf(out,"\t\t\t>>\n");
@@ -130,12 +133,12 @@ void ly_write_staff(FILE *out, struct ptb_staff *s)
 void ly_write_section(FILE *out, struct ptb_section *s) 
 {
 	GList *gl = s->staffs;
-	fprintf(out, "\t << \n");
+	fprintf(out, "\t\\simultaneous { \n");
 	while(gl) {
 		ly_write_staff(out, (struct ptb_staff *)gl->data);
 		gl = gl->next;
 	}
-	fprintf(out, "\t >> \n");
+	fprintf(out, "\t} \n");
 }
 
 int ly_write_lyrics(FILE *out, struct ptbf *ret)
@@ -174,6 +177,7 @@ int main(int argc, const char **argv)
 	GList *gl;
 	int instrument = 0;
 	int c;
+	int version = 0;
 	char *output = NULL;
 	poptContext pc;
 	struct poptOption options[] = {
@@ -182,12 +186,21 @@ int main(int argc, const char **argv)
 		{"outputfile", 'o', POPT_ARG_STRING, &output, 0, "Write to specified file", "FILE" },
 		{"regular", 'r', POPT_ARG_NONE, &instrument, 0, "Write tabs for regular guitar" },
 		{"bass", 'b', POPT_ARG_NONE, &instrument, 1, "Write tabs for bass guitar"},
+		{"version", 'v', POPT_ARG_NONE, &version, 'v', "Show version information" },
 		POPT_TABLEEND
 	};
 
 	pc = poptGetContext(argv[0], argc, argv, options, 0);
 	poptSetOtherOptionHelp(pc, "file.ptb");
-	while((c = poptGetNextOpt(pc)) >= 0);
+	while((c = poptGetNextOpt(pc)) >= 0) {
+		switch(c) {
+		case 'v':
+			printf("ptb2ly Version "PTB_VERSION"\n");
+			printf("(C) 2004 Jelmer Vernooij <jelmer@samba.org>\n");
+			exit(0);
+			break;
+		}
+	}
 			
 	ptb_set_debug(debugging);
 	
@@ -219,13 +232,12 @@ int main(int argc, const char **argv)
 	have_lyrics = ly_write_lyrics(out, ret);
 
 	fprintf(out, "\\score {\n");
-	fprintf(out, "       <<\n");
     if(have_lyrics) {
-		fprintf(out, "    \\addlyrics\n"
-    	  "		\\context Staff = one {\n"
-       	  "		\\property Staff.autoBeaming = ##f\n"
-      	  "		}\n"
-		  " \\context Lyrics \\text\n");
+		fprintf(out, "\t\\addlyrics\n"
+    	  "\t\t\\context Staff = one {\n"
+       	  "\t\t\\property Staff.autoBeaming = ##f\n"
+      	  "\t\t}\n"
+		  "\t\\context Lyrics \\text\n");
 	}
 
 	gl = ret->instrument[instrument].sections;
@@ -234,10 +246,8 @@ int main(int argc, const char **argv)
 		gl = gl->next;
 	}
 
-	fprintf(out, "   >>\n");
-
-	fprintf(out, "\\paper { }\n");
-	fprintf(out, "\\midi { }\n");
+	fprintf(out, "\t\\paper { }\n");
+	fprintf(out, "\t\\midi { }\n");
 	fprintf(out, "}\n");
 
 	if(output)fclose(out);
