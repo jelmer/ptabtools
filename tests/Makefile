@@ -16,10 +16,10 @@ PTB_TESTFILES = $(wildcard *.ptb)
 	../gp2ly "$<"
 
 %.pdf: %.ly
-	lilypond-snapshot --pdf "$<"
+	lilypond-snapshot --pdf "$*"
 
 %.png: %.ly
-	lilypond-snapshot --png "$<"
+	lilypond-snapshot --png "$*"
 
 %.ptb.2: %.ptb
 	../ptb2ptb "$<"

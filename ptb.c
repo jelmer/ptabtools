@@ -324,6 +324,7 @@ void ptb_debug(const char *fmt, ...)
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
+	fputc('\n', stderr);
 }
 
 static int ptb_read_items(struct ptbf *bf, const char *assumed_type, struct ptb_list **result) {
@@ -802,6 +803,7 @@ static int handle_CStaff (struct ptbf *bf, const char *section, struct ptb_list 
 
 static int handle_CPosition (struct ptbf *bf, const char *section, struct ptb_list **dest) { 
 	struct ptb_position *position = GET_ITEM(bf, dest, struct ptb_position);
+	int i;
 
 	ptb_data(bf, &position->offset, 1);
 	ptb_data(bf, &position->properties, 2); 
@@ -824,19 +826,14 @@ static int handle_CPosition (struct ptbf *bf, const char *section, struct ptb_li
 					& ~POSITION_FERMENTA_FERMENTA);
 	ptb_data(bf, &position->length, 1);
 	
-	ptb_data(bf, &position->conn_to_next, 1);
+	ptb_data(bf, &position->nr_additional_data, 1);
+
+	position->additional = malloc_p(struct ptb_position_additional, position->nr_additional_data);
 	
-	/* FIXME 
-	if(position->conn_to_next) { 
-		ptb_debug("Conn to next!: %02x", position->conn_to_next);
-		ptb_data_unknown(bf, 4*position->conn_to_next);
-	}*/
-	if(position->conn_to_next) {
-		uint8_t covers, start, end;
-		ptb_debug("Conn to next: %02x", position->conn_to_next);
-		ptb_data(bf, &start, 1);
-		ptb_data(bf, &end, 1);
-		ptb_data(bf, &covers, 1);
+	for (i = 0; i < position->nr_additional_data; i++) {
+		ptb_data(bf, &position->additional[i].start_volume, 1);
+		ptb_data(bf, &position->additional[i].end_volume, 1);
+		ptb_data(bf, &position->additional[i].duration, 1);
 		ptb_data_unknown(bf, 1);
 	}
 

@@ -224,9 +224,22 @@ struct ptb_position {
 #define POSITION_FERMENTA_TRIPLET_1				0x20
 #define POSITION_FERMENTA_TRIPLET_2				0x40
 #define POSITION_FERMENTA_TRIPLET_3				0x80
-	uint8_t conn_to_next;
+	
+	uint8_t nr_additional_data;
+	struct ptb_position_additional
+	{
+		uint8_t start_volume;
+		uint8_t end_volume;
+		uint8_t duration; /* Number of following positions */
+		uint8_t properties;
+#define POSITION_ADDITIONAL_VOLUMESWELL			0x61
+#define POSITION_ADDITIONAL_TREMOLOBAR			0x63
+	} *additional;
+
 	struct ptb_linedata *linedatas;
 };
+
+
 
 #define STAFF_TYPE_BASS_KEY	0x10
 
