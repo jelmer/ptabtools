@@ -1,0 +1,12 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+modulesdir=${exec_prefix}/lib/ctrlproxy
+
+Name: ptabtools
+Description: PowerTab Tools
+Version: 0.2
+Requires: glib-2.0
+Libs: -lpopt -lptb
+Cflags: -I${includedir}

@@ -3,6 +3,7 @@ bindir = $(prefix)/bin
 mandir = $(prefix)/share/man
 libdir = $(prefix)/lib
 includedir = $(prefix)/include
+pkgconfigdir = $(libdir)/pkgconfig
 PTB_VERSION=0.1
 PROGS = ptb2ly libptb-$(PTB_VERSION).so ptb2ascii
 INSTALL = install
@@ -34,6 +35,7 @@ install: all
 	$(INSTALL) -m 644 ptb2ascii.1 $(DESTDIR)$(mandir)/man1
 	$(INSTALL) libptb-$(PTB_VERSION).so $(DESTDIR)$(libdir)
 	$(INSTALL) -m 644 ptb.h $(DESTDIR)$(includedir)
+	$(INSTALL) -m 644 ptabtools.pc $(DESTDIR)$(pkgconfigdir)
 
 tags:
 	ctags *.c *.h
