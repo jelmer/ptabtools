@@ -199,16 +199,15 @@ struct ptb_staff {
 	guint8 properties;
 	guint8 highest_note;
 	guint8 lowest_note;
-	GList *positions1;
-	GList *positions2;
+	GList *positions[2];
 	GList *musicbars;
 };
 
 struct ptb_linedata {
 	union {
 		struct {
-			guint8 string:5;
-			guint8 fret:3;
+			unsigned int fret:5;
+			unsigned int string:3;
 		} detailed;
 		guint8 tone; 
 	}; 
@@ -307,5 +306,7 @@ void ptb_set_asserts_fatal(int yes);
 const char *ptb_get_note(struct ptb_guitar *guitar, ptb_note);
 const char *ptb_get_tone(ptb_tone);
 const char *ptb_get_tone_full(ptb_tone);
+
+void ptb_get_position_difference(struct ptb_section *, int start, int end, int *bars, int *length);
 
 #endif /* __PTB_H__ */

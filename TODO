@@ -1,3 +1,10 @@
-- Chord Diagrams
-- Fix fret numbers
-- Fix lilypond output
+
+
+ptb2ly:
+ - 8VA, 15MA, etc
+ - dynamics
+ - floatingtext
+ - tempomarker
+ - chorddiagram
+ - finish chordtext
+

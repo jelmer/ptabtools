@@ -170,6 +170,7 @@ xmlNodePtr xml_write_staffs(GList *staffs)
 	GList *gl = staffs;
 
 	while(gl) {
+		int i;
 		struct ptb_staff *staff = gl->data;
 		xmlNodePtr xstaff = xmlNewNode(NULL, "staff");
 		xmlAddChild(xstaffs, xstaff);
@@ -178,7 +179,8 @@ xmlNodePtr xml_write_staffs(GList *staffs)
 		SMART_ADD_CHILD_INT(xstaff, "lowest_note", staff->lowest_note);
 		SMART_ADD_CHILD_INT(xstaff, "properties", staff->properties);
 
-		xmlAddChild(xstaff, xml_write_positions(staff->positions1));
+		for(i = 0; i < 2; i++) 
+			xmlAddChild(xstaff, xml_write_positions(staff->positions[i]));
 		xmlAddChild(xstaff, xml_write_musicbars(staff->musicbars));
 		
 		gl = gl->next;

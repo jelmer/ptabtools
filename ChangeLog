@@ -1,6 +1,14 @@
 All changes, unless specified otherwise, made by Jelmer Vernooij
 <jelmer@samba.org>.
 
+0.3:
+ * Put chords at the right place
+ * Support dots
+ * Keep beaming information
+ * Escape invalid lilypond stuff
+ * Generate MusicXML using XSL script
+ * Various other improvements
+
 0.2:
  * Better parsing of the structure
  * Add ptb2xml

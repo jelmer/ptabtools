@@ -538,8 +538,9 @@ void *handle_CStaff (struct ptbf *bf, const char *section) {
 	ptb_debug("Datasize: %d", datasize);
 	ptb_read_unknown(bf, 1);
 
+	staff->positions[1] = NULL;
 	/* FIXME! */
-	staff->positions1 = ptb_read_items(bf, "CPosition");
+	staff->positions[0] = ptb_read_items(bf, "CPosition");
 	/* This is ugly, but at least it works... */
 	{
 		ptb_read(bf, &next, 2);
@@ -547,7 +548,7 @@ void *handle_CStaff (struct ptbf *bf, const char *section) {
 		if(next & 0x8000) return staff;
 	}
 
-	staff->positions2 = ptb_read_items(bf, "CPosition");
+	staff->positions[1] = ptb_read_items(bf, "CPosition");
 	/* This is ugly, but at least it works... */
 	{
 		ptb_read(bf, &next, 2);
@@ -688,3 +689,42 @@ const char *ptb_get_tone_full(ptb_tone id)
 	if(id < 16 || sizeof(chords) < id-16) return "_UNKNOWN_CHORD_";
 	return chords[id-16];
 }
+
+static GList *get_position(struct ptb_staff *staff, int offset)
+{
+	int i;
+	for(i = 0; i < 2; i++) {
+		GList *gl = staff->positions[i];
+		while(gl) {
+			struct ptb_position *p = gl->data;
+			if(p->offset == offset) return gl;
+			gl = gl->next;
+		}
+	}
+	return NULL;
+}
+
+void ptb_get_position_difference(struct ptb_section *section, int start, int end, int *bars, int *length)
+{
+	long l = 0;
+	GList *staff = section->staffs;
+	GList *gl = NULL;
+
+	while(staff) { 
+		gl = get_position(staff->data, start);
+		if(gl) break;
+		staff = staff->next;
+	}
+
+	while(gl) {
+		struct ptb_position *p = gl->data;
+		if(p->offset >= end) break;
+		l += 0x100 / p->length;
+		gl = gl->next;
+	}
+
+	*bars = l / 0x100;
+
+	*length = 0;
+	if(l % 0x100) *length = 0x100 / (l % 0x100) ;
+}	

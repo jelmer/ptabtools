@@ -89,11 +89,14 @@ void ascii_write_staff(FILE *out, struct ptb_staff *s)
 	int i;
 
 	for(i = 0; i < 6; i++) {
-		gl = s->positions1;
-		while(gl) {
-			int ret = ascii_write_position(out, (struct ptb_position *)gl->data, i);
-			for(; ret < 4; ret++) fprintf(out, "-");
-			gl = gl->next;
+		int j;
+		for(j = 0; j < 2; j++) {
+			gl = s->positions[j];
+			while(gl) {
+				int ret = ascii_write_position(out, (struct ptb_position *)gl->data, i);
+				for(; ret < 4; ret++) fprintf(out, "-");
+				gl = gl->next;
+			}
 		}
 
 		fprintf(out, "\n");
