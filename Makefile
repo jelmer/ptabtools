@@ -1,7 +1,7 @@
 PROGS = ptb2ly
 CFLAGS = -g -Wall
 
-PTB2LY_OBJS = ptb2ly.o ptb.o sections.o
+PTB2LY_OBJS = ptb2ly.o ptb.o
 
 all: $(PROGS)
 
