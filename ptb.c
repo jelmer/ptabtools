@@ -652,6 +652,7 @@ static int handle_CSection (struct ptbf *bf, const char *sectionname, struct ptb
 	ptb_data_items(bf, "CChordText", (struct ptb_list **)&section->chordtexts);
 	ptb_data_items(bf, "CRhythmSlash", (struct ptb_list **)&section->rhythmslashes);
 	ptb_data_items(bf, "CStaff", (struct ptb_list **)&section->staffs);
+	ptb_data_items(bf, "CMusicBar", (struct ptb_list **)&section->musicbars);
 
 	*dest = (struct ptb_list *)section;
 	return 1;
@@ -793,8 +794,6 @@ static int handle_CStaff (struct ptbf *bf, const char *section, struct ptb_list 
 			return 1;
 		}
 	}
-
-	ptb_data_items(bf, "CMusicBar", (struct ptb_list **)&staff->musicbars);
 
 	*dest = (struct ptb_list *)staff;
 	return 1;
@@ -1038,11 +1037,6 @@ static void ptb_free_staff(struct ptb_staff *staff)
 	for (i = 0; i < 2; i++) {
 		FREE_LIST( staff->positions[i], ptb_free_position(tmp), struct ptb_position *);
 	}
-
-	FREE_LIST(
-		staff->musicbars,
-		free(tmp->description),
-		struct ptb_musicbar *);
 }
 
 static void ptb_free_section(struct ptb_section *section)
@@ -1051,6 +1045,7 @@ static void ptb_free_section(struct ptb_section *section)
 	FREE_LIST(section->chordtexts, {} , struct ptb_chordtext *);
 	FREE_LIST(section->rhythmslashes, {}, struct ptb_rhythmslash *);
 	FREE_LIST(section->directions, {}, struct ptb_direction *);
+	FREE_LIST(section->musicbars, free(tmp->description), struct ptb_musicbar *);
 }
 
 void ptb_free(struct ptbf *bf)

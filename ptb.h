@@ -238,7 +238,6 @@ struct ptb_staff {
 	uint8_t highest_note;
 	uint8_t lowest_note;
 	struct ptb_position *positions[2];
-	struct ptb_musicbar *musicbars;
 };
 
 struct ptb_bend
@@ -297,6 +296,8 @@ struct ptb_section {
 	struct ptb_chordtext *chordtexts;
 	struct ptb_rhythmslash *rhythmslashes;
 	struct ptb_direction *directions;
+	struct ptb_musicbar *musicbars;
+	
 	/* Number of times to repeat OR-ed with end mark type */
 	uint8_t end_mark;
 	uint16_t meter_type;
