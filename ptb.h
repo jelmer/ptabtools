@@ -304,6 +304,7 @@ struct ptb_direction {
 struct ptbf {
 	char data[3];
 	int fd;
+	int mode;
 	char *filename;
 	struct ptb_hdr hdr;
 	struct {
