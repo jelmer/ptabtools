@@ -19,9 +19,38 @@
 #include <stdio.h>
 #include <errno.h>
 #include <popt.h>
+#include <sys/time.h>
+#include <time.h>
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>
 #include "ptb.h"
+
+xmlNodePtr xml_write_part_list(struct ptbf *ptb)
+{
+	return NULL;
+}
+
+xmlNodePtr xml_write_identification(struct ptb_hdr *hdr)
+{
+	time_t t;
+	xmlNodePtr identification = xmlNewNode(NULL, "identification");
+	xmlNodePtr software = xmlNewNode(NULL, "software");
+	xmlNodePtr encoding_date = xmlNewNode(NULL,"encoding-date");
+	xmlNodePtr misc = xmlNewNode(NULL, "miscellaneous");
+	xmlNodePtr tmp;
+	
+	xmlNodeSetContent(software, "ptb2musicxml "PTB_VERSION);
+	t = time(NULL);
+	xmlNodeSetContent(encoding_date, ctime(&t));
+
+	xmlAddChild(identification, software);
+	xmlAddChild(identification, encoding_date);
+	xmlAddChild(identification, misc);
+
+	/* FIXME */	
+	
+	return identification;
+}
 
 int main(int argc, const char **argv) 
 {
@@ -70,6 +99,9 @@ int main(int argc, const char **argv)
 	doc = xmlNewDoc(BAD_CAST "1.0");
 	root_node = xmlNewNode(NULL, BAD_CAST "score-partwise");
 	xmlDocSetRootElement(doc, root_node);
+
+	xmlAddChild(root_node, xml_write_identification(&ret->hdr));
+	xmlAddChild(root_node, xml_write_part_list(ret));
 
 	dtd = xmlCreateIntSubset(doc, BAD_CAST "root", BAD_CAST "-//Recordare//DTD MusicXML 1.0 Partwise//EN", BAD_CAST "http://www.musicxml.org/dtds/partwise.dtd");
 		
