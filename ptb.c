@@ -409,7 +409,6 @@ void *handle_CSection (struct ptbf *bf, const char *sectionname) {
 	ptb_read(bf, &section->properties, 2);
 	ptb_read_unknown(bf, 2);
 	ptb_read(bf, &section->end_mark, 1);
-	ptb_debug("Bla: %x", section->end_mark);
 	ptb_assert(bf, (section->end_mark &~ END_MARK_TYPE_NORMAL 
 			   & ~END_MARK_TYPE_DOUBLELINE
 			   & ~END_MARK_TYPE_REPEAT) < 24);
@@ -418,7 +417,7 @@ void *handle_CSection (struct ptbf *bf, const char *sectionname) {
 	ptb_read(bf, &section->key_extra, 1);
 	ptb_read_unknown(bf, 1);
 	ptb_read(bf, &section->meter_type, 2);
-	ptb_read(bf, &section->beat_value, 1);
+	ptb_read(bf, &section->beat_info, 1);
 	ptb_read(bf, &section->metronome_pulses_per_measure, 1);
 	ptb_read(bf, &section->letter, 1);
 	ptb_read_string(bf, &section->description);

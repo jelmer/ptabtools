@@ -66,11 +66,24 @@ void ly_write_header(FILE *out, struct ptbf *ret)
 void ly_write_chordname_full(FILE *out, guint8 base, guint8 properties, guint8 additions, int len)
 {
 	fprintf(out, "%s", ptb_get_tone_full(base));
-	if(len) fprintf(out, "%d", len);
+	if(len) {
+		int i, newl, dots;
+		for(i = 1; i < 64; i*=2) {
+			if(len >= i && len < i*2) {
+				newl = i;
+				dots = 0;
+				if(newl * 1.5 == len) dots = 1;
+				if(newl * 1.75 == len) dots = 2;
+				break;
+			}
+		}
+		fprintf(out, "%d", newl);
+		for(i = 0; i < dots; i++)fprintf(out, ".");
+	}
 
 	if(properties & CHORDTEXT_PROPERTY_FORMULA_MAJ7 ||
 	   properties & CHORDTEXT_PROPERTY_FORMULA_M ||
-	   additions) {
+	   additions & CHORDTEXT_ADD_9) {
 		fprintf(out, ":");
 		if(additions & CHORDTEXT_ADD_9)
 			fprintf(out, "9");
@@ -184,6 +197,7 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 			fprintf(out, "->");
 
 		fprintf(out, "\\%d", d->detailed.string+1);
+		if(pos->properties & LINEDATA_PROPERTY_TIE) fprintf(out, " ~");
 		gl = gl->next;
 		if(gl) fprintf(out, " ");
 	}
@@ -206,16 +220,21 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 		fprintf(out, "]");
 }
 
-void ly_write_staff(FILE *out, struct ptb_staff *s) 
+void ly_write_staff(FILE *out, struct ptb_staff *s, struct ptb_section *section) 
 {
 	GList *gl;
 	int i;
 
-	
 	fprintf(out, "\t\t\\new StaffGroup {\n");
 	fprintf(out, "\t\t\\simultaneous {\n");
-	fprintf(out, "\t\t\t\\new Staff {\n"
-			"\t\t\t\t\\clef \"G_8\"\n");
+	fprintf(out, "\t\t\t\\new Staff {\n");
+	if(s->properties & STAFF_TYPE_BASS_KEY)
+		fprintf(out, "\t\t\t\t\\clef F\n");
+	else
+		fprintf(out, "\t\t\t\t\\clef \"G_8\"\n");
+
+//	fprintf(out, "\\time %d/%d\n", section->detailed.beat, section->detailed.beat_value);
+
 	fprintf(out, "\t\t\t\t\\notes {\n");
 	fprintf(out, "\t\t\t\t\t\t");
 	previous = 0.0;
@@ -274,7 +293,7 @@ void ly_write_section(FILE *out, struct ptb_section *s)
 	gl = s->staffs;
 	
 	while(gl) {
-		ly_write_staff(out, (struct ptb_staff *)gl->data);
+		ly_write_staff(out, (struct ptb_staff *)gl->data, s);
 		gl = gl->next;
 	}
 
@@ -293,24 +312,6 @@ int ly_write_lyrics(FILE *out, struct ptbf *ret)
 	fprintf(out, "\t%s\n", ret->hdr.class_info.song.lyrics);
 	fprintf(out, "%s\n", "}\n");
 	return 1;
-}
-
-int ly_write_chords(FILE *out, struct ptbf *ret)
-{
-	/* FIXME:
-	 * acc =  \chords {
-    % why don't \skip, s4 work?
-        c2 c f c
-        f c g:7 c
-    g f c  g:7 % urg, bug!
-        g f c  g:7
-    % copy 1-8
-        c2 c f c
-        f c g:7 c
-}
-*/
-
-	return 0;
 }
 
 int main(int argc, const char **argv) 

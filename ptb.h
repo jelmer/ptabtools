@@ -250,7 +250,13 @@ struct ptb_section {
 	/* Number of times to repeat OR-ed with end mark type */
 	guint8 end_mark;
 	guint16 meter_type;
-	guint8 beat_value;
+	union {
+		guint8 beat_info;
+		struct {
+			unsigned int beat:3;
+			unsigned int beat_value:5;
+		} detailed;
+	};
 	guint8 metronome_pulses_per_measure;
 	guint16 properties;
 	guint8 key_extra;

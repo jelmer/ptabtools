@@ -227,7 +227,8 @@ xmlNodePtr xml_write_sections(GList *sections)
 		if(section->meter_type & METER_TYPE_CUT) SMART_ADD_CHILD_STRING(meter_type, "cut", "");
 		if(section->meter_type & METER_TYPE_SHOW) SMART_ADD_CHILD_STRING(meter_type, "show", "");
 
-		SMART_ADD_CHILD_INT(xsection, "beat", section->beat_value);
+		SMART_ADD_CHILD_INT(xsection, "beat", section->detailed.beat);
+		SMART_ADD_CHILD_INT(xsection, "beat-value", section->detailed.beat_value);
 		SMART_ADD_CHILD_INT(xsection, "metronome-pulses-per-measure", section->metronome_pulses_per_measure);
 		SMART_ADD_CHILD_INT(xsection, "properties", section->properties);
 		SMART_ADD_CHILD_INT(xsection, "key-extra", section->key_extra);
