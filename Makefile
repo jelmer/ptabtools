@@ -4,7 +4,7 @@ mandir = $(prefix)/share/man
 libdir = $(prefix)/lib
 includedir = $(prefix)/include
 pkgconfigdir = $(libdir)/pkgconfig
-PTB_VERSION=0.1
+PTB_VERSION=0.2
 PROGS = ptb2ly libptb-$(PTB_VERSION).so ptb2ascii
 INSTALL = install
 CFLAGS = -g -Wall -DPTB_VERSION=\"$(PTB_VERSION)\" 
