@@ -27,6 +27,12 @@
 #pragma comment(lib,"ptb.lib")
 #endif
 
+#ifdef _WIN32
+typedef unsigned char uint8_t;
+typedef unsigned short uint16_t;
+typedef unsigned long uint32_t;
+#endif
+
 struct gp_color {
 	uint8_t unknown;
 	uint8_t red;
@@ -64,6 +70,7 @@ struct gpf {
 
 	uint32_t num_instruments;
 	struct gp_instrument {
+		char dummy;
 	} *instrument;
 
 	uint32_t num_bars;

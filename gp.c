@@ -22,13 +22,12 @@
  */
 
 #include <stdio.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <string.h>
 #include <assert.h>
 
-#ifndef HAVE_CONFIG
+#ifdef HAVE_CONFIG_H
 #  include "config.h"
 #endif
 
@@ -40,6 +39,15 @@
 #  include <ctype.h>
 #endif
 
+#ifdef HAVE_UNISTD_H
+#  include <unistd.h>
+#endif
+
+#ifdef _WIN32
+#  include <io.h>
+#endif
+
+#define PTB_CORE
 #include "gp.h"
 
 #define malloc_p(t, n) (t *) calloc(sizeof(t), n)

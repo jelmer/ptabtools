@@ -27,10 +27,15 @@
 #pragma comment(lib,"ptb.lib")
 #endif
 
+#ifdef _WIN32
+typedef unsigned char uint8_t;
+typedef unsigned short uint16_t;
+typedef unsigned long uint32_t;
+#endif
+
 typedef uint8_t ptb_chord;
 typedef uint8_t ptb_tone;
 typedef uint8_t ptb_note;
-typedef uint8_t GHashTable; //FIXME
 
 struct ptb_hdr {
 	enum { CLASSIFICATION_SONG = 0, CLASSIFICATION_LESSON} classification;
@@ -346,7 +351,6 @@ struct ptbf {
 		struct ptb_floatingtext *floatingtexts;
 		struct ptb_sectionsymbol *sectionsymbols;
 	} instrument[2];
-	GHashTable *section_nums;
 	off_t curpos;
 	struct ptb_font default_font;
 	struct ptb_font chord_name_font;
