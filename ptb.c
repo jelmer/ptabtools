@@ -189,15 +189,15 @@ void ptb_debug(const char *fmt, ...)
 }
 
 int ptb_read_stuff(struct ptbf *bf) {
-	ssize_t ret = 0;
+	ssize_t ret = 0, tmp = 1;
 	guint16 end;
 	debug_level++;
 	
-	ret+=ptb_read_items(bf);
-
-	ret+=ptb_read(bf, &end, 2);
-
-	g_assert(end == 0x00);
+	do { 
+		tmp=ptb_read_items(bf);
+		g_assert(tmp >= 0);
+		ret+=tmp;
+	} while(tmp > 2);
 
 	debug_level--;
 	return ret;
