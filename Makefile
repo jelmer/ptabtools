@@ -21,4 +21,4 @@ ptbtest: $(PTBTEST_OBJS)
 	$(CC) -o $@ $(PTBTEST_OBJS) `pkg-config --libs glib-2.0`
 
 clean: 
-	rm -f *,o core $(PROGS)
+	rm -f *.o core $(PROGS)

@@ -76,33 +76,70 @@ static int ptb_read_header(int fd, struct ptb_hdr *hdr)
 	if(strcmp(id, "ptab")) return -1;
 
 	read(fd, &hdr->version, 2);
-	
-	/* FIXME: 0000 / 0003 */
-	read(fd, unknown, 2);
-//	fprintf(stderr, "%s: %02x %02x : %lx\n", debug_filename, unknown[0], unknown[1], *((guint16 *)unknown));
-	ptb_read_string(fd, &hdr->title);
-	ptb_read_string(fd, &hdr->artist);
 
-	/* FIXME: REcord type ? */
-	read(fd, unknown, 2);
-//	fprintf(stderr, "%s: %02x %02x : %lx\n", debug_filename, unknown[0], unknown[1], *((guint16 *)unknown));
-	ptb_read_string(fd, &hdr->album);
-	
-	/* d4 0700 00 */
-	read(fd, unknown, 4);
-	ptb_read_string(fd, &hdr->music_by);
-	ptb_read_string(fd, &hdr->words_by);
-	ptb_read_string(fd, &hdr->arranged_by);
-	ptb_read_string(fd, &hdr->guitar_transcribed_by);
-	ptb_read_string(fd, &hdr->bass_transcribed_by);
-	ptb_read_string(fd, &hdr->lyrics);
-	ptb_read_string(fd, &hdr->copyright);
+	read(fd, &hdr->classification, 1);
+
+	switch(hdr->classification) {
+	case CLASSIFICATION_SONG:
+	read(fd, unknown, 1); /* FIXME */
+	ptb_read_string(fd, &hdr->class_info.song.title);
+	ptb_read_string(fd, &hdr->class_info.song.artist);
+
+	read(fd, &hdr->class_info.song.release_type, 1);
+
+	switch(hdr->class_info.song.release_type) {
+	case RELEASE_TYPE_PR_AUDIO:
+	read(fd, &hdr->class_info.song.release_info.pr_audio.type, 1);
+	ptb_read_string(fd, &hdr->class_info.song.release_info.pr_audio.album_title);
+	read(fd, &hdr->class_info.song.release_info.pr_audio.year, 2);
+	read(fd, &hdr->class_info.song.release_info.pr_audio.is_live_recording, 1);
+	break;
+	case RELEASE_TYPE_PR_VIDEO:
+	ptb_read_string(fd, &hdr->class_info.song.release_info.pr_video.video_title);
+	read(fd, &hdr->class_info.song.release_info.pr_video.is_live_recording, 1);
+	break;
+	case RELEASE_TYPE_BOOTLEG:
+		ptb_read_string(fd, &hdr->class_info.song.release_info.bootleg.title);
+		read(fd, &hdr->class_info.song.release_info.bootleg.day, 2);
+		read(fd, &hdr->class_info.song.release_info.bootleg.month, 2);
+		read(fd, &hdr->class_info.song.release_info.bootleg.year, 2);
+		break;
+	case RELEASE_TYPE_UNRELEASED:
+	break;
+
+	default:
+		fprintf(stderr, "Unknown release type: %d\n", hdr->class_info.song.release_type);
+		break;
+	}
+
+	read(fd, &hdr->class_info.song.is_original_author_unknown, 1);
+	ptb_read_string(fd, &hdr->class_info.song.music_by);
+	ptb_read_string(fd, &hdr->class_info.song.words_by);
+	ptb_read_string(fd, &hdr->class_info.song.arranged_by);
+	ptb_read_string(fd, &hdr->class_info.song.guitar_transcribed_by);
+	ptb_read_string(fd, &hdr->class_info.song.bass_transcribed_by);
+	ptb_read_string(fd, &hdr->class_info.song.lyrics);
+	ptb_read_string(fd, &hdr->class_info.song.copyright);
 	ptb_read_string(fd, &hdr->guitar_notes);
 	ptb_read_string(fd, &hdr->bass_notes);
+	ptb_read_string(fd, &hdr->drum_notes);
+	break;
+	case CLASSIFICATION_LESSON:
+	ptb_read_string(fd, &hdr->class_info.lesson.title);
+	ptb_read_string(fd, &hdr->class_info.lesson.artist);
+	read(fd, &hdr->class_info.lesson.style, 2);
+	read(fd, &hdr->class_info.lesson.level, 1);
+	ptb_read_string(fd, &hdr->class_info.lesson.author);
+	ptb_read_string(fd, &hdr->guitar_notes);
+	ptb_read_string(fd, &hdr->class_info.lesson.copyright);
+	read(fd, unknown, 2); /* FIXME */
+	break;
 
-	/* FIXME Integer indicating something ? */
-	read(fd, unknown, 2);
-//	fprintf(stderr, "%s: %02x %02x : %lx\n", debug_filename, unknown[0], unknown[1], *((guint16 *)unknown));
+	default:
+	fprintf(stderr, "Unknown classification: %d\n", hdr->classification);
+	break;
+
+	}
 
 	/* This should be 0xffff, ending the header */
 	read(fd, &header_end, 2);
@@ -128,8 +165,6 @@ struct ptbf *ptb_read_file(const char *file, struct ptb_section *sections)
 		fprintf(stderr, "Error parsing header\n");	
 		return NULL;
 	}
-
-	debugging = 1;
 
 	while(lseek(bf->fd, 0, SEEK_CUR) < bf->st_buf.st_size) {
 		guint16 unknownval;
