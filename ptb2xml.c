@@ -515,11 +515,13 @@ int main(int argc, const char **argv)
 	const char *input = NULL;
 	char *output = NULL;
 	poptContext pc;
+	int quiet = 0;
 	struct poptOption options[] = {
 		POPT_AUTOHELP
 		{"debug", 'd', POPT_ARG_NONE, &debugging, 0, "Turn on debugging output" },
 		{"outputfile", 'o', POPT_ARG_STRING, &output, 0, "Write to specified file", "FILE" },
 		{"musicxml", 'm', POPT_ARG_NONE, &musicxml, 'm', "Output MusicXML" },
+		{"quiet", 'q', POPT_ARG_NONE, &quiet, 1, "Be quiet (no output to stderr)" },
 		{"version", 'v', POPT_ARG_NONE, &version, 'v', "Show version information" },
 		POPT_TABLEEND
 	};
@@ -544,6 +546,7 @@ int main(int argc, const char **argv)
 	}
 
 	input = poptGetArg(pc);
+	if (!quiet) fprintf(stderr, "Parsing %s...\n", input);
 	ret = ptb_read_file(input);
 	
 	if(!ret) {
@@ -560,6 +563,8 @@ int main(int argc, const char **argv)
 		strncpy(output, input, baselength);
 		strcpy(output + baselength, ".ly");
 	}
+
+	if (!quiet) fprintf(stderr, "Building DOM tree...\n");
 
 	doc = xmlNewDoc(BAD_CAST "1.0");
 	root_node = xmlNewNode(NULL, BAD_CAST "powertab");
@@ -585,6 +590,7 @@ int main(int argc, const char **argv)
 	font = xmlNewNode(NULL, "tablature_font"); xmlAddChild(root_node, font);
 	xmlAddChild(font, xml_write_font(&ret->tablature_font));
 
+	if (!quiet) fprintf(stderr, "Writing output to %s...\n", output);
 	xmlSaveFormatFileEnc(output, doc, "UTF-8", 1);
 
 	xmlFreeDoc(doc);

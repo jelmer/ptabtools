@@ -325,6 +325,7 @@ int main(int argc, const char **argv)
 	int instrument = 0;
 	int c, i = 0;
 	int version = 0;
+	int quiet = 0;
 	int num_sections = 0;
 	const char *input;
 	char *output = NULL;
@@ -336,6 +337,7 @@ int main(int argc, const char **argv)
 		{"regular", 'r', POPT_ARG_NONE, &instrument, 0, "Write tabs for regular guitar" },
 		{"bass", 'b', POPT_ARG_NONE, &instrument, 1, "Write tabs for bass guitar"},
 		{"sections", 's', POPT_ARG_INT, &num_sections, 0, "Write only X sections (0 for all)", "SECTIONS" },
+		{"quiet", 'q', POPT_ARG_NONE, &quiet, 1, "Be quiet (no output to stderr)" },
 		{"version", 'v', POPT_ARG_NONE, &version, 'v', "Show version information" },
 		POPT_TABLEEND
 	};
@@ -359,6 +361,9 @@ int main(int argc, const char **argv)
 		return -1;
 	}
 	input = poptGetArg(pc);
+	
+	if (!quiet) fprintf(stderr, "Parsing %s... \n", input);
+					
 	ret = ptb_read_file(input);
 	
 	if(!ret) {
@@ -375,6 +380,8 @@ int main(int argc, const char **argv)
 		strncpy(output, input, baselength);
 		strcpy(output + baselength, ".ly");
 	}
+
+	if (!quiet) fprintf(stderr, "Generating lilypond file in %s...\n", output);
 
 	if (!strcmp(output, "-")) {
 		out = stdout; 

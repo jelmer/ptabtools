@@ -5,6 +5,7 @@ All changes, unless specified otherwise, made by Jelmer Vernooij
  * Small fixes
  * Default to <basename>.{txt,ly,xml} as output file and support -o - for
  writing to stdout.
+ * More diagnostic messages
 
 0.3:
  * Put chords at the right place
