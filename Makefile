@@ -1,6 +1,6 @@
 -include Makefile.settings
 
-PTBSO_OBJS = ptb.o gp.o
+PTBLIB_OBJS = ptb.o gp.o
 
 all: $(PROGS)
 
@@ -10,13 +10,16 @@ ptb2xml.o: ptb2xml.c
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< 
 
+%.po: %.c
+	$(CC) $(CFLAGS) -fPIC -c $< -o $@
+
 ptb.dll ptb.def ptb.dll.a: $(PTBSO_OBJS)
 	$(CC) -shared $(CFLAGS) -o $@ $^ -Wl,--out-implib,ptb.dll.a,--output-def,ptb.def
 
-libptb.so.$(VERSION): $(PTBSO_OBJS)
+libptb.so.$(VERSION): $(PTBLIB_OBJS:.o=.po)
 	$(CC) -shared $(CFLAGS) -o $@ $^
 
-libptb.a: $(PTBSO_OBJS)
+libptb.a: $(PTBLIB_OBJS)
 	$(AR) rs $@ $^
 
 ptb2xml$(EXEEXT): ptb2xml.o ptb.o
