@@ -557,6 +557,7 @@ void *handle_CGuitarIn (struct ptbf *bf, const char *section) {
 
 
 void *handle_CStaff (struct ptbf *bf, const char *section) { 
+	guint16 next;
 	struct ptb_staff *staff = g_new0(struct ptb_staff, 1);
 
 	ptb_read(bf, &staff->properties, 1);
@@ -567,7 +568,21 @@ void *handle_CStaff (struct ptbf *bf, const char *section) {
 
 	/* FIXME! */
 	staff->positions1 = ptb_read_items(bf, "CPosition");
+	/* This is ugly, but at least it works... */
+	{
+		ptb_read(bf, &next, 2);
+		lseek(bf->fd, -2, SEEK_CUR);
+		if(next & 0x8000) return staff;
+	}
+
 	staff->positions2 = ptb_read_items(bf, "CPosition");
+	/* This is ugly, but at least it works... */
+	{
+		ptb_read(bf, &next, 2);
+		lseek(bf->fd, -2, SEEK_CUR);
+		if(next & 0x8000) return staff;
+	}
+
 	staff->musicbars = ptb_read_items(bf, "CMusicBar");
 	return staff;
 }
