@@ -57,7 +57,6 @@ ssize_t ptb_read_unknown(struct ptbf *f, size_t length) {
 
 ssize_t ptb_read_font(struct ptbf *f, struct ptb_font *dest) {
 	int ret = 0;
-	ret+=ptb_read(f, &dest->alignment, 1);
 	ret+=ptb_read_string(f, &dest->family);
 	ret+=ptb_read(f, &dest->size, 1);
 	ret+=ptb_read_unknown(f, 5);
@@ -190,10 +189,15 @@ void ptb_debug(const char *fmt, ...)
 }
 
 int ptb_read_stuff(struct ptbf *bf) {
-	int ret = 0;
+	ssize_t ret = 0;
+	guint16 end;
 	debug_level++;
 	
 	ret+=ptb_read_items(bf);
+
+	ret+=ptb_read(bf, &end, 2);
+
+	g_assert(end == 0x00);
 
 	debug_level--;
 	return ret;
@@ -211,7 +215,7 @@ int ptb_read_items(struct ptbf *bf) {
 	char *sectionname;
 
 	ret+=ptb_read(bf, &nr_items, 2);	
-	if(ret == 0) return 0;
+	if(ret == 0 || nr_items == 0x0) return ret; 
 	ret+=ptb_read(bf, &header, 2);
 	section_index++;
 
@@ -310,8 +314,7 @@ struct ptbf *ptb_read_file(const char *file)
 	}
 
 	while(ret) {
-		ret = ptb_read_items(bf);
-		if(ret < 0) return NULL;
+		ret=ptb_read_items(bf);
 	}
 
 	ptb_read_font(bf, bf->tablature_font);

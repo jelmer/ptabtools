@@ -64,6 +64,7 @@ ssize_t handle_CFloatingText (struct ptbf *bf, const char *section) {
 	ret+=ptb_read_string(bf, &text->text);
 	ret+=ptb_read(bf, &text->beginpos, 1);
 	ret+=ptb_read_unknown(bf, 15);
+	ret+=ptb_read(bf, &text->alignment, 1);
 	ret+=ptb_read_font(bf, &text->font);
 	ret+=ptb_read_unknown(bf, 4);
 	
@@ -95,7 +96,10 @@ ssize_t handle_CSection (struct ptbf *bf, const char *sectionname) {
 	ret+=ptb_read(bf, &section->letter, 1);
 	ret+=ptb_read_string(bf, &section->description);
 
-	ret+=ptb_read_unknown(bf, 6);
+	ret+=ptb_read_unknown(bf, 2);
+
+	ret+=ptb_read_stuff(bf);
+	ret+=ptb_read_stuff(bf);
 
 	return ret; 
 }
@@ -174,8 +178,9 @@ ssize_t handle_CGuitarIn (struct ptbf *bf, const char *section) {
 	ret+=ptb_read(bf, &guitarin->section, 1);
 	ret+=ptb_read_unknown(bf, 1); /* FIXME */
 	ret+=ptb_read(bf, &guitarin->staff, 1);
-	ret+=ptb_read(bf, &guitarin->offset, 2);
-	ret+=ptb_read(bf, &guitarin->guitar, 1);
+	ret+=ptb_read(bf, &guitarin->offset, 1);
+	ret+=ptb_read(bf, &guitarin->rhythm_slash, 1);
+	ret+=ptb_read(bf, &guitarin->staff_in, 1);
 
 	return ret;
 }
@@ -192,6 +197,8 @@ ssize_t handle_CStaff (struct ptbf *bf, const char *section) {
 	ret+=ptb_read(bf, &staff->lowest_note, 1);
 	ret+=ptb_read_unknown(bf, 1); /* FIXME */
 	ret+=ptb_read(bf, &staff->extra_data, 1);
+
+	ret+=ptb_read_stuff(bf);
 //	ret+=ptb_read_unknown(bf, 2);
 //	ret+=ptb_read_items(bf);
 //	ret+=ptb_read_unknown(bf, staff->extra_data);

@@ -104,18 +104,18 @@ struct ptb_dynamic {
 };
 
 struct ptb_guitarin {
-	guint16 offset;	
+	guint8 offset;	
 	guint8 section;
 	guint8 staff;
 
 	/* OR'd numbers of guitars 
 	 * (0x01 = guitar1, 0x02 = guitar2, 0x04 = guitar3, etc) */
-	guint8 guitar;
+	guint8 rhythm_slash;
+	guint8 staff_in;
 };
 
 struct ptb_font {
 	guint8 size;
-	enum { ALIGN_LEFT = 1, ALIGN_CENTER, ALIGN_RIGHT } alignment;
 	guint8 thickness;
 	guint8 underlined;
 	guint8 italic;
@@ -125,6 +125,7 @@ struct ptb_font {
 struct ptb_floatingtext {
 	char *text;
 	guint8 beginpos;
+	enum { ALIGN_LEFT = 1, ALIGN_CENTER, ALIGN_RIGHT } alignment;
 	struct ptb_font font;
 };
 

@@ -26,6 +26,7 @@ ssize_t ptb_read(struct ptbf *, void *data, size_t len);
 ssize_t ptb_read_unknown(struct ptbf *, size_t len);
 ssize_t ptb_read_items(struct ptbf *bf);
 ssize_t ptb_read_font(struct ptbf *, struct ptb_font *);
+ssize_t ptb_read_stuff(struct ptbf *);
 
 struct ptb_section_handler {
 	char *name;
