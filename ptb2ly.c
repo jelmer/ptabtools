@@ -111,7 +111,7 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 		
 		fprintf(out, "%s", note_names[abs(note)%12]);
 
-		j = abs(note / 12);
+		j = (note+11) / 12;
 		if(note < 0) {
 			for(i = j; i < 1; i++) fprintf(out, ",");
 		} else if(note > 0) {

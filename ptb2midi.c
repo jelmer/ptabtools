@@ -21,6 +21,23 @@
 #include <popt.h>
 #include "ptb.h"
 
+#define MIDI_COMMAND_
+
+void midi_write_meta_data(FILE *out, char command, void *data, guint8 length)
+{
+	fwrite(out, &command, 1);
+	fwrite(out, &length, sizeof(length));
+	fwrite(out, data, length);
+}
+
+void midi_write_channel_data(FILE *out, char command, char channel, void *data, size_t length)
+{
+	guint8 first;
+	first = command ^ 4 + channel;
+	fwrite(out, &first, 1);
+	fwrite(out, data, length);
+}
+
 int main(int argc, const char **argv) 
 {
 	FILE *out = stdout;
