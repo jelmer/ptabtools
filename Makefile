@@ -9,7 +9,7 @@ datadir = $(prefix)/share/ptabtools
 PTB_VERSION=0.4
 
 PROGS = ptb2ly ptb2ascii ptbinfo $(shell pkg-config --exists libxml-2.0 libxslt && echo ptb2xml)
-LIBS = libptb-$(PTB_VERSION).so 
+LIBS = libptb-$(PTB_VERSION).so libptb-$(PTB_VERSION).a
 PROGS_MANPAGES = $(patsubst %,%.1,$(PROGS))
 INSTALL = install
 CFLAGS = -g -Wall -DPTB_VERSION=\"$(PTB_VERSION)\" 
@@ -31,6 +31,9 @@ ptb2xml.o: ptb2xml.c
 
 libptb-$(PTB_VERSION).so: $(PTBSO_OBJS)
 	$(CC) -shared $(CFLAGS) -o $@ $(PTBSO_OBJS) `pkg-config --libs glib-2.0`
+
+libptb-$(PTB_VERSION).a: $(PTBSO_OBJS)
+	$(AR) rs $@ $^
 
 ptb2xml: $(PTB2XML_OBJS)
 	$(CC) $(CFLAGS) -o $@ $(PTB2XML_OBJS) `pkg-config --libs glib-2.0 libxml-2.0 libxslt` -lpopt
