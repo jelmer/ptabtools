@@ -120,6 +120,12 @@ int ptb_write_tuning_dict(const char *f, struct ptb_tuning_dict *t)
 	return 0;
 }
 
+const char *ptb_tuning_get_note(char n)
+{
+	const char *notes[] = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
+	return notes[n%12];
+}
+
 void ptb_free_tuning_dict(struct ptb_tuning_dict *t)
 {
 	int i;

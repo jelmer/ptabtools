@@ -38,7 +38,7 @@ static void print_tuning(struct ptb_tuning *t, void *userdata)
 	int j;
 	printf("%s: ", t->name);
 	for (j = 0; j < t->nr_strings; j++) {
-		printf("%d ", t->strings[j]);
+		printf("%s ", ptb_tuning_get_note(t->strings[j]));
 	}
 	printf("\n");
 }
