@@ -1,4 +1,3 @@
 - Chord Diagrams
-- Parsing staff-crossing slides, etc
 - Fix fret numbers
-- Missing stuff in ptb?
+- Fix lilypond output

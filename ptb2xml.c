@@ -65,6 +65,9 @@ xmlNodePtr xml_write_rhythmslashes(GList *rhythmslashs)
 		struct ptb_rhythmslash *rhythmslash = gl->data;
 		xmlNodePtr xrhythmslash = xmlNewNode(NULL, "rhythmslash");
 		xmlAddChild(xrhythmslashs, xrhythmslash);
+		SMART_ADD_CHILD_INT(xrhythmslash, "offset", rhythmslash->offset);
+		SMART_ADD_CHILD_INT(xrhythmslash, "dotted", rhythmslash->dotted);
+		SMART_ADD_CHILD_INT(xrhythmslash, "length", rhythmslash->length);
 		
 		gl = gl->next;
 	}
