@@ -35,6 +35,9 @@ ptb2ptb$(EXEEXT): ptb2ptb.o ptb.o
 ptb2ly$(EXEEXT): ptb2ly.o ptb.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(POPT_LIBS)
 
+ptb2abc$(EXEEXT): ptb2abc.o ptb.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(POPT_LIBS)
+
 gp2ly$(EXEEXT): gp2ly.o gp.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(POPT_LIBS)
 

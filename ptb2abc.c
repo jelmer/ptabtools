@@ -1,5 +1,5 @@
 /*
-	(c) 2004: Jelmer Vernooij <jelmer@samba.org>
+	(c) 2005: Jelmer Vernooij <jelmer@samba.org>
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -31,43 +31,28 @@
 
 #include "ptb.h"
 
-
-void ascii_write_header(FILE *out, struct ptbf *ret) 
+void abc_write_header(FILE *out, struct ptbf *ret) 
 {
 	if(ret->hdr.classification == CLASSIFICATION_SONG) {
-		if(ret->hdr.class_info.song.title) 	fprintf(out, "  Title: %s\n", ret->hdr.class_info.song.title);
-		if(ret->hdr.class_info.song.music_by) fprintf(out, "  Music By: %s\n", ret->hdr.class_info.song.music_by);
-		if(ret->hdr.class_info.song.words_by) fprintf(out, "  Words By: %s\n", ret->hdr.class_info.song.words_by);
-		if(ret->hdr.class_info.song.copyright) fprintf(out, "  Copyright: %s\n", ret->hdr.class_info.song.copyright);
-		if(ret->hdr.class_info.song.guitar_transcribed_by) fprintf(out, "  Transcribed By: %s\n", ret->hdr.class_info.song.guitar_transcribed_by);
+		if(ret->hdr.class_info.song.title) 	fprintf(out, "T: %s\n", ret->hdr.class_info.song.title);
+		if(ret->hdr.class_info.song.music_by) fprintf(out, "C: %s\n", ret->hdr.class_info.song.music_by);
+		if(ret->hdr.class_info.song.words_by) fprintf(out, "%%  Words By: %s\n", ret->hdr.class_info.song.words_by);
+		if(ret->hdr.class_info.song.copyright) fprintf(out, "%%  Copyright: %s\n", ret->hdr.class_info.song.copyright);
+		if(ret->hdr.class_info.song.guitar_transcribed_by) fprintf(out, "Z: %s\n", ret->hdr.class_info.song.guitar_transcribed_by);
 		if(ret->hdr.class_info.song.release_type == RELEASE_TYPE_PR_AUDIO &&
-		   ret->hdr.class_info.song.release_info.pr_audio.album_title) fprintf(out, "  Album Title: %s\n", ret->hdr.class_info.song.release_info.pr_audio.album_title);
+		   ret->hdr.class_info.song.release_info.pr_audio.album_title) fprintf(out, "%%  Album Title: %s\n", ret->hdr.class_info.song.release_info.pr_audio.album_title);
 	} else if(ret->hdr.classification == CLASSIFICATION_LESSON) {
-		if(ret->hdr.class_info.lesson.title) 	fprintf(out, "  Title: %s\n", ret->hdr.class_info.lesson.title);
-		if(ret->hdr.class_info.lesson.artist) fprintf(out, "  Artist: %s\n", ret->hdr.class_info.lesson.artist);
-		if(ret->hdr.class_info.lesson.author) fprintf(out, "  Transcribed By: %s\n", ret->hdr.class_info.lesson.author);
-		if(ret->hdr.class_info.lesson.copyright) fprintf(out, "  Copyright: %s\n", ret->hdr.class_info.lesson.copyright);
+		if(ret->hdr.class_info.lesson.title) 	fprintf(out, "T:%s\n", ret->hdr.class_info.lesson.title);
+		if(ret->hdr.class_info.lesson.artist) fprintf(out, "C: %s\n", ret->hdr.class_info.lesson.artist);
+		if(ret->hdr.class_info.lesson.author) fprintf(out, "Z: %s\n", ret->hdr.class_info.lesson.author);
+		if(ret->hdr.class_info.lesson.copyright) fprintf(out, "%%  Copyright: %s\n", ret->hdr.class_info.lesson.copyright);
 	}
 	fprintf(out, "\n");
 }
 
-int ascii_write_position(FILE *out, struct ptb_position *pos, int string)
-{
-	struct ptb_linedata *d = pos->linedatas;
+void abc_write_chordtext(FILE *out, struct ptb_chordtext *name) {
+	fprintf(out, "\"");
 
-	while(d) {
-		if(string == (int)d->detailed.string) {
-			return fprintf(out, "%d", d->detailed.fret);
-		} 
-
-		d = d->next;
-	}
-
-	return 0;
-}
-
-
-void ascii_write_chordtext(FILE *out, struct ptb_chordtext *name) {
 	if(name->properties & CHORDTEXT_PROPERTY_NOCHORD) {
 		fprintf(out, "N.C.");
 	}
@@ -90,74 +75,14 @@ void ascii_write_chordtext(FILE *out, struct ptb_chordtext *name) {
 		fprintf(out, ")");
 	}
 
-	fprintf(out, " ");
+	fprintf(out, "\" ");
 }
 
-void ascii_write_staff(FILE *out, struct ptb_staff *s) 
-{
-	int i;
-
-	for(i = 0; i < 6; i++) {
-		int j;
-		for(j = 0; j < 2; j++) {
-			struct ptb_position *p = s->positions[j];
-			while(p) {
-				int ret = ascii_write_position(out, p, i);
-				for(; ret < 4; ret++) fprintf(out, "-");
-				p = p->next;
-			}
-		}
-
-		fprintf(out, "\n");
-	}
-}
-
-void ascii_write_section(FILE *out, struct ptb_section *s) 
-{
-	struct ptb_chordtext *ct = s->chordtexts;
-	struct ptb_staff *st = s->staffs;
-
-	if(s->letter != 0x7f) {
-		fprintf(out, "%c. %s\n", s->letter, s->description);
-	}
-
-	while(ct) {
-		ascii_write_chordtext(out, ct);
-		ct = ct->next;
-	}
-	fprintf(out, "\n");
-	
-	while(st) {
-		ascii_write_staff(out, st);
-		st = st->next;
-		if(st)fprintf(out, "|\n");
-	}
-}
-
-int ascii_write_lyrics(FILE *out, struct ptbf *ret)
+int abc_write_lyrics(FILE *out, struct ptbf *ret)
 {
 	if(ret->hdr.classification != CLASSIFICATION_SONG || !ret->hdr.class_info.song.lyrics) return 0;
-	fprintf(out, "\nLyrics:\n");
-	fprintf(out, "%s\n\n", ret->hdr.class_info.song.lyrics);
+	fprintf(out, "W: %s\n\n", ret->hdr.class_info.song.lyrics);
 	return 1;
-}
-
-int ascii_write_chords(FILE *out, struct ptbf *ret)
-{
-	/* FIXME:
-	 * acc =  \chords {
-    % why don't \skip, s4 work?
-        c2 c f c
-        f c g:7 c
-    g f c  g:7 % urg, bug!
-        g f c  g:7
-    % copy 1-8
-        c2 c f c
-        f c g:7 c
-}
-*/
-
-	return 0;
 }
 
 int main(int argc, const char **argv) 
@@ -187,8 +112,8 @@ int main(int argc, const char **argv)
 	while((c = poptGetNextOpt(pc)) >= 0) {
 		switch(c) {
 		case 'v':
-			printf("ptb2ascii Version "PACKAGE_VERSION"\n");
-			printf("(C) 2004 Jelmer Vernooij <jelmer@samba.org>\n");
+			printf("ptb2abc Version "PACKAGE_VERSION"\n");
+			printf("(C) 2005 Jelmer Vernooij <jelmer@samba.org>\n");
 			exit(0);
 			break;
 		}
@@ -215,7 +140,7 @@ int main(int argc, const char **argv)
 		}
 		output = malloc(baselength + 6);
 		strncpy(output, input, baselength);
-		strcpy(output + baselength, ".txt");
+		strcpy(output + baselength, ".abc");
 	}
 
 	if(!strcmp(output, "-")) {
@@ -228,15 +153,20 @@ int main(int argc, const char **argv)
 		}
 	} 
 	
-	fprintf(out, "Generated by ptb2ascii (C) 2004 Jelmer Vernooij <jelmer@samba.org>\n");
-	fprintf(out, "See http://jelmer.vernstok.nl/oss/ptabtools/ for more info\n\n");
+	fprintf(out, "%% Generated by ptb2abc (C) 2005 Jelmer Vernooij <jelmer@samba.org>\n");
+	fprintf(out, "%% See http://jelmer.vernstok.nl/oss/ptabtools/ for more info\n\n");
+	fprintf(out, "X:1\n");
 		
-	ascii_write_header(out, ret);
-	ascii_write_lyrics(out, ret);
+	abc_write_header(out, ret);
+	abc_write_lyrics(out, ret);
+
+	fprintf(out, "M: C\n");
+	fprintf(out, "K: Cm\n");
+	fprintf(out, "L: 1/4\n");
 
 	section = ret->instrument[instrument].sections;
 	while(section) {
-		ascii_write_section(out, section);
+		/*abc_write_section(out, section);*/
 		fprintf(out, "\n\n");
 		section = section->next;
 	}
@@ -245,5 +175,3 @@ int main(int argc, const char **argv)
 	
 	return (ret?0:1);
 }
-
-

@@ -2,6 +2,7 @@ All changes, unless specified otherwise, made by Jelmer Vernooij
 <jelmer@samba.org>.
 
 0.4.2:
+ * Add ptb2abc utility
  * Default to always printing errors
  * Allow overriding or disabling of printing function used for errors
  	and warnings
