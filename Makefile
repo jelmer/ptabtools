@@ -15,7 +15,6 @@ PTB2MUSICXML_OBJS = ptb2musicxml.o ptb.o
 PTBSO_OBJS = ptb.o
 
 all: $(PROGS)
-	pkg-config --exists libxml-2.0 && $(MAKE) ptb2musicxml
 
 ptb2musicxml.o: ptb2musicxml.c
 	$(CC) $(CFLAGS) -c $< `pkg-config --cflags glib-2.0 libxml-2.0`

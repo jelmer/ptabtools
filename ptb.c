@@ -25,10 +25,12 @@
 #include "ptb.h"
 #include <glib.h>
 
+#define ptb_assert(ptb, expr) \
+	if (!(expr)) { g_log(G_LOG_DOMAIN, G_LOG_LEVEL_ERROR, "file: %s, line: %d (%s): assertion failed: %s. Current position: 0x%lx", __FILE__, __LINE__, __PRETTY_FUNCTION__, #expr, ptb->curpos); ptb_print_section_list(ptb); }
+
 struct ptb_section_handler {
 	char *name;
 	void *(*handler) (struct ptbf *, const char *section);
-	int index;
 };
 
 extern struct ptb_section_handler ptb_section_handlers[];
@@ -40,6 +42,16 @@ void ptb_debug(const char *fmt, ...);
 int debugging = 0;
 int section_index = 0;
 
+static void ptb_print_section_index(gpointer key, gpointer value, gpointer user_data)
+{
+	ptb_debug("%d: %s\n", GPOINTER_TO_INT(key), ptb_section_handlers[GPOINTER_TO_INT(value)].name);
+}
+
+static void ptb_print_section_list(struct ptbf *f) 
+{
+	g_hash_table_foreach(f->section_indices, ptb_print_section_index, NULL);
+}
+
 ssize_t ptb_read(struct ptbf *f, void *data, size_t length){
 #undef read
 	ssize_t ret = read(f->fd, data, length);
@@ -47,7 +59,7 @@ ssize_t ptb_read(struct ptbf *f, void *data, size_t length){
 
 	if(ret == -1) { 
 		perror("read"); 
-		g_assert(0);
+		ptb_assert(f, 0);
 	}
 
 	f->curpos+=ret;
@@ -62,7 +74,7 @@ ssize_t ptb_read_constant(struct ptbf *f, unsigned char expected)
 	
 	if(real != expected) {
 		ptb_debug("%04x: Expected %02x, got %02x", f->curpos-1, expected, real);
-		g_assert(0);
+		ptb_assert(f, 0);
 	}
 
 	return ret;
@@ -223,14 +235,17 @@ GList *ptb_read_items(struct ptbf *bf, const char *assumed_type) {
 	guint16 length;
 	guint16 header;
 	guint16 nr_items;
+	int my_section_index;
+	gchar *my_section_name;
 	int ret = 0;
-	char *sectionname;
 	GList *list = NULL;
 
 	ret+=ptb_read(bf, &nr_items, 2);	
 	if(ret == 0 || nr_items == 0x0) return NULL; 
 	ret+=ptb_read(bf, &header, 2);
 	section_index++;
+
+	ptb_debug("Going to read %d items", nr_items);
 
 	if(header == 0xffff) { /* New section */
 
@@ -244,51 +259,49 @@ GList *ptb_read_items(struct ptbf *bf, const char *assumed_type) {
 
 		ret+=ptb_read(bf, &length, 2);
 
-		sectionname = g_new0(char, length + 1);
-		ret+=ptb_read(bf, sectionname, length);
+		my_section_name = g_new0(char, length + 1);
+		ret+=ptb_read(bf, my_section_name, length);
 
+		printf("Inserting: %d: %s\n", section_index, my_section_name);
+		g_hash_table_insert(bf->section_indices, GINT_TO_POINTER(section_index), g_strdup(my_section_name));
 
-		for(i = 0; ptb_section_handlers[i].name; i++) {
-			if(!strcmp(ptb_section_handlers[i].name, sectionname)) {
-				break;
-			}
-		}
-
-		ptb_section_handlers[i].index = section_index;
-
-		if(!ptb_section_handlers[i].handler) {
-			fprintf(stderr, "No handler for '%s'\n", sectionname);
-			return NULL;
-		}
+		my_section_index = section_index;
 	} else if(header & 0x8000) {
-		header-=0x8000;
-
-		for(i = 0; ptb_section_handlers[i].name; i++) {
-			if(ptb_section_handlers[i].index == header) break;
-		}
+		my_section_index=header-0x8000;
+		my_section_name = g_hash_table_lookup(bf->section_indices, GINT_TO_POINTER(my_section_index));
 	} else { 
 		fprintf(stderr, "Expected new item type (%s), got %04x %02x\n", assumed_type, nr_items, header);
+		ptb_assert(bf, 0);
 		return NULL;
+	}
+
+	for(i = 0; ptb_section_handlers[i].name; i++) {
+		if(!strcmp(ptb_section_handlers[i].name, my_section_name)) {
+			break;
+		}
 	}
 
 	if(!ptb_section_handlers[i].handler) {
-		fprintf(stderr, "Unable to find handler for section %s\n", sectionname);
+		fprintf(stderr, "Unable to find handler for section %s\n", my_section_name);
 		return NULL;
 	}
-
 
 	for(l = 0; l < nr_items; l++) {
 		void *tmp;
 		guint16 next_thing;
 
-		ptb_debug("%02x %02x ============= Handling %s (%d of %d) =============", bf->curpos, ptb_section_handlers[i].index, ptb_section_handlers[i].name, l+1, nr_items);
-		g_assert(!assumed_type || !strcmp(assumed_type, ptb_section_handlers[i].name));
+		ptb_debug("%02x %02x ============= Handling %s (%d of %d) =============", bf->curpos, my_section_index, my_section_name, l+1, nr_items);
+		if(assumed_type && strcmp(assumed_type, my_section_name)) {
+			ptb_debug("Expected: %s, got: %s (%d)\n", assumed_type, my_section_name, my_section_index);
+
+			g_assert(0);
+		}
 		section_index++;
 		debug_level++;
 		tmp = ptb_section_handlers[i].handler(bf, ptb_section_handlers[i].name);
 		debug_level--;
 
-		ptb_debug("%02x ============= END Handling %s =============", ptb_section_handlers[i].index, ptb_section_handlers[i].name);
+		ptb_debug("%02x ============= END Handling %s =============", my_section_index, ptb_section_handlers[i].name);
 
 		if(!tmp) {
 			fprintf(stderr, "Error parsing section '%s'\n", ptb_section_handlers[i].name);
@@ -298,10 +311,11 @@ GList *ptb_read_items(struct ptbf *bf, const char *assumed_type) {
 		
 		if(l < nr_items - 1) {
 			ret+=ptb_read(bf, &next_thing, 2);
-			if(next_thing != 0x8000 + ptb_section_handlers[i].index) {
-				ptb_debug("Warning: got %04x, expected %04x\n", next_thing, 0x8000 + ptb_section_handlers[i].index);
-				g_assert(next_thing & 0x8000);
-				ptb_section_handlers[i].index = next_thing - 0x8000;
+			if(next_thing != 0x8000 + my_section_index) {
+				ptb_debug("Warning: got %04x, expected %04x\n", next_thing, 0x8000 + my_section_index);
+				ptb_assert(bf, 0);
+/*FIXME				ptb_assert(bf, next_thing & 0x8000);
+				ptb_section_handlers[i].index = next_thing - 0x8000;*/
 			}
 		}
 	}
@@ -324,6 +338,8 @@ struct ptbf *ptb_read_file(const char *file)
 	if(bf < 0) return NULL;
 
 	bf->curpos = 1;
+
+	bf->section_indices = g_hash_table_new(NULL, NULL);
 
 	if(ptb_read_header(bf, &bf->hdr) < 0) {
 		fprintf(stderr, "Error parsing header\n");	
@@ -350,7 +366,7 @@ struct ptbf *ptb_read_file(const char *file)
 	ptb_read_unknown(bf, 12);
 
 	/* This should be the end of the file */
-	g_assert(ptb_read(bf, &i, 1) == 0);
+	ptb_assert(bf, ptb_read(bf, &i, 1) == 0);
 
 	close(bf->fd);
 	return bf;
@@ -469,7 +485,7 @@ void *handle_CLineData (struct ptbf *bf, const char *section) {
 	
 	if(linedata->conn_to_next) { 
 		ptb_debug("Conn to next!: %02x", linedata->conn_to_next);
-//		ptb_read_unknown(bf, 4*linedata->conn_to_next);
+		ptb_read_unknown(bf, 4*linedata->conn_to_next);
 	}
 
 	return linedata;
@@ -510,8 +526,7 @@ void *handle_CStaff (struct ptbf *bf, const char *section) {
 	ptb_read(bf, &staff->properties, 1);
 	ptb_read(bf, &staff->highest_note, 1);
 	ptb_read(bf, &staff->lowest_note, 1);
-	ptb_read_unknown(bf, 1); /* FIXME */
-	ptb_read_constant(bf, 0x3);
+	ptb_read_unknown(bf, 2); /* FIXME */
 
 	staff->positions1 = ptb_read_items(bf, "CPosition");
 	staff->musicbars = ptb_read_items(bf, "CMusicBar");
@@ -528,15 +543,9 @@ void *handle_CPosition (struct ptbf *bf, const char *section) {
 	ptb_read_unknown(bf, 2);
 	ptb_read(bf, &position->fermenta, 1);
 	ptb_read(bf, &position->length, 1);
-	ptb_read(bf, &position->swell, 1);
-	if(position->swell ) {
-		ptb_debug("Swell: %02x", position->swell);
-		ptb_read_unknown(bf, 4);
-	}
-
+	ptb_read_unknown(bf, 1);
 
 	position->linedatas = ptb_read_items(bf, "CLineData");
-
 	
 	return position;
 }
