@@ -49,20 +49,52 @@ this page.
 Every file has 4 parts: a header, a part containing the guitar tabs, a 
 part containing the bass parts and a footer.
 
+Each instrument (guitar or bass) contains ``elements''. Elements themselve can 
+(at specified places) contain lists of elements. So we get a tree. 
+There are several types of elements.
+
+An instrument always contains 8 lists of elements, always in the same order.
+They are:
+
+\begin{enumerate}
+\item CGuitar
+\item CChordDiagram
+\item CFloatingText
+\item CGuitarIn
+\item CTempoMarker
+\item CDynamic
+\item CSectionSymbol
+\item CSection
+\end{enumerate}
+
 \section{General techniques}
+
+\subsection{Lists}
 
 \subsection{Strings}
 
 Strings are always prepended by one byte describing their length. There is 
 no ending null character.
 
+\subsection{Item types}
+
 \section{Header}
+
+\subsection{Song}
+
+\subsubsection{Public Release: Audio}
+\subsubsection{Public Release: Video}
+\subsubsection{Bootleg}
+\subsubsection{Unreleased}
+
+\subsection{Lesson}
 
 \section{Types}
 
 \section{Reference}
 
 \subsection{CGuitar}
+
 \subsection{CFloatingText}
 \subsection{CChordDiagram}
 \subsection{CTempoMarker}

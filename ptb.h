@@ -170,7 +170,6 @@ struct ptb_position {
 struct ptb_staff {
 	/* Number of strings OR-ed with some settings */
 	guint8 properties;
-	guint8 extra_data;
 	guint8 highest_note;
 	guint8 lowest_note;
 	GList *positions1;
@@ -190,14 +189,14 @@ struct ptb_linedata {
 };
 
 
-#define METER_TYPE_COMMON 	0x4000
-#define METER_TYPE_CUT    	0x8000
-#define METER_TYPE_SHOW   	0x1000
 #define METER_TYPE_BEAM_2	0x0080	
 #define METER_TYPE_BEAM_4	0x0100
 #define METER_TYPE_BEAM_3	0x0180
 #define METER_TYPE_BEAM_6	0x0200
 #define METER_TYPE_BEAM_5	0x0280
+#define METER_TYPE_COMMON 	0x4000
+#define METER_TYPE_CUT    	0x8000
+#define METER_TYPE_SHOW   	0x1000
 
 #define END_MARK_TYPE_NORMAL 0x00
 #define END_MARK_TYPE_REPEAT 0x80
