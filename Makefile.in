@@ -15,7 +15,7 @@ LIBXSLT_CFLAGS = @LIBXSLT_CFLAGS@
 LIBXSLT_LIBS = @LIBXSLT_LIBS@
 
 PROGS = @PROGS@
-LIBS = libptb-$(VERSION).so libptb-$(VERSION).a
+LIBS = libptb.so.$(VERSION) libptb-$(VERSION).a
 PROGS_MANPAGES = $(patsubst %,%.1,$(PROGS))
 INSTALL = @INSTALL@
 CFLAGS = @CFLAGS@ -g -Wall 
@@ -24,7 +24,7 @@ LDFLAGS = @GLIB_LIBS@
 POPT_LIBS = -lpopt
 XSLT_DEFINE = -DMUSICXMLSTYLESHEET=\"$(datadir)/ptbxml2musicxml.xsl\"
 
-PTBSO_OBJS = ptb.o
+PTBSO_OBJS = ptb.o gp.o
 
 all: $(PROGS) $(LIBS)
 
@@ -34,7 +34,7 @@ ptb2xml.o: ptb2xml.c
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< 
 
-libptb-$(VERSION).so: $(PTBSO_OBJS)
+libptb.so.$(VERSION): $(PTBSO_OBJS)
 	$(CC) -shared $(CFLAGS) -o $@ $^
 
 libptb-$(VERSION).a: $(PTBSO_OBJS)
@@ -52,6 +52,9 @@ ptb2ptb: ptb2ptb.o ptb.o
 ptb2ly: ptb2ly.o ptb.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(POPT_LIBS)
 
+gp2ly: gp2ly.o gp.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(POPT_LIBS)
+
 ptbinfo: ptbinfo.o ptb.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(POPT_LIBS)
 
@@ -63,10 +66,14 @@ install: all
 	$(INSTALL) $(LIBS) $(DESTDIR)$(libdir)
 	$(INSTALL) -d $(DESTDIR)$(includedir)
 	$(INSTALL) -m 644 ptb.h $(DESTDIR)$(includedir)
+	$(INSTALL) -m 644 gp.h $(DESTDIR)$(includedir)
 	$(INSTALL) -d $(DESTDIR)$(pkgconfigdir)
 	$(INSTALL) -m 644 ptabtools.pc $(DESTDIR)$(pkgconfigdir)
 	$(INSTALL) -d $(DESTDIR)$(datadir)
 	$(INSTALL) -m 644 ptbxml2musicxml.xsl $(DESTDIR)$(datadir)
+
+test:
+	$(MAKE) -C test
 
 ctags: tags
 tags: *.c *.h

@@ -1,4 +1,5 @@
 /*
+   Parsing utilities for GuitarPro (version 2, 3 and 4) files
    (c) 2004 Jelmer Vernooij <jelmer@samba.org>
 
    This program is free software; you can redistribute it and/or modify
@@ -14,7 +15,7 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-   */
+*/
 
 #ifndef __GP_H__
 #define __GP_H__

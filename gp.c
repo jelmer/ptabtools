@@ -538,8 +538,3 @@ struct gpf *gp_read_file(const char *filename)
 
 	return gpf;
 }
-	
-void main()
-{
-	gp_read_file("bla.gp4");
-}

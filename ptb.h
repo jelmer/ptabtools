@@ -1,4 +1,5 @@
 /*
+   Functions for writing and reading PowerTab (.ptb) files
    (c) 2004 Jelmer Vernooij <jelmer@samba.org>
 
    This program is free software; you can redistribute it and/or modify
