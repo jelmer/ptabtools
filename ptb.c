@@ -718,6 +718,7 @@ static int handle_CLineData (struct ptbf *bf, const char *section, struct ptb_li
 			   & ~LINEDATA_PROPERTY_GHOST_NOTE
 			   & ~LINEDATA_PROPERTY_PULLOFF_FROM
 			   & ~LINEDATA_PROPERTY_HAMMERON_FROM
+			   & ~LINEDATA_PROPERTY_DEST_NOWHERE
 			   & ~LINEDATA_PROPERTY_TIE
 			   & ~LINEDATA_PROPERTY_NATURAL_HARMONIC
 			   & ~LINEDATA_PROPERTY_MUTED);
@@ -829,7 +830,9 @@ static int handle_CPosition (struct ptbf *bf, const char *section, struct ptb_li
 	ptb_assert_0(bf, position->properties 
 			   & ~POSITION_PROPERTY_IN_SINGLE_BEAM
 			   & ~POSITION_PROPERTY_IN_DOUBLE_BEAM
+			   & ~POSITION_PROPERTY_IN_TRIPLE_BEAM
 			   & ~POSITION_PROPERTY_FIRST_IN_BEAM
+			   & ~POSITION_PROPERTY_MIDDLE_IN_BEAM
 			   & ~POSITION_PROPERTY_LAST_IN_BEAM);
 	ptb_data(bf, &position->dots, 1);
 	ptb_assert_0(bf, position->dots &~ POSITION_DOTS_1 

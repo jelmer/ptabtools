@@ -1,7 +1,7 @@
 PTB_TESTFILES = $(wildcard *.ptb)
 
 %.info: %.ptb ../ptbinfo
-	../ptbinfo "$<" > "$@"
+	../ptbinfo "$<" > "$@" 2>"$*.errors"
 
 %.ly: %.ptb ../ptb2ly
 	../ptb2ly "$<"
