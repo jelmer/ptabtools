@@ -1,8 +1,9 @@
 -include Makefile.settings
 
 PTBLIB_OBJS = ptb.o gp.o
+TARGETS = $(TARGET_BINS) $(TARGET_LIBS)
 
-all: $(PROGS)
+all: $(TARGETS)
 
 ptb2xml.o: ptb2xml.c
 	$(CC) $(CFLAGS) -c $< $(LIBXSLT_CFLAGS) $(LIBXML_CFLAGS) $(XSLT_DEFINE)
@@ -41,11 +42,12 @@ ptbinfo$(EXEEXT): ptbinfo.o ptb.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(POPT_LIBS)
 	
 install: all
-	$(INSTALL) $(PROGS) $(DESTDIR)$(bindir)
+	$(INSTALL) $(TARGET_BINS) $(DESTDIR)$(bindir)
+	$(INSTALL) $(TARGET_LIBS) $(DESTDIR)$(bindir)
 	$(INSTALL) -d $(DESTDIR)$(mandir)/man1
 	$(INSTALL) -m 644 $(PROGS_MANPAGES) $(DESTDIR)$(mandir)/man1
 	$(INSTALL) -d $(DESTDIR)$(libdir)
-	$(INSTALL) -m 644 $(LIBS) $(DESTDIR)$(libdir)
+	$(INSTALL) -m 644 $(TARGET_LIBS) $(DESTDIR)$(libdir)
 	$(INSTALL) -d $(DESTDIR)$(includedir)
 	$(INSTALL) -m 644 ptb.h $(DESTDIR)$(includedir)
 	$(INSTALL) -m 644 gp.h $(DESTDIR)$(includedir)
@@ -62,4 +64,4 @@ tags: *.c *.h
 	ctags *.c *.h
 
 clean: 
-	rm -f *.o core $(PROGS) $(LIBS)
+	rm -f *.o core $(TARGETS)

@@ -13,30 +13,32 @@ AC_MINGW32
 AC_EXEEXT
 AC_OBJEXT
 
-PROGS=""
+TARGET_BINS=""
+TARGET_LIBS=""
 POPT_LIBS=""
 AC_SUBST(POPT_LIBS)
 
 # Checks for libraries.
 AC_CHECK_LIB([popt], [poptGetArg], [ 
 	  POPT_LIBS="-lpopt"
-	  PROGS="$PROGS ptb2ly$EXEEXT ptb2ascii$EXEEXT ptbinfo$EXEEXT gp2ly$EXEEXT" 
+	  TARGET_BINS="$TARGET_BINS ptb2ly$EXEEXT ptb2ascii$EXEEXT ptbinfo$EXEEXT gp2ly$EXEEXT" 
 	  ] , AC_MSG_WARN([Popt is required for command-line utilities]))
 PKG_CHECK_MODULES(LIBXML, libxml-2.0, [
 if test $ac_cv_lib_popt_poptGetArg = yes; then  
-	PROGS="$PROGS ptb2xml$EXEEXT" 
+	TARGET_BINS="$TARGET_BINS ptb2xml$EXEEXT" 
 fi
 ] , AC_MSG_WARN([libxml not found: not building ptb2xml]))
 PKG_CHECK_MODULES(LIBXSLT, libxslt, AC_DEFINE(HAVE_XSLT, 1, [whether libxslt is available]) , AC_MSG_WARN([libxslt not found: ptb2xml will not support musicxml]))
 
 if test "$MINGW32" = "yes"; then 
-	PROGS="$PROGS ptb.dll" 
+	TARGET_BINS="$TARGET_BINS ptb.dll" 
 else
-	PROGS="$PROGS libptb.so.$PACKAGE_VERSION libptb.a"
+	TARGET_LIBS="$TARGET_LIBS libptb.so.$PACKAGE_VERSION libptb.a"
 fi
 
 AC_SUBST(DLLFLAGS)
-AC_SUBST(PROGS)
+AC_SUBST(TARGET_BINS)
+AC_SUBST(TARGET_LIBS)
 
 # Checks for header files.
 AC_HEADER_STDC
