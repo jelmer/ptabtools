@@ -21,6 +21,7 @@
 
 #include <sys/stat.h>
 #include <glib.h>
+#include <stdlib.h>
 
 typedef guint8 ptb_chord;
 typedef guint8 ptb_tone;
@@ -211,6 +212,7 @@ struct ptbf {
 	char *filename;
 	struct stat st_buf;
 	struct ptb_hdr hdr;
+	off_t curpos;
 	GList *guitars;
 	GList *floatingtexts;
 	GList *tempomarkers;
@@ -231,20 +233,6 @@ struct ptbf {
 	struct ptb_font *tablature_font;
 };
 
-struct ptb_section_handler {
-	char *name;
-	int (*handler) (struct ptbf *, const char *section);
-	int index;
-};
-
-extern struct ptb_section_handler default_section_handlers[];
-
-struct ptbf *ptb_read_file(const char *ptb, struct ptb_section_handler *sections);
-int ptb_read_string(int fd, char **);
-int ptb_read(int fd, void *data, size_t len);
-int ptb_read_unknown(int fd, size_t len);
-int ptb_read_items(struct ptbf *bf, struct ptb_section_handler *sections);
-
-extern int debugging;
+struct ptbf *ptb_read_file(const char *ptb);
 
 #endif /* __PTB_H__ */

@@ -1,10 +1,7 @@
-PROGS = ptb2ly ptbtest
-CFLAGS = -g3
+PROGS = ptb2ly
+CFLAGS = -g3 -Wall
 
 PTB2LY_OBJS = ptb2ly.o ptb.o sections.o
-PTBSPLIT_OBJS = ptb.o ptbsplit.o
-PTBTEST_OBJS = ptb.o ptbtest.o sections.o
-
 
 all: $(PROGS)
 

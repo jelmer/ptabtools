@@ -72,8 +72,7 @@ int main(int argc, char **argv)
 	FILE *out = stdout;
 	int have_lyrics, have_chords;
 	struct ptbf *ret;
-	debugging = 1;
-	ret = ptb_read_file(argv[1], default_section_handlers);
+	ret = ptb_read_file(argv[1]);
 	
 	if(!ret) {
 		perror("Read error: ");
