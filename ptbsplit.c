@@ -41,7 +41,7 @@ int write_section(struct ptbf *bf, const char *sectionname)
 	return 0;
 }
 
-struct ptb_section sections[] = {
+struct ptb_section_handler sections[] = {
 	{NULL, write_section }
 };
 

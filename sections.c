@@ -22,11 +22,7 @@
 
 int handle_unknown (struct ptbf *bf, const char *section) {
 	fprintf(stderr, "Unknown section '%s'\n", section);	
-    while(!ptb_end_of_section(bf->fd)) {
-		lseek(bf->fd, 1, SEEK_CUR);
-    }
-
-	return 0; 
+	return -1; 
 }
 
 int handle_CGuitar (struct ptbf *bf, const char *section) {
@@ -67,10 +63,11 @@ int handle_CGuitar (struct ptbf *bf, const char *section) {
 	}
 
 	/* FIXME: */
-	while(!ptb_end_of_section(bf->fd)) {
+	while(unknown[0] != 0xff) {
 		read(bf->fd, unknown, 1);
 		fprintf(stderr, "x: %02x\n", unknown[0]);
 	}
+	read(bf->fd, unknown, 1);
 
 	return 0;
 }
@@ -102,7 +99,23 @@ int handle_CFloatingText (struct ptbf *bf, const char *section) {
 }
 
 int handle_CSection (struct ptbf *bf, const char *section) { 
-	
+	struct ptb_section *prevsection = NULL;
+	char unknown[256];
+
+	while(!ptb_end_of_section(bf->fd)) {
+		struct ptb_section *section = calloc(sizeof(struct ptb_section), 1);
+
+		if(bf->sections) prevsection->next = section;
+		else bf->sections = section;
+
+		read(bf->fd, unknown, 29);
+		read(bf->fd, &section->letter, 1);
+		ptb_read_string(bf->fd, &section->description);
+		read(bf->fd, unknown, 8);
+
+		prevsection = section;
+	}
+
 	return 0; 
 }
 
@@ -309,7 +322,7 @@ int handle_CMusicBar (struct ptbf *bf, const char *section) { return 0; }
 int handle_CRhythmSlash (struct ptbf *bf, const char *section) { return 0; }
 int handle_CDirection (struct ptbf *bf, const char *section) { return 0; }
 
-struct ptb_section default_sections[] = {
+struct ptb_section_handler default_section_handlers[] = {
 	{"CGuitar", handle_CGuitar },
 	{"CFloatingText", handle_CFloatingText },
 	{"CChordDiagram", handle_CChordDiagram },

@@ -33,12 +33,12 @@ int main(int argc, char **argv)
 
 	debugging = 1;
 
-	for(i = 0; default_sections[i].name; i++) {
-		if(!strcmp(default_sections[i].name, argv[1])) {
+	for(i = 0; default_section_handlers[i].name; i++) {
+		if(!strcmp(default_section_handlers[i].name, argv[1])) {
 			struct ptbf *bf = calloc(sizeof(struct ptbf), 1);
 			bf->filename = strdup(argv[2]);
 			bf->fd = open(bf->filename, O_RDONLY);
-			if(default_sections[i].handler(bf, argv[2]) != 0) {
+			if(default_section_handlers[i].handler(bf, argv[2]) != 0) {
 				fprintf(stderr, "Parsing file '%s' as section '%s' unsuccessful!\n", argv[2], argv[1]);
 				return 1;
 			}

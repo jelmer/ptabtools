@@ -160,6 +160,12 @@ struct ptb_linedata {
 	struct ptb_linedata *next;
 };
 
+struct ptb_section {
+	char letter;
+	char *description;
+	struct ptb_section *next;
+};
+
 struct ptbf {
 	int fd;
 	char *filename;
@@ -174,18 +180,18 @@ struct ptbf {
 	struct ptb_guitarin *guitarins;
 	struct ptb_staff *staffs;
 	struct ptb_position *positions;
+	struct ptb_section *sections;
 };
 
-struct ptb_section {
+struct ptb_section_handler {
 	char *name;
 	int (*handler) (struct ptbf *, const char *section);
 };
 
-extern struct ptb_section default_sections[];
+extern struct ptb_section_handler default_section_handlers[];
 
-struct ptbf *ptb_read_file(const char *ptb, struct ptb_section *sections);
+struct ptbf *ptb_read_file(const char *ptb, struct ptb_section_handler *sections);
 int ptb_read_string(int fd, char **);
-int ptb_end_of_section(int fd);
 
 extern int debugging;
 

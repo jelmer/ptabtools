@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 	FILE *out = stdout;
 	struct ptbf *ret;
 	debugging = 1;
-	ret = ptb_read_file(argv[1], default_sections);
+	ret = ptb_read_file(argv[1], default_section_handlers);
 	if(!ret) {
 		perror("Read error: ");
 		return -1;

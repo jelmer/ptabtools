@@ -26,18 +26,6 @@
 
 int debugging = 0;
 
-int ptb_end_of_section(int fd)
-{
-	guint16 data;
-	if(read(fd, &data, 2) < 2) return 1;
-
-	if(data == 0xffff) return 1;
-
-	lseek(fd, -2, SEEK_CUR);
-
-	return 0;
-}
-
 int ptb_read_font(int fd, struct ptb_font *dest) {
 	char unknown[256];
 	int ret = 0;
@@ -157,14 +145,10 @@ static int ptb_read_header(int fd, struct ptb_hdr *hdr)
 
 	read(fd, unknown, 1); /* FIXME: Appears to be always zero */
 
-	/* This should be 0xffff, ending the header */
-	read(fd, &header_end, 2);
-	if(header_end != 0xffff) return -1;
-
 	return 0;
 }
 
-struct ptbf *ptb_read_file(const char *file, struct ptb_section *sections)
+struct ptbf *ptb_read_file(const char *file, struct ptb_section_handler *sections)
 {
 	struct ptbf *bf = calloc(sizeof(struct ptbf), 1);
 	char eof = 0;
@@ -179,6 +163,7 @@ struct ptbf *ptb_read_file(const char *file, struct ptb_section *sections)
 
 	debugging = 1;
 
+
 	if(ptb_read_header(bf->fd, &bf->hdr) < 0) {
 		fprintf(stderr, "Error parsing header\n");	
 		return NULL;
@@ -190,8 +175,13 @@ struct ptbf *ptb_read_file(const char *file, struct ptb_section *sections)
 		guint16 unknownval;
 		guint16 l;
 		guint16 length;
+		guint16 header;
 		guint8 data = 0;
 		char *sectionname;
+
+		/* This should be 0xffff, ending the header */
+		read(bf->fd, &header, 2);
+		fprintf(stderr, "Header: %04x\n", header);
 
 		/* Read section */
 		if(read(bf->fd, &unknownval, 2) < 2) {
