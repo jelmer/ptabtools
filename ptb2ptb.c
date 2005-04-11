@@ -21,7 +21,7 @@
 #include <popt.h>
 #include <string.h>
 
-#ifndef HAVE_CONFIG
+#ifdef HAVE_CONFIG_H
 #  include "config.h"
 #endif
 
@@ -53,8 +53,8 @@ int main(int argc, const char **argv)
 	while((c = poptGetNextOpt(pc)) >= 0) {
 		switch(c) {
 		case 'v':
-			printf("ptb2ly Version "PACKAGE_VERSION"\n");
-			printf("(C) 2004 Jelmer Vernooij <jelmer@samba.org>\n");
+			printf("ptb2ptb Version "PACKAGE_VERSION"\n");
+			printf("(C) 2004-2005 Jelmer Vernooij <jelmer@samba.org>\n");
 			exit(0);
 			break;
 		}
@@ -89,7 +89,11 @@ int main(int argc, const char **argv)
 
 	if (!quiet) fprintf(stderr, "Generating new powertab file in %s...\n", output);
 
-	ptb_write_file(output, ret);
+	if (ptb_write_file(output, ret) == -1) {
+		fprintf(stderr, "Error while generating PowerTab file\n");
+	}
+
+	free(output);
 	
 	return (ret?0:1);
 }
