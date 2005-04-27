@@ -65,8 +65,8 @@ install: all
 test: all ptb2ptb
 	$(MAKE) -C tests
 
-ctags: tags
-tags: *.c *.h
+cags: tags
+tags: $(wildcard *.c) $(wildcard *.h)
 	ctags *.c *.h
 
 clean: 
