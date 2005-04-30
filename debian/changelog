@@ -1,3 +1,9 @@
+ptabtools (0.4.2-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Jelmer Vernooij (ctrlsoft) <jelmer@samba.org>  Tue, 26 Apr 2005 21:44:53 +1000
+
 ptabtools (0.4.1-1) unstable; urgency=low
 
   * New upstream release
