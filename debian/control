@@ -5,6 +5,18 @@ Maintainer: Jelmer Vernooij <jelmer@samba.org>
 Standards-Version: 3.5.8
 Build-Depends: debmake, libxml2-dev, libxslt1-dev, libpopt-dev
 
+Package: libptb0
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: PowerTab and GuitarPro file parsing library
+ A PowerTab and GuitarPro file parsing library.
+
+Package: libptb-dev
+Architecture: all
+Depends: libptb0=${Source-Version}
+Description: Development files for libptb0
+ Header files for the PowerTab and GuitarPro parser library.
+
 Package: ptabtools
 Architecture: any
 Depends: ${shlibs:Depends}

@@ -48,8 +48,8 @@ ptbdict$(EXEEXT): ptbdict.o ptb.o ptb-tuning.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(POPT_LIBS)
 	
 install: all
+	$(INSTALL) -d $(DESTDIR)$(bindir)
 	$(INSTALL) $(TARGET_BINS) $(DESTDIR)$(bindir)
-	$(INSTALL) $(TARGET_LIBS) $(DESTDIR)$(bindir)
 	$(INSTALL) -d $(DESTDIR)$(mandir)/man1
 	$(INSTALL) -m 644 $(PROGS_MANPAGES) $(DESTDIR)$(mandir)/man1
 	$(INSTALL) -d $(DESTDIR)$(libdir)
