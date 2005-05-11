@@ -45,7 +45,7 @@
 
 <!-- Sections -->
 <!ELEMENT sections (section*)>
-<!ELEMENT section (end-mark,meter-type,beat,beat-value,metronome-pulses-per-measure,properties,key-extra,position-width,description,chordtexts,rhythmslashs,directions,staffs,musicbars)>
+<!ELEMENT section (end-mark?,meter-type,beat,beat-value,metronome-pulses-per-measure,properties,key-extra,position-width,description,chordtexts,rhythmslashs,directions,staffs,musicbars)>
 <!ATTLIST section letter CDATA #IMPLIED>
 <!ELEMENT end-mark (#PCDATA)>
 <!ELEMENT meter-type (beam_2?,beam_3?,beam_4?,beam_5?,beam_6?,common?,cut?,show?)>
@@ -67,17 +67,18 @@
 
 <!-- Chordtexts -->
 <!ELEMENT chordtexts (chordtext*)>
-<!ELEMENT chordtext (note1,note2,offset,additions,alterations,properties,VII)>
+<!ELEMENT chordtext (note1,note2,additions,alterations,properties,VII)>
+<!ATTLIST chordtext offset CDATA #REQUIRED>
 <!ELEMENT note1 (#PCDATA)>
 <!ELEMENT note2 (#PCDATA)>
-<!ELEMENT offset (#PCDATA)>
 <!ELEMENT additions (#PCDATA)>
 <!ELEMENT alterations (#PCDATA)>
 <!ELEMENT VII (#PCDATA)>
 
 <!-- Rhythmslashes -->
 <!ELEMENT rhythmslashs (rhythmslash*)>
-<!ELEMENT rhythmslash (properties,offset?,dotted?,length?)>
+<!ELEMENT rhythmslash (properties,dotted?,length?)>
+<!ATTLIST rhythmslash offset CDATA #REQUIRED>
 <!ELEMENT dotted (#PCDATA)>
 <!ELEMENT length (#PCDATA)>
 
@@ -93,7 +94,8 @@
 
 <!-- Positions -->
 <!ELEMENT positions (position*)>
-<!ELEMENT position (offset?,dots?,length?,properties?,fermenta?,linedatas*)>
+<!ELEMENT position (dots?,length?,properties?,fermenta?,linedatas*)>
+<!ATTLIST position offset CDATA #REQUIRED>
 <!ELEMENT dots (#PCDATA)>
 <!ELEMENT fermenta (#PCDATA)>
 
@@ -106,26 +108,31 @@
 
 <!-- Musicbars -->
 <!ELEMENT musicbars (musicbar*)>
-<!ELEMENT musicbar EMPTY>
+<!ELEMENT musicbar (#PCDATA)>
 <!ATTLIST musicbar letter CDATA #IMPLIED>
 
 <!-- Guitarins -->
 <!ELEMENT guitarins (guitarin*)>
-<!ELEMENT guitarin (offset,rhythm_slash,staff_in)>
+<!ELEMENT guitarin (rhythm_slash,staff_in)>
 <!ELEMENT rhythm_slash (#PCDATA)>
 <!ELEMENT staff_in (#PCDATA)>
 <!ATTLIST guitarin 
+	offset CDATA #REQUIRED
 	section CDATA #REQUIRED
 	staff CDATA #REQUIRED>
 
 <!-- Tempomarkers -->
 <!ELEMENT tempomarkers (tempomarker*)>
-<!ELEMENT tempomarker (type,offset,bpm)>
+<!ELEMENT tempomarker (type,bpm)>
+<!ATTLIST tempomarker 
+	offset CDATA #REQUIRED
+	section CDATA #REQUIRED>
 <!ELEMENT bpm (#PCDATA)>
 
 <!-- Dynamics -->
 <!ELEMENT dynamics (dynamic*)>
-<!ELEMENT dynamic (offset)>
+<!ELEMENT dynamic EMPTY>
+<!ATTLIST dynamic offset CDATA #REQUIRED>
 
 <!-- Floatingtexts -->
 <!ELEMENT floatingtexts (floatingtext*)>

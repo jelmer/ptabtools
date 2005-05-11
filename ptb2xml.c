@@ -100,7 +100,7 @@ xmlNodePtr xml_write_rhythmslashes(struct ptb_rhythmslash *rhythmslashs)
 		xmlNodePtr xrhythmslash = xmlNewNode(NULL, "rhythmslash");
 		xmlAddChild(xrhythmslashs, xrhythmslash);
 		SMART_ADD_CHILD_INT(xrhythmslash, "properties", rhythmslash->properties);
-		SMART_ADD_CHILD_INT(xrhythmslash, "offset", rhythmslash->offset);
+		SMART_ADD_PROP_INT(xrhythmslash, "offset", rhythmslash->offset);
 		SMART_ADD_CHILD_INT(xrhythmslash, "dotted", rhythmslash->dotted);
 		SMART_ADD_CHILD_INT(xrhythmslash, "length", rhythmslash->length);
 		
@@ -121,7 +121,7 @@ xmlNodePtr xml_write_chordtexts(struct ptb_chordtext *chordtexts)
 
 		SMART_ADD_CHILD_STRING(xchordtext, "note1", ptb_get_tone(chordtext->name[0]));
 		SMART_ADD_CHILD_STRING(xchordtext, "note2", ptb_get_tone(chordtext->name[1]));
-		SMART_ADD_CHILD_INT(xchordtext, "offset", chordtext->offset);
+		SMART_ADD_PROP_INT(xchordtext, "offset", chordtext->offset);
 		SMART_ADD_CHILD_INT(xchordtext, "additions", chordtext->additions);
 		SMART_ADD_CHILD_INT(xchordtext, "alterations", chordtext->alterations);
 		SMART_ADD_CHILD_INT(xchordtext, "properties", chordtext->properties);
@@ -180,7 +180,7 @@ xmlNodePtr xml_write_positions(struct ptb_position *positions)
 		xmlNodePtr xposition = xmlNewNode(NULL, "position");
 		xmlAddChild(xpositions, xposition);
 
-		SMART_ADD_CHILD_INT(xposition, "offset", position->offset);
+		SMART_ADD_PROP_INT(xposition, "offset", position->offset);
 		SMART_ADD_CHILD_INT(xposition, "dots", position->dots);
 		SMART_ADD_CHILD_INT(xposition, "length", position->length);
 		SMART_ADD_CHILD_INT(xposition, "properties", position->properties);
@@ -323,7 +323,7 @@ xmlNodePtr xml_write_guitarins(struct ptb_guitarin *guitarins)
 		xmlNodePtr xguitarin = xmlNewNode(NULL, "guitarin");
 		xmlAddChild(xguitarins, xguitarin);
 
-		SMART_ADD_CHILD_INT(xguitarin, "offset", guitarin->offset);
+		SMART_ADD_PROP_INT(xguitarin, "offset", guitarin->offset);
 		SMART_ADD_PROP_INT(xguitarin, "section", guitarin->section);
 		SMART_ADD_PROP_INT(xguitarin, "staff", guitarin->staff);
 		SMART_ADD_CHILD_INT(xguitarin, "rhythm_slash", guitarin->rhythm_slash);
@@ -345,7 +345,7 @@ xmlNodePtr xml_write_tempomarkers(struct ptb_tempomarker *tempomarkers)
 		
 		SMART_ADD_CHILD_INT(xtempomarker, "type", tempomarker->type);
 		SMART_ADD_PROP_INT(xtempomarker, "section", tempomarker->section);
-		SMART_ADD_CHILD_INT(xtempomarker, "offset", tempomarker->offset);
+		SMART_ADD_PROP_INT(xtempomarker, "offset", tempomarker->offset);
 		SMART_ADD_CHILD_INT(xtempomarker, "bpm", tempomarker->bpm);
 
 		tempomarker = tempomarker->next;
@@ -363,7 +363,7 @@ xmlNodePtr xml_write_dynamics(struct ptb_dynamic *dynamics)
 		xmlNodePtr xdynamic = xmlNewNode(NULL, "dynamic");
 		xmlAddChild(xdynamics, xdynamic);
 		
-		SMART_ADD_CHILD_INT(xdynamic, "offset", dynamic->offset);
+		SMART_ADD_PROP_INT(xdynamic, "offset", dynamic->offset);
 
 		dynamic = dynamic->next;
 	}
