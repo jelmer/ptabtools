@@ -68,7 +68,7 @@ const char *get_staff_name(int sec_num, int staff_num)
 }
 
 char *note_names[12] = {
-	 "a", "ais", "b", "c", "cis", "d", "dis", "e", "f", "fis", "g", "gis"
+	 "c", "cis", "d", "dis", "e", "f", "fis", "g", "gis", "a", "ais", "b"
 };
 
 char *ly_escape(char *data)
@@ -188,11 +188,12 @@ void ly_write_chordtext(FILE *out, struct ptb_section *section, struct ptb_chord
 
 static double previous = 0.0;
 
-void ly_write_position(FILE *out, struct ptb_position *pos)
+void ly_write_position(FILE *out, struct ptb_guitar *gtr, struct ptb_position *pos)
 {
 	double this = 0.0;
 	char print_length = 0;
-	struct ptb_linedata *d = pos->linedatas;
+	int tied = 0;
+	struct ptb_linedata *d;
 
 	this = pos->length * (pos->dots & POSITION_DOTS_1?1.5:1.0) 
 		* (pos->dots & POSITION_DOTS_2?1.5*1.5:1.0);
@@ -210,30 +211,30 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 	}
 
 	/* Rest */
-	if(!d) {
+	if(!pos->linedatas) {
 		fprintf(out, " r");
 	}
 
-	/* Multiple notes */
-	if((d && d->next) || print_length) fprintf(out, " <");
+ 	for (d = pos->linedatas; d; d = d->next ) {
+		if (d->properties & LINEDATA_PROPERTY_TIE) tied = 1;
+	}
 
-	while(d) {
-		int note = d->detailed.fret;
+//	if (tied) 
+//			fprintf(out, "~ ");
+
+	/* Multiple notes */
+	if((pos->linedatas && pos->linedatas->next) || print_length) fprintf(out, " <");
+
+	for (d = pos->linedatas; d; d = d->next) {
+		int note;
 		int i;
 		int octave;
+
 #define DEFAULT_OCTAVE 4
 		
-		switch(d->detailed.string) {
-		case 0: note+= 64; break;
-		case 1: note+= 59; break;
-		case 2: note+= 55; break;
-		case 3: note+= 50; break;
-		case 4: note+= 45; break;
-		case 5: note+= 40; break;
-		default:fprintf(stderr, "Unknown string %d", d->detailed.string);
-		}
+		note = gtr->strings[d->detailed.string] + d->detailed.fret;
 		
-		fprintf(out, "%s", note_names[(note+3)%12]);
+		fprintf(out, "%s", note_names[note%12]);
 
 		octave = note / 12;
 
@@ -251,9 +252,7 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 		}
 
 		fprintf(out, "\\%d", d->detailed.string+1);
-		if(pos->properties & LINEDATA_PROPERTY_TIE) fprintf(out, " ~");
-		d = d->next;
-		if(d) fprintf(out, " ");
+		if(d->next) fprintf(out, " ");
 	}
 
 	/* Multiple notes */
@@ -267,19 +266,20 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 		if(pos->dots & POSITION_DOTS_2) fprintf(out, "..");
 	}
 
+	/*
 	if(pos->properties & POSITION_PROPERTY_FIRST_IN_BEAM)
 		fprintf(out, "[");
 
 
 	if(pos->properties & POSITION_PROPERTY_LAST_IN_BEAM)
-		fprintf(out, "]");
+		fprintf(out, "]");*/
 
 	if (pos->fermenta & POSITION_FERMENTA_TRIPLET_3) {
 		fprintf(out, "} ");
 	}
 }
 
-void ly_write_staff_identifier(FILE *out, struct ptb_staff *s, struct ptb_section *section, int section_num, int staff_num) 
+void ly_write_staff_identifier(FILE *out, struct ptb_staff *s, struct ptb_section *section, int section_num, int staff_num, struct ptb_guitar *gtr) 
 {
 	int o;
 	int i;
@@ -292,7 +292,7 @@ void ly_write_staff_identifier(FILE *out, struct ptb_staff *s, struct ptb_sectio
 		for (i = 0; i < 2; i++) {
 			struct ptb_position *p = s->positions[i];
 			while(p) {
-				if (p->offset == o) ly_write_position(out, p);
+				if (p->offset == o) ly_write_position(out, gtr, p);
 				p = p->next;
 			}
 		}
@@ -326,7 +326,7 @@ void ly_write_chords_identifier(FILE *out, struct ptb_section *s, int section_nu
 
 
 
-void ly_write_section_identifier(FILE *out, struct ptb_section *s, int section_num) 
+void ly_write_section_identifier(FILE *out, struct ptb_section *s, int section_num, struct ptb_guitar *gtr) 
 {
 	int staff_num = 0;
 	struct ptb_staff *st = s->staffs;
@@ -403,7 +403,7 @@ void ly_write_section_identifier(FILE *out, struct ptb_section *s, int section_n
 	ly_write_chords_identifier(out, s, section_num);
 
 	while(st) {
-		ly_write_staff_identifier(out, st, s, section_num, staff_num);
+		ly_write_staff_identifier(out, st, s, section_num, staff_num, gtr);
 		st = st->next;
 		staff_num++;
 	}
@@ -669,7 +669,7 @@ int main(int argc, const char **argv)
 	i = 1;
 	section = ret->instrument[instrument].sections;
 	while(section) {
-		ly_write_section_identifier(out, section, i-1);
+		ly_write_section_identifier(out, section, i-1, ret->instrument[instrument].guitars); /* FIXME: We currently assume the tuning for all guitars to be the same as the first one... */
 		section = section->next;
 		i++;
 	}

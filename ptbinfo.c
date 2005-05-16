@@ -171,13 +171,14 @@ void write_dynamic(struct ptb_dynamic *dn)
 
 void write_guitar(struct ptb_guitar *gtr)
 {
+	const char *notenames[] = { "c", "cis", "d", "dis", "e", "f", "fis", "g", "gis", "a", "ais", "b" };
 	int i;
 	printf("\tNumber: %d\n", gtr->index);
 	printf("\tTitle: %s\n", gtr->title);
 	printf("\tType: %s\n", gtr->type);
 	printf("\tStrings(%d):\n", gtr->nr_strings);
 	for (i = 0; i < gtr->nr_strings; i++) 
-		printf("\t\t%d\n", gtr->strings[i]);
+		printf("\t\t%s at octave %d (%d)\n", notenames[gtr->strings[i]%12], gtr->strings[i]/12, gtr->strings[i]);
 
 	printf("\tReverb: %d\n", gtr->reverb);
 	printf("\tChorus: %d\n", gtr->chorus);

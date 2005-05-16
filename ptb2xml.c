@@ -289,11 +289,15 @@ xmlNodePtr xml_write_guitars(struct ptb_guitar *guitars, int instr)
 		snprintf(tmp, 100, "gtr-%d-%d", instr, gtr->index);
 		xmlSetProp(xgtr, "id", tmp);
 
-		strings = xmlNewNode(NULL, "strings");
+		strings = xmlNewNode(NULL, "tuning");
 		xmlAddChild(xgtr, strings);
 
 		for(i = 0; i < gtr->nr_strings; i++) {
-			SMART_ADD_CHILD_INT(strings, "string", gtr->strings[i]);
+			const char *notenames[] = { "c", "cis", "d", "dis", "e", "f", "fis", "g", "gis", "a", "ais", "b" };
+			xmlNodePtr string = xmlNewNode(NULL, "stringtuning");
+			SMART_ADD_PROP_INT(string, "octave", gtr->strings[i]/12);
+			xmlSetProp(string, "note", notenames[gtr->strings[i]%12]);
+			xmlAddChild(strings, string);
 		}
 
 		SMART_ADD_CHILD_STRING(xgtr, "title", gtr->title);

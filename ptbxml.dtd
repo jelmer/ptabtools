@@ -28,8 +28,13 @@
 
 <!-- Guitars -->
 <!ELEMENT guitars (guitar*)>
-<!ELEMENT guitar (strings,title,type,reverb,chorus,tremolo,pan,capo,initial_volume,midi_instrument,half_up,simulate)>
+<!ELEMENT guitar (tuning,title,type,reverb,chorus,tremolo,pan,capo,initial_volume,midi_instrument,half_up,simulate)>
 <!ATTLIST guitar id ID #REQUIRED>
+<!ELEMENT tuning (stringtuning*>)
+<!ELEMENT stringtuning EMPTY>
+<!ATTLIST stringtuning 
+	octave CDATA #REQUIRED 
+	note CDATA #REQUIRED>
 <!ELEMENT strings (string*)>
 <!ELEMENT string (#PCDATA)>
 <!ELEMENT type (#PCDATA)>
