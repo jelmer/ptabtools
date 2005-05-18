@@ -61,6 +61,7 @@ install: all
 	$(INSTALL) -m 644 ptabtools.pc $(DESTDIR)$(pkgconfigdir)
 	$(INSTALL) -d $(DESTDIR)$(datadir)
 	$(INSTALL) -m 644 ptbxml2musicxml.xsl $(DESTDIR)$(datadir)
+	$(INSTALL) -m 644 ptbxml.dtd $(DESTDIR)$(datadir)
 
 test: all ptb2ptb
 	$(MAKE) -C tests
