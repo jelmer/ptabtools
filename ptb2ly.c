@@ -63,7 +63,7 @@ const char *num_to_string(int num, char *data)
 const char *get_staff_name(int sec_num, int staff_num)
 {
 	static char name[30], num[2][30];
-	snprintf(name, sizeof(name), "staff%sx%s", num_to_string(sec_num, num[0]), num_to_string(staff_num, num[1]));
+	sprintf(name, "staff%sx%s", num_to_string(sec_num, num[0]), num_to_string(staff_num, num[1]));
 	return name;
 }
 

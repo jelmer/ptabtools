@@ -97,6 +97,10 @@ SOURCE=..\gp.h
 # End Source File
 # Begin Source File
 
+SOURCE="..\ptb-tuning.c"
+# End Source File
+# Begin Source File
+
 SOURCE=..\ptb.c
 # End Source File
 # Begin Source File
