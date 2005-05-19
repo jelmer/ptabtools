@@ -2,8 +2,8 @@ This is the roadmap for ptabtools, e.g. what I plan to implement for which
 version and estimated release dates. Please send comments/additions/requests
 to jelmer@vernstok.nl
 
-0.5 (Estimated release date somewhere at the end of January 2005):
- - Working ptb2ly (for pretty much all ptb files). Minor glitches allowed..
+0.5 (Estimated release date somewhere at the end of May 2005):
+ - Working ptb2ly (for pretty much all ptb files), including rewrite of ptb2ly output engine. Minor glitches allowed.. 
  - Very basic gp2ly
  - Working write support for ptb files
 
