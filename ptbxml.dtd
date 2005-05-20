@@ -136,8 +136,8 @@
 
 <!-- Floatingtexts -->
 <!ELEMENT floatingtexts (floatingtext*)>
-<!ELEMENT floatingtext (beginpos,alignment?,font)>
-<!ELEMENT beginpos (#PCDATA)>
+<!ELEMENT floatingtext (alignment?,font)>
+<!ATTLIST floatingtext offset CDATA #REQUIRED>
 <!ELEMENT alignment (#PCDATA)>
 
 <!-- Sectionsymbols -->

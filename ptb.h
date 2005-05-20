@@ -152,7 +152,7 @@ struct ptb_floatingtext {
 	struct ptb_floatingtext *prev, *next;
 
 	char *text;
-	uint8_t beginpos;
+	uint8_t offset;
 #define ALIGN_LEFT		1
 #define ALIGN_CENTER	2
 #define ALIGN_RIGHT		3
@@ -378,6 +378,7 @@ struct ptb_musicbar {
 	struct ptb_musicbar *prev, *next;
 
 	uint8_t offset;
+
 #define MUSICBAR_PROPERTY_SINGLE_BAR    0x01
 #define MUSICBAR_PROPERTY_DOUBLE_BAR    0x20
 #define MUSICBAR_PROPERTY_FREE_BAR      0x40

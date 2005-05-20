@@ -33,6 +33,98 @@
 
 #define COND_PRINTF(desc,field) if(field) printf("%s: %s\n", desc, field);
 
+#define PRINT_LIST(ls,t,fn) { t l = ls; while(l) { fn(l); l = l->next; } }
+
+void write_sectionsymbol(struct ptb_sectionsymbol *ssb)
+{
+	printf("\tRepeat Ending: %d\n", ssb->repeat_ending);
+	printf("\n");
+}
+
+void write_tempomarker(struct ptb_tempomarker *tm)
+{
+	printf("\tDescription: %s\n", tm->description);
+	printf("\tType: %d\n", tm->type);
+	printf("\tBPM: %d\n", tm->bpm);
+	printf("\tSection: %d\n", tm->section);
+	printf("\tOffset: %d\n", tm->offset);
+	printf("\n");
+}
+
+void write_dynamic(struct ptb_dynamic *dn)
+{
+	printf("\tOffset: %d\n", dn->offset);
+	printf("\tStaff: %d\n", dn->staff);
+	printf("\tVolume: %d\n", dn->volume);
+	printf("\n");
+}
+
+void write_guitar(struct ptb_guitar *gtr)
+{
+	int i;
+	printf("\tNumber: %d\n", gtr->index);
+	printf("\tTitle: %s\n", gtr->title);
+	printf("\tType: %s\n", gtr->type);
+	printf("\tStrings(%d):\n", gtr->nr_strings);
+	for (i = 0; i < gtr->nr_strings; i++) 
+		printf("\t\t%d\n", gtr->strings[i]);
+
+	printf("\tReverb: %d\n", gtr->reverb);
+	printf("\tChorus: %d\n", gtr->chorus);
+	printf("\tTremolo: %d\n", gtr->chorus);
+	printf("\tPan: %d\n", gtr->pan);
+	printf("\tCapo on fret: %d\n", gtr->capo);
+	printf("\tInitial volume: %d\n", gtr->initial_volume);
+	printf("\tMidi Instrument: %d\n", gtr->midi_instrument);
+	printf("\tHalf up(?): %d\n", gtr->half_up);
+	printf("\tSimulate (?): %d\n", gtr->simulate);
+	printf("\n");
+}
+
+void write_guitarin(struct ptb_guitarin *gtr)
+{
+	printf("\tOffset: %d\n", gtr->offset);
+	printf("\tSection: %d\n", gtr->section);
+	printf("\tStaff: %d\n", gtr->staff);
+	printf("\tRhythmslash: %d\n", gtr->rhythm_slash);
+	printf("\tStaff In(?): %d\n", gtr->staff_in);
+	printf("\n");
+}
+
+void write_chorddiagram(struct ptb_chorddiagram *chd)
+{
+	int i;
+	printf("\tName: %c%c\n", chd->name[0], chd->name[1]);
+	printf("\tFret Offset: %d\n", chd->frets);
+	printf("\tType: %d\n", chd->type);
+	printf("\tTones(%d): \n", chd->nr_strings);
+	for (i = 0; i < chd->nr_strings; i++) 
+		printf("\t\t%d\n", chd->tones[i]);
+	printf("\n");
+}
+
+void write_font(struct ptb_font *font)
+{
+	printf("%s, Size: %d, Thickness: %d, Underlined: %d, Italic: %d", font->family, font->size, font->thickness, font->underlined, font->italic);
+}
+
+void write_floatingtext(struct ptb_floatingtext *ft)
+{
+	printf("\tText: %s\n", ft->text);
+	printf("\tOffset: %d\n", ft->offset);
+	printf("\tAlignment: ");
+	switch (ft->alignment & (ALIGN_LEFT|ALIGN_CENTER|ALIGN_RIGHT)) {
+	case ALIGN_LEFT: printf("Left");break;
+	case ALIGN_CENTER: printf("Center"); break;
+	case ALIGN_RIGHT: printf("Right"); break;
+	}
+	if (ft->alignment & ALIGN_TIMESTAMP) printf(", Print Timestamp");
+	printf("\n");
+	printf("\tFont: "); write_font(&ft->font); printf("\n");
+	printf("\n");
+}
+
+
 void write_praudio_info(struct ptb_hdr *hdr)
 {
 	printf("Audio Type: ");
@@ -117,6 +209,7 @@ void write_lesson_info(struct ptb_hdr *hdr)
 int main(int argc, const char **argv) 
 {
 	struct ptbf *ret;
+	int tree = 0;
 	int debugging = 0;
 	int c, tmp1, tmp2;
 	int version = 0;
@@ -124,6 +217,7 @@ int main(int argc, const char **argv)
 	struct poptOption options[] = {
 		POPT_AUTOHELP
 		{"debug", 'd', POPT_ARG_NONE, &debugging, 0, "Turn on debugging output" },
+		{"tree", 't', POPT_ARG_NONE, &tree, 't', "Print tree of PowerTab file" },
 		{"version", 'v', POPT_ARG_NONE, &version, 'v', "Show version information" },
 		POPT_TABLEEND
 	};
@@ -177,6 +271,55 @@ int main(int argc, const char **argv)
 	DLIST_LEN(ret->instrument[1].guitars, tmp2, struct ptb_guitar *);
 
 	printf("Number of guitars: \tRegular: %d Bass: %d\n", tmp1, tmp2);
+
+	if (tree) 
+	{
+		int i;
+		printf("\n");
+		for (i = 0; i < 2; i++) {
+			printf("\n");
+			if (i == 0) printf("Guitar\n"); else printf("Bass\n");
+
+			if (ret->instrument[i].guitars) {
+				printf("    Guitars:\n");
+				PRINT_LIST(ret->instrument[i].guitars, struct ptb_guitar *, write_guitar);
+			}
+
+			if (ret->instrument[i].guitarins) {
+				printf("    GuitarIns:\n");
+				PRINT_LIST(ret->instrument[i].guitarins, struct ptb_guitarin *, write_guitarin);
+			}
+
+			if (ret->instrument[i].chorddiagrams) {
+				printf("    Chord Diagrams:\n");
+				PRINT_LIST(ret->instrument[i].chorddiagrams, struct ptb_chorddiagram *, write_chorddiagram);
+			}
+
+			if (ret->instrument[i].tempomarkers) {
+				printf("    Tempo Markers:\n");
+				PRINT_LIST(ret->instrument[i].tempomarkers, struct ptb_tempomarker *, write_tempomarker);
+			}
+
+			if (ret->instrument[i].dynamics) {
+				printf("    Dynamics:\n");
+				PRINT_LIST(ret->instrument[i].dynamics, struct ptb_dynamic *, write_dynamic);
+			}
+
+			if (ret->instrument[i].floatingtexts) {
+				printf("    Floating Texts:\n");
+				PRINT_LIST(ret->instrument[i].floatingtexts, struct ptb_floatingtext *, write_floatingtext);
+			}
+
+			if (ret->instrument[i].sectionsymbols) {
+				printf("    Section Symbols:\n");
+				PRINT_LIST(ret->instrument[i].sectionsymbols, struct ptb_sectionsymbol *, write_sectionsymbol);
+			}
+		}
+
+		printf("Default Font: "); write_font(&ret->default_font); printf("\n");
+		printf("Chord Name Font: "); write_font(&ret->chord_name_font); printf("\n");
+		printf("Tablature Font: "); write_font(&ret->tablature_font); printf("\n");
+	}
 
 	return (ret?0:1);
 }

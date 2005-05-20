@@ -423,7 +423,7 @@ xmlNodePtr xml_write_floatingtexts(struct ptb_floatingtext *floatingtexts)
 	while(floatingtext) {
 		xmlNodePtr xfloatingtext = SMART_ADD_CHILD_STRING(xfloatingtexts, "floatingtext", floatingtext->text);
 		
-		SMART_ADD_CHILD_INT(xfloatingtext, "beginpos", floatingtext->beginpos);
+		SMART_ADD_PROP_INT(xfloatingtext, "offset", floatingtext->offset);
 
 		switch(floatingtext->alignment) {
 		case ALIGN_LEFT:

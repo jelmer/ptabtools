@@ -633,7 +633,7 @@ static int handle_CFloatingText (struct ptbf *bf, const char *section, struct pt
 	struct ptb_floatingtext *text = GET_ITEM(bf, dest, struct ptb_floatingtext);
 
 	ptb_data_string(bf, &text->text);
-	ptb_data(bf, &text->beginpos, 1);
+	ptb_data(bf, &text->offset, 1);
 	ptb_data_unknown(bf, 15);
 	ptb_data(bf, &text->alignment, 1);
 	ptb_debug("Align: %x", text->alignment);

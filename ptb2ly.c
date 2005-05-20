@@ -16,6 +16,13 @@
 	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
+/* Logic:
+ * Write one section at a time:
+ *  - One identifier for chords
+ *  - One identifier per staff
+ * Will sort by offset when multiple things are involved
+ */
+
 #include <stdio.h>
 #include <errno.h>
 #include <popt.h>
@@ -274,17 +281,20 @@ void ly_write_position(FILE *out, struct ptb_position *pos)
 
 void ly_write_staff_identifier(FILE *out, struct ptb_staff *s, struct ptb_section *section, int section_num, int staff_num) 
 {
+	int o;
 	int i;
 
 	fprintf(out, "\n%% Notes for section %d, staff %d\n", section_num, staff_num);
 	fprintf(out, "%s = {\n", get_staff_name(section_num, staff_num));
 	fprintf(out, "\t");
 	previous = 0.0;
-	for(i = 0; i < 2; i++) {
-		struct ptb_position *p = s->positions[i];
-		while(p) {
-			ly_write_position(out, p);
-			p = p->next;
+	for(o = 0; o < 0x100; o++) {
+		for (i = 0; i < 2; i++) {
+			struct ptb_position *p = s->positions[i];
+			while(p) {
+				if (p->offset == o) ly_write_position(out, p);
+				p = p->next;
+			}
 		}
 	}
 	fprintf(out, "\n");
