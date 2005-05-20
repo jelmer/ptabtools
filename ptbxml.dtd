@@ -1,0 +1,149 @@
+<!ELEMENT powertab (header,instrument*,fonts)>
+<!ELEMENT header (song|lesson)>
+
+<!-- Header stuff -->
+<!ATTLIST header classification CDATA #REQUIRED>
+<!ELEMENT song (title?,artist?,words-by?,music-by?,arranged-by?,guitar-transcribed-by?,bass-transcribed-by?,lyrics?,copyright?)>
+
+<!ELEMENT lesson (title?,artist?,author?,copyright?)>
+<!ATTLIST lesson level CDATA #IMPLIED>
+
+<!ELEMENT title (#PCDATA)>
+<!ELEMENT artist (#PCDATA)>
+<!ELEMENT words-by (#PCDATA)>
+<!ELEMENT music-by (#PCDATA)>
+<!ELEMENT arranged-by (#PCDATA)>
+<!ELEMENT guitar-transcribed-by (#PCDATA)>
+<!ELEMENT bass-transcribed-by (#PCDATA)>
+<!ELEMENT lyrics (#PCDATA)>
+<!ELEMENT copyright (#PCDATA)>
+
+<!-- Instrument data -->
+<!ELEMENT instrument (guitars,sections,guitarins,chorddiagrams,tempomarkers,dynamics,floatingtexts,sectionsymbols)>
+<!ATTLIST instrument id ID #REQUIRED>
+
+<!-- Chorddiagrams -->
+<!ELEMENT chorddiagrams (chorddiagram*)>
+<!ELEMENT chorddiagram (strings,note1,note2,frets,type)>
+
+<!-- Guitars -->
+<!ELEMENT guitars (guitar*)>
+<!ELEMENT guitar (strings,title,type,reverb,chorus,tremolo,pan,capo,initial_volume,midi_instrument,half_up,simulate)>
+<!ATTLIST guitar id ID #REQUIRED>
+<!ELEMENT strings (string*)>
+<!ELEMENT string (#PCDATA)>
+<!ELEMENT type (#PCDATA)>
+<!ELEMENT reverb (#PCDATA)>
+<!ELEMENT chorus (#PCDATA)>
+<!ELEMENT tremolo (#PCDATA)>
+<!ELEMENT pan (#PCDATA)>
+<!ELEMENT capo (#PCDATA)>
+<!ELEMENT initial_volume (#PCDATA)>
+<!ELEMENT midi_instrument (#PCDATA)>
+<!ELEMENT half_up (#PCDATA)>
+<!ELEMENT simulate (#PCDATA)>
+
+<!-- Sections -->
+<!ELEMENT sections (section*)>
+<!ELEMENT section (end-mark,meter-type,beat,beat-value,metronome-pulses-per-measure,properties,key-extra,position-width,description,chordtexts,rhythmslashs,directions,staffs,musicbars)>
+<!ATTLIST section letter CDATA #IMPLIED>
+<!ELEMENT end-mark (#PCDATA)>
+<!ELEMENT meter-type (beam_2?,beam_3?,beam_4?,beam_5?,beam_6?,common?,cut?,show?)>
+<!ELEMENT beam_2 EMPTY>
+<!ELEMENT beam_3 EMPTY>
+<!ELEMENT beam_4 EMPTY>
+<!ELEMENT beam_5 EMPTY>
+<!ELEMENT beam_6 EMPTY>
+<!ELEMENT common EMPTY>
+<!ELEMENT cut EMPTY>
+<!ELEMENT show EMPTY>
+<!ELEMENT beat (#PCDATA)>
+<!ELEMENT beat-value (#PCDATA)>
+<!ELEMENT metronome-pulses-per-measure (#PCDATA)>
+<!ELEMENT properties (#PCDATA)>
+<!ELEMENT key-extra (#PCDATA)>
+<!ELEMENT position-width (#PCDATA)>
+<!ELEMENT description (#PCDATA)>
+
+<!-- Chordtexts -->
+<!ELEMENT chordtexts (chordtext*)>
+<!ELEMENT chordtext (note1,note2,offset,additions,alterations,properties,VII)>
+<!ELEMENT note1 (#PCDATA)>
+<!ELEMENT note2 (#PCDATA)>
+<!ELEMENT offset (#PCDATA)>
+<!ELEMENT additions (#PCDATA)>
+<!ELEMENT alterations (#PCDATA)>
+<!ELEMENT VII (#PCDATA)>
+
+<!-- Rhythmslashes -->
+<!ELEMENT rhythmslashs (rhythmslash*)>
+<!ELEMENT rhythmslash (properties,offset?,dotted?,length?)>
+<!ELEMENT dotted (#PCDATA)>
+<!ELEMENT length (#PCDATA)>
+
+<!-- Directions -->
+<!ELEMENT directions (direction*)>
+<!ELEMENT direction EMPTY>
+
+<!-- Staffs -->
+<!ELEMENT staffs (staff*)>
+<!ELEMENT staff (highest_note?,lowest_note?,properties?,positions*)>
+<!ELEMENT highest_note (#PCDATA)>
+<!ELEMENT lowest_note (#PCDATA)>
+
+<!-- Positions -->
+<!ELEMENT positions (position*)>
+<!ELEMENT position (offset?,dots?,length?,properties?,fermenta?,linedatas*)>
+<!ELEMENT dots (#PCDATA)>
+<!ELEMENT fermenta (#PCDATA)>
+
+<!-- Linedatas -->
+<!ELEMENT linedatas (linedata*)>
+<!ELEMENT linedata (string?,fret?,properties?,transcribe?,conn_to_next?)>
+<!ELEMENT fret (#PCDATA)>
+<!ELEMENT transcribe (#PCDATA)>
+<!ELEMENT conn_to_next (#PCDATA)>
+
+<!-- Musicbars -->
+<!ELEMENT musicbars (musicbar*)>
+<!ELEMENT musicbar EMPTY>
+<!ATTLIST musicbar letter CDATA #IMPLIED>
+
+<!-- Guitarins -->
+<!ELEMENT guitarins (guitarin*)>
+<!ELEMENT guitarin (offset,rhythm_slash,staff_in)>
+<!ELEMENT rhythm_slash (#PCDATA)>
+<!ELEMENT staff_in (#PCDATA)>
+<!ATTLIST guitarin 
+	section CDATA #REQUIRED
+	staff CDATA #REQUIRED>
+
+<!-- Tempomarkers -->
+<!ELEMENT tempomarkers (tempomarker*)>
+<!ELEMENT tempomarker (type,offset,bpm)>
+<!ELEMENT bpm (#PCDATA)>
+
+<!-- Dynamics -->
+<!ELEMENT dynamics (dynamic*)>
+<!ELEMENT dynamic (offset)>
+
+<!-- Floatingtexts -->
+<!ELEMENT floatingtexts (floatingtext*)>
+<!ELEMENT floatingtext (beginpos,alignment?,font)>
+<!ELEMENT beginpos (#PCDATA)>
+<!ELEMENT alignment (#PCDATA)>
+
+<!-- Sectionsymbols -->
+<!ELEMENT sectionsymbols (sectionsymbol*)>
+<!ELEMENT sectionsymbol (repeat-ending)>
+<!ELEMENT repeat-ending (#PCDATA)>
+
+<!-- Fonts -->
+<!ELEMENT fonts (font*)>
+<!ELEMENT font EMPTY>
+<!ATTLIST font function CDATA #REQUIRED
+               family CDATA #REQUIRED
+			   size CDATA #REQUIRED
+			   thickness CDATA #REQUIRED
+			   underlined CDATA #REQUIRED
+			   italic CDATA #REQUIRED>
