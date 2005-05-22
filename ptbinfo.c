@@ -35,6 +35,97 @@
 
 #define PRINT_LIST(ls,t,fn) { t l = ls; while(l) { fn(l); l = l->next; } }
 
+void write_musicbar(struct ptb_musicbar *mb)
+{
+	printf("\t\tOffset: %d\n", mb->offset);
+	printf("\t\tProperties: %d\n", mb->properties);
+	printf("\t\tDescription(%c): %s\n", mb->letter, mb->description);
+	printf("\n");
+}
+
+void write_linedata(struct ptb_linedata *ld)
+{
+	printf("\t\t\t\tProperties: %d\n", ld->properties);
+	printf("\n");
+}
+
+void write_position(struct ptb_position *pos)
+{
+	printf("\t\t\tOffset: %d\n", pos->offset);
+	printf("\t\t\tLength: %d\n", pos->length);
+	printf("\t\t\t    Attached data:\n");
+	PRINT_LIST(pos->linedatas, struct ptb_linedata *, write_linedata);
+	printf("\n");
+}
+
+void write_staff(struct ptb_staff *staff)
+{
+	printf("\t\tLowest Note: %d, Highest Note: %d\n", staff->lowest_note, staff->highest_note);
+	printf("\t\tProperties: %d\n", staff->properties);
+
+	printf("\t\t    Positions:\n");
+	PRINT_LIST(staff->positions[0], struct ptb_position *, write_position);
+	PRINT_LIST(staff->positions[0], struct ptb_position *, write_position);
+	printf("\n");
+}
+
+void write_chordtext(struct ptb_chordtext *ct)
+{
+	printf("\t\tName: %c%d\n", ct->name[0], ct->name[1]);
+	printf("\t\tOffset: %d\n", ct->offset);
+	printf("\n");
+}
+
+void write_rhythmslash(struct ptb_rhythmslash *sl)
+{
+	printf("\t\tOffset: %d\n", sl->offset);
+	printf("\t\tLength: %d\n", sl->length);
+	printf("\n");
+}
+
+void write_direction(struct ptb_direction *dr)
+{
+	printf("\n");
+}
+
+void write_section(struct ptb_section *section)
+{
+	printf("\tSection(%c): %s\n", section->letter, section->description);
+	printf("\tEnd-Mark: %d\n", section->end_mark);
+	printf("\tMeter Type: %d\n", section->meter_type);
+	printf("\tMetronome Pulses Per Measure: %d\n", section->metronome_pulses_per_measure);
+	printf("\tProperties: %d\n", section->properties);
+	printf("\tKey Extra: %d\n", section->key_extra);
+	printf("\tPosition Width: %d\n", section->position_width);
+
+	if (section->staffs) {
+		printf("\t    Staffs:\n");
+		PRINT_LIST(section->staffs, struct ptb_staff *, write_staff);
+	}
+
+	if (section->chordtexts) {
+		printf("\t    Chordtexts:\n");
+		PRINT_LIST(section->chordtexts, struct ptb_chordtext *, write_chordtext);
+	}
+
+	if (section->rhythmslashes) {
+		printf("\t    Rhythmslashes:\n");
+		PRINT_LIST(section->rhythmslashes, struct ptb_rhythmslash *, write_rhythmslash);
+	}
+
+	if (section->directions) {
+		printf("\t    Directions:\n");
+		PRINT_LIST(section->directions, struct ptb_direction *, write_direction);
+	}
+	
+	if (section->musicbars) {
+		printf("\t    Music Bars:\n");
+		PRINT_LIST(section->musicbars, struct ptb_musicbar *, write_musicbar);
+	}
+
+	printf("\n");
+}
+
 void write_sectionsymbol(struct ptb_sectionsymbol *ssb)
 {
 	printf("\tRepeat Ending: %d\n", ssb->repeat_ending);
@@ -313,6 +404,11 @@ int main(int argc, const char **argv)
 			if (ret->instrument[i].sectionsymbols) {
 				printf("    Section Symbols:\n");
 				PRINT_LIST(ret->instrument[i].sectionsymbols, struct ptb_sectionsymbol *, write_sectionsymbol);
+			}
+
+			if (ret->instrument[i].sections) {
+				printf("    Sections:\n");
+				PRINT_LIST(ret->instrument[i].sections, struct ptb_section *, write_section);
 			}
 		}
 
