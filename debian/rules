@@ -12,9 +12,7 @@ build: configure
 
 configure:
 	$(checkdir)
-	aclocal
-	autoconf
-	autoheader
+	./autogen.sh
 	rm -rf autom4te.cache
 
 clean:

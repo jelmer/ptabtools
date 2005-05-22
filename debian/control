@@ -2,7 +2,7 @@ Source: ptabtools
 Section: sound
 Priority: optional
 Maintainer: Jelmer Vernooij <jelmer@samba.org>
-Standards-Version: 3.5.8
+Standards-Version: 3.6.1.0
 Build-Depends: debmake, libxml2-dev, libxslt1-dev, libpopt-dev
 
 Package: libptb0
@@ -10,19 +10,22 @@ Architecture: any
 Depends: ${shlibs:Depends}
 Description: PowerTab and GuitarPro file parsing library
  A PowerTab and GuitarPro file parsing library.
+ .
+ This package contains the shared library.
 
 Package: libptb-dev
-Architecture: all
-Depends: libptb0=${Source-Version}
+Architecture: any
+Depends: libptb0 (= ${Source-Version}), libc6-dev, pkg-config (>= 0.14.0)
 Description: Development files for libptb0
  Header files for the PowerTab and GuitarPro parser library.
+ .
+ This package contains the files necessary for compiling 
+ files that use the ptb library.
 
 Package: ptabtools
 Architecture: any
 Depends: ${shlibs:Depends}
-Description: Tools for parsing PowerTab files
+Description: Tools for parsing PowerTab and GuitarPro files
  This package contains a utilities for using PowerTab and GuitarPro files
  on Linux. It includes utilities for converting PowerTab files to 
- to GNU LilyPond files, plain ASCII files and MusicXML files. 
- It also contains a library that can be used by other programs 
- for reading PowerTab and GuitarPro files.
+ to GNU LilyPond files, plain ASCII files and MusicXML files.

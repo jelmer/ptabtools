@@ -1,0 +1,3 @@
+usr/include/*.h
+usr/lib/libptb.a
+usr/lib/pkgconfig/ptabtools.pc
