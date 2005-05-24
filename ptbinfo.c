@@ -39,13 +39,32 @@ void write_musicbar(struct ptb_musicbar *mb)
 {
 	printf("\t\tOffset: %d\n", mb->offset);
 	printf("\t\tProperties: %d\n", mb->properties);
-	printf("\t\tDescription(%c): %s\n", mb->letter, mb->description);
+	printf("\t\tLetter: %c\n", mb->letter);
+	if (mb->description) printf("\t\tDescription: %s\n", mb->description);
 	printf("\n");
 }
 
 void write_linedata(struct ptb_linedata *ld)
 {
-	printf("\t\t\t\tProperties: %d\n", ld->properties);
+	printf("\t\t\t\tFret: %d, String: %d\n", ld->detailed.fret, ld->detailed.string);
+	if (ld->properties & LINEDATA_PROPERTY_TIE) printf("\t\t\t\tTie\n");
+	if (ld->properties & LINEDATA_PROPERTY_MUTED) printf("\t\t\t\tMuted\n");
+	if (ld->properties & LINEDATA_PROPERTY_CONTINUES) printf("\t\t\t\tContinues\n");
+	if (ld->properties & LINEDATA_PROPERTY_HAMMERON_FROM) printf("\t\t\t\tStart of hammer-on\n");
+	if (ld->properties & LINEDATA_PROPERTY_PULLOFF_FROM) printf("\t\t\t\tStart of pull-off\n");
+	if (ld->properties & LINEDATA_PROPERTY_DEST_NOWHERE) printf("\t\t\t\tDest-nowhere(?)\n");
+	if (ld->properties & LINEDATA_PROPERTY_NATURAL_HARMONIC) printf("\t\t\t\tNatural Harmonic\n");
+	if (ld->properties & LINEDATA_PROPERTY_GHOST_NOTE) printf("\t\t\t\tGhost Note\n");
+
+	if (ld->transcribe) {
+		printf("\t\t\t\tTranscribed: ");
+		if (ld->transcribe & LINEDATA_TRANSCRIBE_8VA) printf("8va ");
+		if (ld->transcribe & LINEDATA_TRANSCRIBE_15MA) printf("15ma ");
+		if (ld->transcribe & LINEDATA_TRANSCRIBE_8VB) printf("8vb ");
+		if (ld->transcribe & LINEDATA_TRANSCRIBE_15MB) printf("15mb ");
+		printf("\n");
+	}
+
 	printf("\n");
 }
 
