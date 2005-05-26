@@ -441,7 +441,7 @@ static void gp_read_beat(struct gpf *gpf, struct gp_beat *beat)
 			}
 
 			if (n->effect.properties1 & GP_NOTE_EFFECT1_BEND) {
-				int k;
+				unsigned int k;
 				gp_read_unknown(gpf, 5);
 				gp_read_uint32(gpf, &n->effect.bend.num_points);
 				n->effect.bend.points = malloc_p(struct gp_note_effect_bend_point, n->effect.bend.num_points);
