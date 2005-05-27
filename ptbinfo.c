@@ -35,6 +35,9 @@
 
 #define PRINT_LIST(ls,t,fn) { t l = ls; while(l) { fn(l); l = l->next; } }
 
+
+static const char *notenames[] = { "c", "cis", "d", "dis", "e", "f", "fis", "g", "gis", "a", "ais", "b" };
+
 void write_musicbar(struct ptb_musicbar *mb)
 {
 	printf("\t\tOffset: %d\n", mb->offset);
@@ -90,7 +93,8 @@ void write_staff(struct ptb_staff *staff)
 
 void write_chordtext(struct ptb_chordtext *ct)
 {
-	printf("\t\tName: %c%d\n", ct->name[0], ct->name[1]);
+	printf("\t\tName: %d(%s)/%d(%s)\n", ct->name[1], notenames[ct->name[1]-16],
+		   ct->name[0], notenames[ct->name[0]-16]);
 	printf("\t\tOffset: %d\n", ct->offset);
 	printf("\n");
 }
@@ -171,7 +175,6 @@ void write_dynamic(struct ptb_dynamic *dn)
 
 void write_guitar(struct ptb_guitar *gtr)
 {
-	const char *notenames[] = { "c", "cis", "d", "dis", "e", "f", "fis", "g", "gis", "a", "ais", "b" };
 	int i;
 	printf("\tNumber: %d\n", gtr->index);
 	printf("\tTitle: %s\n", gtr->title);
