@@ -93,16 +93,35 @@
 		</xsl:element>
 	</xsl:template>
 
-	<xsl:template match="song/title"><!--FIXME-->
-	</xsl:template>
-	<xsl:template match="song/artist"><!--FIXME-->
-	</xsl:template>
-
 	<xsl:template match="sections"><xsl:apply-templates/></xsl:template>
 
 	<xsl:template match="section">
 		<xsl:element name="measure">
 			<xsl:attribute name="number"><xsl:text>1</xsl:text></xsl:attribute>
+			<xsl:element name="attributes">
+			
+				<xsl:element name="time">
+					<xsl:element name="beats"><xsl:value-of select="beat"/></xsl:element>
+					<xsl:element name="beat-type"><xsl:value-of select="beat-type"/></xsl:element>
+				</xsl:element>
+			</xsl:element>
+			<xsl:apply-templates select="staffs"/>
+		</xsl:element>
+	</xsl:template>
+
+	<xsl:template match="linedata">
+		<xsl:element name="pitch">
+			<!--FIXME-->
+		</xsl:element>
+	</xsl:template>
+
+	<xsl:template match="position">
+		<xsl:apply-templates select="linedatas/linedata"/>
+		<xsl:if test="dots = 1">
+			<xsl:element name="dot"/>
+		</xsl:if>
+		<xsl:element name="duration">
+			<xsl:value-of select="length"/>
 		</xsl:element>
 	</xsl:template>
 

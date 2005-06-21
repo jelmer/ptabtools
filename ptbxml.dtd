@@ -30,7 +30,7 @@
 <!ELEMENT guitars (guitar*)>
 <!ELEMENT guitar (tuning,title,type,reverb,chorus,tremolo,pan,capo,initial_volume,midi_instrument,half_up,simulate)>
 <!ATTLIST guitar id ID #REQUIRED>
-<!ELEMENT tuning (stringtuning*>)
+<!ELEMENT tuning (stringtuning*)>
 <!ELEMENT stringtuning EMPTY>
 <!ATTLIST stringtuning 
 	octave CDATA #REQUIRED 
