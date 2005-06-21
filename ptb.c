@@ -782,7 +782,7 @@ static int handle_CGuitarIn (struct ptbf *bf, const char *section, struct ptb_li
 	struct ptb_guitarin *guitarin = GET_ITEM(bf, dest, struct ptb_guitarin);
 
 	ptb_data(bf, &guitarin->section, 1);
-	ptb_data_constant(bf, 0x0); /* FIXME */
+	ptb_data_constant(bf, 0x0); 
 	ptb_data(bf, &guitarin->staff, 1);
 	ptb_data(bf, &guitarin->offset, 1);
 	ptb_data(bf, &guitarin->rhythm_slash, 1);
@@ -1092,6 +1092,7 @@ static void ptb_free_font(struct ptb_font *f)
 
 static void ptb_free_position(struct ptb_position *pos)
 {
+	free(pos->additional);
 	FREE_LIST(pos->linedatas, free(tmp->bends), struct ptb_linedata *);
 }
 

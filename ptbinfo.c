@@ -440,5 +440,7 @@ int main(int argc, const char **argv)
 		printf("Tablature Font: "); write_font(&ret->tablature_font); printf("\n");
 	}
 
+	ptb_free(ret);
+
 	return (ret?0:1);
 }
