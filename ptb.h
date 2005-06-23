@@ -450,7 +450,8 @@ extern void ptb_free(struct ptbf *);
 extern void ptb_set_debug(int level);
 extern void ptb_set_asserts_fatal(int yes);
 
-extern const char *ptb_get_note(struct ptb_guitar *guitar, ptb_note);
+extern uint8_t ptb_get_octave(struct ptb_guitar *guitar, uint8_t string, uint8_t fret);
+extern uint8_t ptb_get_step(struct ptb_guitar *guitar, uint8_t string, uint8_t fret);
 extern const char *ptb_get_tone(ptb_tone);
 extern const char *ptb_get_tone_full(ptb_tone);
 

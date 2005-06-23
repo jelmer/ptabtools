@@ -50,6 +50,29 @@ void abc_write_header(FILE *out, struct ptbf *ret)
 	fprintf(out, "\n");
 }
 
+void abc_write_position(FILE *out, struct ptb_position *ps)
+{
+/* FIXME */
+}
+
+void abc_write_staff(FILE *out, struct ptb_staff *staff)
+{
+	struct ptb_position *ps;
+	
+	for (ps = staff->positions[0]; ps; ps = ps->next) {
+		abc_write_position(out, ps);
+	}
+}
+
+void abc_write_section(FILE *out, struct ptb_section *sec)
+{
+	struct ptb_staff *st;
+	
+	for (st = sec->staffs; st; st = st->next) {
+		abc_write_staff(out, st);
+	}
+}
+
 void abc_write_chordtext(FILE *out, struct ptb_chordtext *name) {
 	fprintf(out, "\"");
 
@@ -166,7 +189,7 @@ int main(int argc, const char **argv)
 
 	section = ret->instrument[instrument].sections;
 	while(section) {
-		/*abc_write_section(out, section);*/
+		abc_write_section(out, section);
 		fprintf(out, "\n\n");
 		section = section->next;
 	}

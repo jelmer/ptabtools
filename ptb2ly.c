@@ -233,10 +233,10 @@ void ly_write_position(FILE *out, struct ptb_guitar *gtr, struct ptb_position *p
 #define DEFAULT_OCTAVE 4
 		
 		note = gtr->strings[d->detailed.string] + d->detailed.fret;
-		
-		fprintf(out, "%s", note_names[note%12]);
 
-		octave = note / 12;
+		octave = ptb_get_octave(gtr, d->detailed.string, d->detailed.fret);
+		
+		fprintf(out, "%s", note_names[ptb_get_step(gtr, d->detailed.string, d->detailed.fret)]);
 
 		for(i = octave; i < DEFAULT_OCTAVE; i++) fprintf(out, ",");
 		for(i = DEFAULT_OCTAVE; i < octave; i++) fprintf(out, "'");

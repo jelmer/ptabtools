@@ -1158,3 +1158,17 @@ void ptb_free(struct ptbf *bf)
 	
 	free(bf);
 }
+
+uint8_t ptb_get_octave(struct ptb_guitar *gtr, uint8_t string, uint8_t fret)
+{
+	int note = gtr->strings[string] + fret;
+
+	return note / 12;
+}
+
+uint8_t ptb_get_step(struct ptb_guitar *gtr, uint8_t string, uint8_t fret)
+{
+	int note = gtr->strings[string] + fret;
+
+	return note % 12;
+}
