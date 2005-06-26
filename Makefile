@@ -49,11 +49,11 @@ ptbdict$(EXEEXT): ptbdict.o ptb.o ptb-tuning.o
 	
 install: all
 	$(INSTALL) -d $(DESTDIR)$(bindir)
-	test -z $(TARGET_BINS) || $(INSTALL) $(TARGET_BINS) $(DESTDIR)$(bindir)
+	test -z "$(TARGET_BINS)" || $(INSTALL) $(TARGET_BINS) $(DESTDIR)$(bindir)
 	$(INSTALL) -d $(DESTDIR)$(mandir)/man1
 	$(INSTALL) -m 644 $(PROGS_MANPAGES) $(DESTDIR)$(mandir)/man1
 	$(INSTALL) -d $(DESTDIR)$(libdir)
-	test -z $(TARGET_LIBS) || $(INSTALL) -m 644 $(TARGET_LIBS) $(DESTDIR)$(libdir)
+	test -z "$(TARGET_LIBS)" || $(INSTALL) -m 644 $(TARGET_LIBS) $(DESTDIR)$(libdir)
 	$(INSTALL) -d $(DESTDIR)$(includedir)
 	$(INSTALL) -m 644 ptb.h $(DESTDIR)$(includedir)
 	$(INSTALL) -m 644 gp.h $(DESTDIR)$(includedir)
