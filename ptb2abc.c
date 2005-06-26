@@ -86,6 +86,8 @@ void abc_write_staff(FILE *out, struct ptb_guitar *gtr, struct ptb_staff *staff)
 	for (ps = staff->positions[0]; ps; ps = ps->next) {
 		abc_write_position(out, gtr, ps);
 	}
+
+	fprintf(out, "\n");
 }
 
 void abc_write_section(FILE *out, struct ptb_guitar *gtr, struct ptb_section *sec)
