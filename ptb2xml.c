@@ -537,13 +537,13 @@ int main(int argc, const char **argv)
 	char *output = NULL;
 	poptContext pc;
 	int quiet = 0;
-	int format_output = 0;
+	int format_output = 1;
 	struct poptOption options[] = {
 		POPT_AUTOHELP
 		{"debug", 'd', POPT_ARG_NONE, &debugging, 0, "Turn on debugging output" },
 		{"outputfile", 'o', POPT_ARG_STRING, &output, 0, "Write to specified file", "FILE" },
 		{"musicxml", 'm', POPT_ARG_NONE, &musicxml, 'm', "Output MusicXML" },
-		{"format", 'f', POPT_ARG_NONE, &format_output, 1, "Format output" },
+		{"no-format", 'f', POPT_ARG_NONE, &format_output, 0, "Don't format output" },
 		{"quiet", 'q', POPT_ARG_NONE, &quiet, 1, "Be quiet (no output to stderr)" },
 		{"version", 'v', POPT_ARG_NONE, &version, 'v', "Show version information" },
 		POPT_TABLEEND
