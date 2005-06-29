@@ -20,6 +20,7 @@
 #include <errno.h>
 #include <popt.h>
 #include <string.h>
+#include <ctype.h>
 
 #ifdef HAVE_CONFIG_H
 #  include "config.h"
@@ -50,26 +51,49 @@ void abc_write_header(FILE *out, struct ptbf *ret)
 	fprintf(out, "\n");
 }
 
-void abc_write_position(FILE *out, struct ptb_position *ps)
+static char *note_names[] = { "c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b" };
+
+void abc_write_linedata(FILE *out, struct ptb_guitar *gtr, struct ptb_linedata *ld)
 {
-/* FIXME */
+	uint8_t octave = ptb_get_octave(gtr, ld->detailed.string, ld->detailed.fret);
+	uint8_t step = ptb_get_step(gtr, ld->detailed.string, ld->detailed.fret);
+	int i;
+	char n[3];
+
+	strcpy(n, note_names[step]);
+
+	if (octave < 4) n[0] = toupper(n[0]);
+
+	fprintf(out, "%s", n);
+
+	for (i = octave; i < 4; i++) fprintf(out, ",");
+	for (i = 5; i < octave; i++) fprintf(out, "'");
 }
 
-void abc_write_staff(FILE *out, struct ptb_staff *staff)
+void abc_write_position(FILE *out, struct ptb_guitar *gtr, struct ptb_position *ps)
+{
+	struct ptb_linedata *ld;
+
+	for (ld = ps->linedatas; ld; ld = ld->next) {
+		abc_write_linedata(out, gtr, ld);
+	}
+}
+
+void abc_write_staff(FILE *out, struct ptb_guitar *gtr, struct ptb_staff *staff)
 {
 	struct ptb_position *ps;
 	
 	for (ps = staff->positions[0]; ps; ps = ps->next) {
-		abc_write_position(out, ps);
+		abc_write_position(out, gtr, ps);
 	}
 }
 
-void abc_write_section(FILE *out, struct ptb_section *sec)
+void abc_write_section(FILE *out, struct ptb_guitar *gtr, struct ptb_section *sec)
 {
 	struct ptb_staff *st;
 	
 	for (st = sec->staffs; st; st = st->next) {
-		abc_write_staff(out, st);
+		abc_write_staff(out, gtr, st);
 	}
 }
 
@@ -189,7 +213,7 @@ int main(int argc, const char **argv)
 
 	section = ret->instrument[instrument].sections;
 	while(section) {
-		abc_write_section(out, section);
+		abc_write_section(out, ret->instrument[instrument].guitars, section);
 		fprintf(out, "\n\n");
 		section = section->next;
 	}
