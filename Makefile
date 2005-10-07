@@ -18,7 +18,7 @@ ptb.dll: $(PTBLIB_OBJS)
 	$(CC) $(SHFLAGS) $(CFLAGS) -Wl,--out-implib=ptb.dll.a -o $@ $^
 
 libptb.so.$(VERSION): $(PTBLIB_OBJS:.o=.po)
-	$(CC) -Wl,-soname,libptb.so.0 $(SHFLAGS) $(CFLAGS) -o $@ $^
+	$(CC) $(SHFLAGS) $(CFLAGS) -o $@ $^
 
 libptb.a: $(PTBLIB_OBJS)
 	$(AR) rs $@ $^
