@@ -15,10 +15,10 @@ ptb2xml.o: ptb2xml.c
 	$(CC) $(CFLAGS) -fPIC -c $< -o $@
 
 ptb.dll: $(PTBLIB_OBJS)
-	$(CC) -shared $(CFLAGS) -Wl,--out-implib=ptb.dll.a -o $@ $^
+	$(CC) $(SHFLAGS) $(CFLAGS) -Wl,--out-implib=ptb.dll.a -o $@ $^
 
 libptb.so.$(VERSION): $(PTBLIB_OBJS:.o=.po)
-	$(CC) -Wl,-soname,libptb.so.0 -shared $(CFLAGS) -o $@ $^
+	$(CC) -Wl,-soname,libptb.so.0 $(SHFLAGS) $(CFLAGS) -o $@ $^
 
 libptb.a: $(PTBLIB_OBJS)
 	$(AR) rs $@ $^

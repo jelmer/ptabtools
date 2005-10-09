@@ -49,5 +49,11 @@ AC_CHECK_HEADERS([stdlib.h string.h unistd.h popt.h sys/time.h ctype.h])
 AC_C_CONST
 AC_TYPE_SIZE_T
 
+AC_SUBST(SHFLAGS)
+case $host in 
+	*darwin*) SHFLAGS="-dynamiclib" ;;
+	*) SHFLAGS="-shared" ;;
+esac
+
 AC_CONFIG_FILES([Makefile.settings ptabtools.spec ptabtools.pc])
 AC_OUTPUT
