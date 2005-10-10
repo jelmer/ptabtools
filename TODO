@@ -1,5 +1,3 @@
-use -dynamiclib rather then -shared on MacOS X
-
 ptb2xml:
  - convert to UTF-8 before calling libxml
 
