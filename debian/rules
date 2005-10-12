@@ -34,7 +34,7 @@ binary-arch: build install
 	dh_installchangelogs -a ChangeLog
 	dh_installdocs -a
 	dh_installman -a
-	dh_link -p libptb0 usr/lib/libptb.so.* usr/lib/libptb.so.0
+	dh_link -p libptb0 usr/lib/libptb.so.0.4.3 usr/lib/libptb.so.0
 	dh_strip -a
 	dh_compress -a
 	dh_fixperms -a
