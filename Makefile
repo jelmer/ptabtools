@@ -71,7 +71,13 @@ tags: $(wildcard *.c) $(wildcard *.h)
 	ctags *.c *.h
 
 clean: 
-	rm -f *.o core $(TARGETS)
+	rm -f *.o core $(TARGETS) *.po
 
-realclean: clean
-	rm -f Makefile.settings configure
+distclean: clean
+	rm -f Makefile.settings config.h config.log
+	rm -f *~ ptabtools.spec ptabtools.pc
+	rm -f tags config.status aclocal.m4
+	rm -rf autom4te.cache/ 
+
+realclean: distclean
+	rm -f configure
