@@ -2,7 +2,7 @@ Source: ptabtools
 Section: sound
 Priority: optional
 Maintainer: Jelmer Vernooij <jelmer@samba.org>
-Standards-Version: 3.6.1.0
+Standards-Version: 3.6.2.1
 Build-Depends: build-essential, libxml2-dev, libxslt1-dev, libpopt-dev, debhelper (>> 4.0.0)
 
 Package: libptb0
