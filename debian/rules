@@ -7,7 +7,6 @@ package=ptabtools
 build: build-stamp
 build-stamp:
 	dh_testdir
-	./autogen.sh
 	./configure --prefix=/usr
 	$(MAKE)
 	touch $@
