@@ -233,6 +233,14 @@ static ssize_t ptb_data_string(struct ptbf *bf, char **dest) {
 	return 0;
 }
 
+
+static ssize_t ptb_data_rect(struct ptbf *f, struct ptb_rect *dest)
+{
+	int ret = 0;
+	ret+=ptb_data_unknown(f, 16, "RECTANGLE");
+	return ret;
+}
+
 static ssize_t ptb_data_color(struct ptbf *f, struct ptb_color *dest)
 {
 	int ret = 0;
@@ -649,8 +657,7 @@ static int handle_CFloatingText (struct ptbf *bf, const char *section, struct pt
 	struct ptb_floatingtext *text = GET_ITEM(bf, dest, struct ptb_floatingtext);
 
 	ptb_data_string(bf, &text->text);
-	ptb_data_uint8(bf, &text->offset);
-	ptb_data_unknown(bf, 15, "bounding rectangle for text");
+	ptb_data_rect(bf, &text->rect);
 	ptb_data_uint8(bf, &text->alignment);
 	ptb_debug("Align: %x", text->alignment);
 	ptb_assert(bf, (text->alignment &~ ALIGN_BORDER &~ ALIGN_CENTER 

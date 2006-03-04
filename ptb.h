@@ -163,6 +163,8 @@ struct ptb_guitarin {
 	uint8_t staff_in;
 };
 
+struct ptb_rect { /* FIXME */ };
+
 struct ptb_color { uint8_t r,g,b; };
 
 struct ptb_font {
@@ -194,7 +196,7 @@ struct ptb_floatingtext {
 	struct ptb_floatingtext *prev, *next;
 
 	char *text;
-	uint8_t offset;
+	struct ptb_rect rect;
 #define ALIGN_LEFT		0x01
 #define ALIGN_CENTER	0x02
 #define ALIGN_RIGHT		0x04
