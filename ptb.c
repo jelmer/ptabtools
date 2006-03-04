@@ -565,7 +565,9 @@ static ssize_t ptb_data_file(struct ptbf *bf)
 	ptb_data_font(bf, &bf->chord_name_font);
 	ptb_data_font(bf, &bf->default_font);
 
-	ptb_data_unknown(bf, 12, "FIXME");
+	ptb_data_uint32(bf, &bf->staff_line_space);
+	ptb_data_uint32(bf, &bf->fade_in);
+	ptb_data_uint32(bf, &bf->fade_out);
 	return 0;
 }
 

@@ -226,7 +226,6 @@ void write_font(struct ptb_font *font)
 void write_floatingtext(struct ptb_floatingtext *ft)
 {
 	printf("\tText: %s\n", ft->text);
-	printf("\tOffset: %d\n", ft->offset);
 	printf("\tAlignment: ");
 	switch (ft->alignment & (ALIGN_LEFT|ALIGN_CENTER|ALIGN_RIGHT)) {
 	case ALIGN_LEFT: printf("Left");break;

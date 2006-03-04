@@ -494,6 +494,9 @@ struct ptbf {
 	struct ptb_font default_font;
 	struct ptb_font chord_name_font;
 	struct ptb_font tablature_font;
+	uint32_t staff_line_space; /* amount of space between lines on tab staff */
+	uint32_t fade_in; /* amount of fade-in at start of song */
+	uint32_t fade_out; /* amount of fade-out at end of song */
 };
 
 extern struct ptbf *ptb_read_file(const char *ptb);
