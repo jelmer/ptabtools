@@ -369,7 +369,7 @@ xmlNodePtr xml_write_dynamics(struct ptb_dynamic *dynamics)
 		xmlNodePtr xdynamic = xmlNewNode(NULL, "dynamic");
 		xmlAddChild(xdynamics, xdynamic);
 		
-		SMART_ADD_PROP_INT(xdynamic, "offset", dynamic->offset);
+		SMART_ADD_PROP_INT(xdynamic, "position", dynamic->position);
 
 		dynamic = dynamic->next;
 	}
@@ -413,7 +413,7 @@ xmlNodePtr xml_write_sectionsymbols(struct ptb_sectionsymbol *sectionsymbols)
 		xmlNodePtr xsectionsymbol = xmlNewNode(NULL, "sectionsymbol");
 		xmlAddChild(xsectionsymbols, xsectionsymbol);
 		
-		SMART_ADD_CHILD_INT(xsectionsymbol, "repeat-ending", sectionsymbol->repeat_ending);
+		SMART_ADD_CHILD_INT(xsectionsymbol, "data", sectionsymbol->data);
 
 		sectionsymbol = sectionsymbol->next;
 	}

@@ -934,7 +934,7 @@ static int handle_CDynamic (struct ptbf *bf, const char *section, struct ptb_lis
 
 	ptb_data_uint16(bf, &dynamic->section);
 	ptb_data_uint8(bf, &dynamic->staff);
-	ptb_data_uint8(bf, &dynamic->offset);
+	ptb_data_uint8(bf, &dynamic->position);
 	ptb_data_uint16(bf, &dynamic->volume);
 
 	*dest = (struct ptb_list *)dynamic;
@@ -944,8 +944,9 @@ static int handle_CDynamic (struct ptbf *bf, const char *section, struct ptb_lis
 static int handle_CSectionSymbol (struct ptbf *bf, const char *section, struct ptb_list **dest) {
 	struct ptb_sectionsymbol *sectionsymbol = GET_ITEM(bf, dest, struct ptb_sectionsymbol);
 
-	ptb_data_unknown(bf, 5, "FIXME"); /* FIXME */
-	ptb_data_uint16(bf, &sectionsymbol->repeat_ending);
+	ptb_data_uint16(bf, &sectionsymbol->section);
+	ptb_data_uint8(bf, &sectionsymbol->position);
+	ptb_data_uint32(bf, &sectionsymbol->data);
 
 	*dest = (struct ptb_list *)sectionsymbol;
 	return 1;

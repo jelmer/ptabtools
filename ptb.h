@@ -147,7 +147,7 @@ struct ptb_dynamic {
 
 	uint16_t section;
 	uint8_t staff;
-	uint8_t offset;
+	uint8_t position;
 	uint16_t volume;
 };
 
@@ -432,7 +432,9 @@ struct ptb_section {
 struct ptb_sectionsymbol {
 	struct ptb_sectionsymbol *prev, *next;
 
-	uint16_t repeat_ending;
+	uint16_t section;
+	uint8_t position;
+	uint32_t data;
 };
 
 struct ptb_musicbar {

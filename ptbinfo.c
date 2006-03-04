@@ -152,7 +152,7 @@ void write_section(struct ptb_section *section)
 
 void write_sectionsymbol(struct ptb_sectionsymbol *ssb)
 {
-	printf("\tRepeat Ending: %d\n", ssb->repeat_ending);
+	printf("\tData: %d\n", ssb->data);
 	printf("\n");
 }
 
@@ -168,7 +168,8 @@ void write_tempomarker(struct ptb_tempomarker *tm)
 
 void write_dynamic(struct ptb_dynamic *dn)
 {
-	printf("\tOffset: %d\n", dn->offset);
+	printf("\tSection: %d\n", dn->section);
+	printf("\tPosition: %d\n", dn->position);
 	printf("\tStaff: %d\n", dn->staff);
 	printf("\tVolume: %d\n", dn->volume);
 	printf("\n");
