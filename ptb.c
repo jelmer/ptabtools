@@ -154,7 +154,7 @@ static ssize_t ptb_data_constant_string(struct ptbf *f, const char *expected, in
 	return ret;
 }
 
-static ssize_t ptb_data_unknown(struct ptbf *f, size_t length) {
+static ssize_t ptb_data_unknown(struct ptbf *f, size_t length, const char *comment) {
 	char unknown[255];
 	ssize_t ret;
 	off_t oldpos = f->curpos;
@@ -233,16 +233,28 @@ static ssize_t ptb_data_string(struct ptbf *bf, char **dest) {
 	return 0;
 }
 
-static ssize_t ptb_data_font(struct ptbf *f, struct ptb_font *dest) {
+static ssize_t ptb_data_color(struct ptbf *f, struct ptb_color *dest)
+{
+	int ret = 0;
+
+	ret+=ptb_data_uint8(f, &dest->r);
+	ret+=ptb_data_uint8(f, &dest->g);
+	ret+=ptb_data_uint8(f, &dest->b);
+	ret+=ptb_data_unknown(f, 1, "FIXLA");
+
+	return ret;
+}
+
+static ssize_t ptb_data_font(struct ptbf *f, struct ptb_font *dest) 
+{
 	int ret = 0;
 	ret+=ptb_data_string(f, &dest->family);
-	ret+=ptb_data_uint8(f, &dest->size);
-	ret+=ptb_data_unknown(f, 5);
-	ret+=ptb_data_uint8(f, &dest->thickness);
-	ret+=ptb_data_unknown(f, 2);
+	ret+=ptb_data_uint32(f, &dest->pointsize);
+	ret+=ptb_data_uint32(f, &dest->weight);
 	ret+=ptb_data_uint8(f, &dest->italic);
 	ret+=ptb_data_uint8(f, &dest->underlined);
-	ret+=ptb_data_unknown(f, 4);
+	ret+=ptb_data_uint8(f, &dest->strikeout);
+	ret+=ptb_data_color(f, &dest->color);
 	return ret;
 }
 
@@ -255,7 +267,7 @@ static ssize_t ptb_data_header(struct ptbf *f, struct ptb_hdr *hdr)
 
 	switch(hdr->classification) {
 	case CLASSIFICATION_SONG:
-		ptb_data_unknown(f, 1); /* FIXME */
+		ptb_data_unknown(f, 1, "FIXME"); /* FIXME */
 		ptb_data_string(f, &hdr->class_info.song.title);
 		ptb_data_string(f, &hdr->class_info.song.artist);
 
@@ -545,7 +557,7 @@ static ssize_t ptb_data_file(struct ptbf *bf)
 	ptb_data_font(bf, &bf->chord_name_font);
 	ptb_data_font(bf, &bf->default_font);
 
-	ptb_data_unknown(bf, 12);
+	ptb_data_unknown(bf, 12, "FIXME");
 	return 0;
 }
 
@@ -638,12 +650,11 @@ static int handle_CFloatingText (struct ptbf *bf, const char *section, struct pt
 
 	ptb_data_string(bf, &text->text);
 	ptb_data_uint8(bf, &text->offset);
-	ptb_data_unknown(bf, 15);
+	ptb_data_unknown(bf, 15, "bounding rectangle for text");
 	ptb_data_uint8(bf, &text->alignment);
 	ptb_debug("Align: %x", text->alignment);
-	ptb_assert(bf, (text->alignment &~ ALIGN_TIMESTAMP) == ALIGN_LEFT || 
-			   	   (text->alignment &~ ALIGN_TIMESTAMP) == ALIGN_CENTER || 
-				   (text->alignment &~ ALIGN_TIMESTAMP) == ALIGN_RIGHT);
+	ptb_assert(bf, (text->alignment &~ ALIGN_BORDER &~ ALIGN_CENTER 
+					&~ ALIGN_LEFT &~ ALIGN_RIGHT)  == 0);
 	ptb_data_font(bf, &text->font);
 	
 	*dest = (struct ptb_list *)text;
@@ -655,17 +666,17 @@ static int handle_CSection (struct ptbf *bf, const char *sectionname, struct ptb
 	struct ptb_section *section = GET_ITEM(bf, dest, struct ptb_section);
 
 	ptb_data_constant(bf, 0x32);
-	ptb_data_unknown(bf, 11);
+	ptb_data_unknown(bf, 11, "FIXME");
 	ptb_data_uint16(bf, &section->properties);
-	ptb_data_unknown(bf, 2);
+	ptb_data_unknown(bf, 2, "FIXME");
 	ptb_data_uint8(bf, &section->end_mark);
 	ptb_assert(bf, (section->end_mark &~ END_MARK_TYPE_NORMAL 
 			   & ~END_MARK_TYPE_DOUBLELINE
 			   & ~END_MARK_TYPE_REPEAT) < 24);
 	ptb_data_uint8(bf, &section->position_width);
-	ptb_data_unknown(bf, 5);
+	ptb_data_unknown(bf, 5, "FIXME");
 	ptb_data_uint8(bf, &section->key_extra);
-	ptb_data_unknown(bf, 1);
+	ptb_data_unknown(bf, 1, "FIXME");
 	ptb_data_uint16(bf, &section->meter_type);
 	ptb_data_uint8(bf, &section->beat_info);
 	ptb_data_uint8(bf, &section->metronome_pulses_per_measure);
@@ -676,6 +687,8 @@ static int handle_CSection (struct ptbf *bf, const char *sectionname, struct ptb
 	ptb_data_items(bf, "CChordText", (struct ptb_list **)&section->chordtexts);
 	ptb_data_items(bf, "CRhythmSlash", (struct ptb_list **)&section->rhythmslashes);
 	ptb_data_items(bf, "CStaff", (struct ptb_list **)&section->staffs);
+	/* FIXME: Barlinearray */
+	/* FIXME: Barline */
 	ptb_data_items(bf, "CMusicBar", (struct ptb_list **)&section->musicbars);
 
 	*dest = (struct ptb_list *)section;
@@ -702,7 +715,7 @@ static int handle_CChordDiagram (struct ptbf *bf, const char *section, struct pt
 	struct ptb_chorddiagram *chorddiagram = GET_ITEM(bf, dest, struct ptb_chorddiagram);
 
 	ptb_data(bf, chorddiagram->name, 2);
-	ptb_data_unknown(bf, 3);
+	ptb_data_unknown(bf, 3, "FIXME");
 	ptb_data_uint8(bf, &chorddiagram->type);
 	ptb_data_uint8(bf, &chorddiagram->frets);
 	ptb_data_uint8(bf, &chorddiagram->nr_strings);
@@ -797,15 +810,17 @@ static int handle_CGuitarIn (struct ptbf *bf, const char *section, struct ptb_li
 }
 
 
-static int handle_CStaff (struct ptbf *bf, const char *section, struct ptb_list **dest) { 
+static int handle_CStaff (struct ptbf *bf, const char *section, struct ptb_list **dest)
+{ 
 	uint16_t next;
 	struct ptb_staff *staff = GET_ITEM(bf, dest, struct ptb_staff);
 
 	ptb_data_uint8(bf, &staff->properties);
 	ptb_debug("Properties: %02x", staff->properties);
-	ptb_data_uint8(bf, &staff->highest_note);
-	ptb_data_uint8(bf, &staff->lowest_note);
-	ptb_data_unknown(bf, 2);
+	ptb_data_uint8(bf, &staff->highest_note_space);
+	ptb_data_uint8(bf, &staff->lowest_note_space);
+	ptb_data_uint8(bf, &staff->symbol_space);
+	ptb_data_uint8(bf, &staff->tab_staff_space);
 
 	/* FIXME! */
 	ptb_data_items(bf, "CPosition", (struct ptb_list **)&staff->positions[0]);
@@ -889,7 +904,7 @@ static int handle_CPosition (struct ptbf *bf, const char *section, struct ptb_li
 		ptb_data_uint8(bf, &position->additional[i].start_volume);
 		ptb_data_uint8(bf, &position->additional[i].end_volume);
 		ptb_data_uint8(bf, &position->additional[i].duration);
-		ptb_data_unknown(bf, 1);
+		ptb_data_unknown(bf, 1, "FIXME");
 	}
 
 	ptb_data_items(bf, "CLineData", (struct ptb_list **)&position->linedatas);
@@ -903,7 +918,7 @@ static int handle_CDynamic (struct ptbf *bf, const char *section, struct ptb_lis
 
 	ptb_data_uint8(bf, &dynamic->offset);
 	ptb_data_uint8(bf, &dynamic->staff);
-	ptb_data_unknown(bf, 3); /* FIXME */
+	ptb_data_unknown(bf, 3, "FIXME"); /* FIXME */
 	ptb_data_uint8(bf, &dynamic->volume);
 
 	*dest = (struct ptb_list *)dynamic;
@@ -913,7 +928,7 @@ static int handle_CDynamic (struct ptbf *bf, const char *section, struct ptb_lis
 static int handle_CSectionSymbol (struct ptbf *bf, const char *section, struct ptb_list **dest) {
 	struct ptb_sectionsymbol *sectionsymbol = GET_ITEM(bf, dest, struct ptb_sectionsymbol);
 
-	ptb_data_unknown(bf, 5); /* FIXME */
+	ptb_data_unknown(bf, 5, "FIXME"); /* FIXME */
 	ptb_data_uint16(bf, &sectionsymbol->repeat_ending);
 
 	*dest = (struct ptb_list *)sectionsymbol;
@@ -925,7 +940,7 @@ static int handle_CMusicBar (struct ptbf *bf, const char *section, struct ptb_li
 											 
 	ptb_data_uint8(bf, &musicbar->offset);
 	ptb_data_uint8(bf, &musicbar->properties);
-	ptb_data_unknown(bf, 6);
+	ptb_data_unknown(bf, 6, "FIXME");
 	ptb_data_uint8(bf, &musicbar->letter);
 	ptb_data_string(bf, &musicbar->description);
 
@@ -965,9 +980,9 @@ static int handle_CRhythmSlash (struct ptbf *bf, const char *section, struct ptb
 static int handle_CDirection (struct ptbf *bf, const char *section, struct ptb_list **dest) { 
 	struct ptb_direction *direction = GET_ITEM(bf, dest, struct ptb_direction);
 
-	ptb_data_unknown(bf, 1);
+	ptb_data_unknown(bf, 1, "FIXME");
 	ptb_data_uint8(bf, &direction->nr_items);
-	ptb_data_unknown(bf, 2 * direction->nr_items); /* FIXME */
+	ptb_data_unknown(bf, 2 * direction->nr_items, "FIXME");
 
 	*dest = (struct ptb_list *)direction;
 	return 1;

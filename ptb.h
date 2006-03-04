@@ -140,11 +140,30 @@ struct ptb_guitarin {
 	uint8_t staff_in;
 };
 
+struct ptb_color { uint8_t r,g,b; };
+
 struct ptb_font {
-	uint8_t size;
-	uint8_t thickness;
+#define WEIGHT_DONT_CARE		 0
+#define WEIGHT_THIN              100
+#define WEIGHT_EXTRALIGHT        200
+#define WEIGHT_ULTRALIGHT        200
+#define WEIGHT_LIGHT             300
+#define WEIGHT_NORMAL            400
+#define WEIGHT_REGULAR           400
+#define WEIGHT_MEDIUM            500
+#define WEIGHT_SEMIBOLD          600
+#define WEIGHT_DEMIBOLD          600
+#define WEIGHT_BOLD              700
+#define WEIGHT_EXTRABOLD         800
+#define WEIGHT_ULTRABOLD         800
+#define WEIGHT_BLACK             900
+#define WEIGHT_HEAVY             900
+	uint32_t pointsize;
+	uint32_t weight;
 	uint8_t underlined;
+	uint8_t strikeout;
 	uint8_t italic;
+	struct ptb_color color;
 	char *family;
 };
 
@@ -153,10 +172,11 @@ struct ptb_floatingtext {
 
 	char *text;
 	uint8_t offset;
-#define ALIGN_LEFT		1
-#define ALIGN_CENTER	2
-#define ALIGN_RIGHT		3
-#define ALIGN_TIMESTAMP	8
+#define ALIGN_LEFT		0x01
+#define ALIGN_CENTER	0x02
+#define ALIGN_RIGHT		0x04
+#define ALIGN_MASK		0x07
+#define ALIGN_BORDER	0x08 /* text surrounded by border */
 	uint8_t alignment;
 	struct ptb_font font;
 };
@@ -279,15 +299,23 @@ struct ptb_position {
 
 
 
-#define STAFF_TYPE_BASS_KEY	0x10
+#define STAFF_TYPE_BASS_KEY			0x10
+#define STAFF_CLEF_MASK				0xf0
+#define STAFF_TAB_STAFF_TYPE_MASK	0x0f
 
 struct ptb_staff {
 	struct ptb_staff *prev, *next;
 
 	/* Number of strings OR-ed with some settings */
 	uint8_t properties;
-	uint8_t highest_note;
-	uint8_t lowest_note;
+	uint8_t highest_note_space;
+	uint8_t lowest_note_space;
+	uint8_t symbol_space;
+	uint8_t tab_staff_space;
+
+	/* first array is for high melody
+	 * second is for low melody
+	 */
 	struct ptb_position *positions[2];
 };
 

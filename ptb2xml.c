@@ -69,8 +69,8 @@ xmlNodePtr xml_write_font(const char *name, struct ptb_font *font)
 {
 	xmlNodePtr xfont = xmlNewNode(NULL, "font");
 	xmlSetProp(xfont, "function", name);
-	SMART_ADD_PROP_INT(xfont, "size", font->size);
-	SMART_ADD_PROP_INT(xfont, "thickness", font->thickness);
+	SMART_ADD_PROP_INT(xfont, "pointsize", font->pointsize);
+	SMART_ADD_PROP_INT(xfont, "weight", font->weight);
 	SMART_ADD_PROP_INT(xfont, "underlined", font->underlined);
 	SMART_ADD_PROP_INT(xfont, "italic", font->italic);
 	xmlSetProp(xfont, "family", font->family);
@@ -203,8 +203,10 @@ xmlNodePtr xml_write_staffs(struct ptb_staff *staffs)
 		xmlNodePtr xstaff = xmlNewNode(NULL, "staff");
 		xmlAddChild(xstaffs, xstaff);
 
-		SMART_ADD_CHILD_INT(xstaff, "highest_note", staff->highest_note);
-		SMART_ADD_CHILD_INT(xstaff, "lowest_note", staff->lowest_note);
+		SMART_ADD_CHILD_INT(xstaff, "highest_note_space", staff->highest_note_space);
+		SMART_ADD_CHILD_INT(xstaff, "lowest_note_space", staff->lowest_note_space);
+		SMART_ADD_CHILD_INT(xstaff, "symbol_space", staff->symbol_space);
+		SMART_ADD_CHILD_INT(xstaff, "tab_staff_space", staff->tab_staff_space);
 		SMART_ADD_CHILD_INT(xstaff, "properties", staff->properties);
 
 		for(i = 0; i < 2; i++) 

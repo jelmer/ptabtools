@@ -82,7 +82,8 @@ void write_position(struct ptb_position *pos)
 
 void write_staff(struct ptb_staff *staff)
 {
-	printf("\t\tLowest Note: %d, Highest Note: %d\n", staff->lowest_note, staff->highest_note);
+	printf("\t\tLowest Note Space: %d, Highest Note Space: %d\n", staff->lowest_note_space, staff->highest_note_space);
+	printf("\t\tSymbol Space: %d, Tablature Staff Space: %d\n", staff->symbol_space, staff->tab_staff_space);
 	printf("\t\tProperties: %d\n", staff->properties);
 
 	printf("\t\t    Positions:\n");
@@ -219,7 +220,7 @@ void write_chorddiagram(struct ptb_chorddiagram *chd)
 
 void write_font(struct ptb_font *font)
 {
-	printf("%s, Size: %d, Thickness: %d, Underlined: %d, Italic: %d", font->family, font->size, font->thickness, font->underlined, font->italic);
+	printf("%s, Size: %d, Weight: %d, Underlined: %d, Italic: %d", font->family, font->pointsize, font->weight, font->underlined, font->italic);
 }
 
 void write_floatingtext(struct ptb_floatingtext *ft)
@@ -232,7 +233,7 @@ void write_floatingtext(struct ptb_floatingtext *ft)
 	case ALIGN_CENTER: printf("Center"); break;
 	case ALIGN_RIGHT: printf("Right"); break;
 	}
-	if (ft->alignment & ALIGN_TIMESTAMP) printf(", Print Timestamp");
+	if (ft->alignment & ALIGN_BORDER) printf(", Print Border");
 	printf("\n");
 	printf("\tFont: "); write_font(&ft->font); printf("\n");
 	printf("\n");
