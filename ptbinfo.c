@@ -210,8 +210,8 @@ void write_chorddiagram(struct ptb_chorddiagram *chd)
 {
 	int i;
 	printf("\tName: %c%c\n", chd->name.name[0], chd->name.name[1]);
+	printf("\tType: %d\n", chd->name.type);
 	printf("\tFret Offset: %d\n", chd->frets);
-	printf("\tType: %d\n", chd->type);
 	printf("\tTones(%d): \n", chd->nr_strings);
 	for (i = 0; i < chd->nr_strings; i++) 
 		printf("\t\t%d\n", chd->tones[i]);

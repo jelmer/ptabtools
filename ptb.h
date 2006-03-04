@@ -218,6 +218,9 @@ struct ptb_tempomarker {
 
 struct ptb_chordname {
 	ptb_chord name[2];
+	uint8_t formula;
+	uint16_t formula_mods;
+	uint8_t type;
 };
 
 struct ptb_chorddiagram {
@@ -227,7 +230,6 @@ struct ptb_chorddiagram {
 
 	uint8_t frets;
 	uint8_t nr_strings;
-	uint8_t type;
 	ptb_tone *tones;
 };
 

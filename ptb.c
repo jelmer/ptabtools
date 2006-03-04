@@ -248,7 +248,7 @@ static ssize_t ptb_data_color(struct ptbf *f, struct ptb_color *dest)
 	ret+=ptb_data_uint8(f, &dest->r);
 	ret+=ptb_data_uint8(f, &dest->g);
 	ret+=ptb_data_uint8(f, &dest->b);
-	ret+=ptb_data_unknown(f, 1, "FIXLA");
+	ret+=ptb_data_unknown(f, 1, "FIXME");
 
 	return ret;
 }
@@ -723,7 +723,9 @@ static int ptb_data_chordname(struct ptbf *bf, struct ptb_chordname *dest)
 {
 	int ret = 0;
 	ret += ptb_data(bf, dest->name, 2);
-	ret += ptb_data_unknown(bf, 3, "FIXME");
+	ret += ptb_data_uint8(bf, &dest->formula);
+	ret += ptb_data_uint16(bf, &dest->formula_mods);
+	ptb_data_uint8(bf, &dest->type);
 	return ret;
 }
 
@@ -731,7 +733,6 @@ static int handle_CChordDiagram (struct ptbf *bf, const char *section, struct pt
 	struct ptb_chorddiagram *chorddiagram = GET_ITEM(bf, dest, struct ptb_chorddiagram);
 
 	ptb_data_chordname(bf, &chorddiagram->name);
-	ptb_data_uint8(bf, &chorddiagram->type);
 	ptb_data_uint8(bf, &chorddiagram->frets);
 	ptb_data_uint8(bf, &chorddiagram->nr_strings);
 	chorddiagram->tones = malloc_p(uint8_t, chorddiagram->nr_strings);
