@@ -389,8 +389,8 @@ xmlNodePtr xml_write_chorddiagrams(struct ptb_chorddiagram *chorddiagrams)
 		xmlAddChild(xchorddiagrams, xchorddiagram);
 		xmlAddChild(xchorddiagram, strings);
 		
-		SMART_ADD_CHILD_STRING(xchorddiagram, "note1", ptb_get_tone(chorddiagram->name[0]));
-		SMART_ADD_CHILD_STRING(xchorddiagram, "note2", ptb_get_tone(chorddiagram->name[1]));
+		SMART_ADD_CHILD_STRING(xchorddiagram, "note1", ptb_get_tone(chorddiagram->name.name[0]));
+		SMART_ADD_CHILD_STRING(xchorddiagram, "note2", ptb_get_tone(chorddiagram->name.name[1]));
 		SMART_ADD_CHILD_INT(xchorddiagram, "frets", chorddiagram->frets);
 		SMART_ADD_CHILD_INT(xchorddiagram, "type", chorddiagram->type);
 

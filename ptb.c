@@ -719,12 +719,18 @@ static int handle_CTempoMarker (struct ptbf *bf, const char *section, struct ptb
 	return 1;
 }
 
+static int ptb_data_chordname(struct ptbf *bf, struct ptb_chordname *dest)
+{
+	int ret = 0;
+	ret += ptb_data(bf, dest->name, 2);
+	ret += ptb_data_unknown(bf, 3, "FIXME");
+	return ret;
+}
 
 static int handle_CChordDiagram (struct ptbf *bf, const char *section, struct ptb_list **dest) { 
 	struct ptb_chorddiagram *chorddiagram = GET_ITEM(bf, dest, struct ptb_chorddiagram);
 
-	ptb_data(bf, chorddiagram->name, 2);
-	ptb_data_unknown(bf, 3, "FIXME");
+	ptb_data_chordname(bf, &chorddiagram->name);
 	ptb_data_uint8(bf, &chorddiagram->type);
 	ptb_data_uint8(bf, &chorddiagram->frets);
 	ptb_data_uint8(bf, &chorddiagram->nr_strings);

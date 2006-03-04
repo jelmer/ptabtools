@@ -216,10 +216,15 @@ struct ptb_tempomarker {
 	uint8_t offset;
 };
 
+struct ptb_chordname {
+	ptb_chord name[2];
+};
+
 struct ptb_chorddiagram {
 	struct ptb_chorddiagram *prev, *next;
 
-	ptb_chord name[2];
+	struct ptb_chordname name;
+
 	uint8_t frets;
 	uint8_t nr_strings;
 	uint8_t type;
