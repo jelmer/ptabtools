@@ -44,6 +44,9 @@ typedef uint8_t ptb_tone;
 typedef uint8_t ptb_note;
 
 struct ptb_hdr {
+#define CONTENT_TYPE_GUITAR		0x01
+#define CONTENT_TYPE_BASS		0x02
+#define CONTENT_TYPE_PERCUSSION	0x04
 	enum { CLASSIFICATION_SONG = 0, CLASSIFICATION_LESSON} classification;
 
 	union {
@@ -73,6 +76,7 @@ struct ptb_hdr {
 				} unreleased;
 			} release_info;
 			uint8_t is_original_author_unknown;
+			uint8_t content_type;
 			char *title;
 			char *artist;
 			char *words_by;
@@ -87,6 +91,25 @@ struct ptb_hdr {
 		struct 	{
 			char *title;
 			char *artist;
+#define MUSICSTYLE_ALTERNATIVE             0
+#define MUSICSTYLE_BLUEGRASS               1
+#define MUSICSTYLE_BLUES                   2
+#define MUSICSTYLE_COUNTRY                 3
+#define MUSICSTYLE_FINGERPICK              4
+#define MUSICSTYLE_FLAMENCO                5
+#define MUSICSTYLE_FOLK                    6
+#define MUSICSTYLE_FUNK                    7
+#define MUSICSTYLE_FUSION                  8
+#define MUSICSTYLE_GENERAL                 9
+#define MUSICSTYLE_JAZZ                    10
+#define MUSICSTYLE_METAL                   11
+#define MUSICSTYLE_OTHER                   12
+#define MUSICSTYLE_POP                     13
+#define MUSICSTYLE_PROGRESSIVE             14
+#define MUSICSTYLE_PUNK                    15
+#define MUSICSTYLE_REGGAE                  16
+#define MUSICSTYLE_ROCK                    17
+#define MUSICSTYLE_SWING                   18
 			uint16_t style;
 			enum { LEVEL_BEGINNER = 0, LEVEL_INTERMEDIATE, LEVEL_ADVANCED} level;
 			char *author;

@@ -267,7 +267,7 @@ static ssize_t ptb_data_header(struct ptbf *f, struct ptb_hdr *hdr)
 
 	switch(hdr->classification) {
 	case CLASSIFICATION_SONG:
-		ptb_data_unknown(f, 1, "FIXME"); /* FIXME */
+		ptb_data_uint8(f, &hdr->class_info.song.content_type);
 		ptb_data_string(f, &hdr->class_info.song.title);
 		ptb_data_string(f, &hdr->class_info.song.artist);
 
