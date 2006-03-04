@@ -145,9 +145,10 @@ struct ptb_guitar {
 struct ptb_dynamic {
 	struct ptb_dynamic *prev, *next;
 
-	uint8_t offset;
+	uint16_t section;
 	uint8_t staff;
-	uint8_t volume;
+	uint8_t offset;
+	uint16_t volume;
 };
 
 struct ptb_guitarin {

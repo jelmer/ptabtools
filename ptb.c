@@ -932,10 +932,10 @@ static int handle_CPosition (struct ptbf *bf, const char *section, struct ptb_li
 static int handle_CDynamic (struct ptbf *bf, const char *section, struct ptb_list **dest) { 
 	struct ptb_dynamic *dynamic = GET_ITEM(bf, dest, struct ptb_dynamic);
 
-	ptb_data_uint8(bf, &dynamic->offset);
+	ptb_data_uint16(bf, &dynamic->section);
 	ptb_data_uint8(bf, &dynamic->staff);
-	ptb_data_unknown(bf, 3, "FIXME"); /* FIXME */
-	ptb_data_uint8(bf, &dynamic->volume);
+	ptb_data_uint8(bf, &dynamic->offset);
+	ptb_data_uint16(bf, &dynamic->volume);
 
 	*dest = (struct ptb_list *)dynamic;
 	return 1;
