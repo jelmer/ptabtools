@@ -23,3 +23,5 @@ debian/libptb0.substvars
 debian/ptabtools
 debian/ptabtools.substvars
 debian/tmp
+ptb2ptb
+tags
