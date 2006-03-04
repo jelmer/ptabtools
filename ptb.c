@@ -120,6 +120,10 @@ static ssize_t ptb_data(struct ptbf *f, void *data, size_t length)
 	return 0;
 }
 
+#define ptb_data_uint8(f,d) ptb_data(f,d,1)
+#define ptb_data_uint16(f,d) ptb_data(f,d,2)
+#define ptb_data_uint32(f,d) ptb_data(f,d,4)
+
 #define ptb_data_constant(f,e) ptb_data_constant_helper(f,e,__LINE__)
 static ssize_t ptb_data_constant_helper(struct ptbf *f, unsigned char expected, int line) 
 {
@@ -127,9 +131,9 @@ static ssize_t ptb_data_constant_helper(struct ptbf *f, unsigned char expected, 
 	ssize_t ret;
 	
 	if (f->mode == O_WRONLY) {
-		ret = ptb_data(f, &expected, 1);
+		ret = ptb_data_uint8(f, &expected);
 	} else {
-			ret = ptb_data(f, &real, 1);
+			ret = ptb_data_uint8(f, &real);
 	
 		if(real != expected) {
 			ptb_error("%04lx: Expected %02x, got %02x at line "__FILE__":%d", f->curpos-1, expected, real, line);
@@ -170,11 +174,11 @@ static ssize_t ptb_read_string(struct ptbf *f, char **dest)
 	uint8_t shortlength;
 	uint16_t length;
 	char *data;
-	ptb_data(f, &shortlength, 1);
+	ptb_data_uint8(f, &shortlength);
 
 	/* If length is 0xff, this is followed by a uint16_t length */
 	if(shortlength == 0xff) {
-		if(ptb_data(f, &length, 2) < 2) return -1;
+		if(ptb_data_uint16(f, &length) < 2) return -1;
 	} else {
 		length = shortlength;
 	}
@@ -206,11 +210,11 @@ static ssize_t ptb_write_string(struct ptbf *f, char **dest)
 		shortlength = strlen(*dest);
 	}
 	
-	ptb_data(f, &shortlength, 1);
+	ptb_data_uint8(f, &shortlength);
 
 	/* If length is 0xff, this is followed by a uint16_t length */
 	if(shortlength == 0xff) {
-		if(ptb_data(f, &length, 2) < 2) return -1;
+		if(ptb_data_uint16(f, &length) < 2) return -1;
 	} else {
 		length = shortlength;
 	}
@@ -232,12 +236,12 @@ static ssize_t ptb_data_string(struct ptbf *bf, char **dest) {
 static ssize_t ptb_data_font(struct ptbf *f, struct ptb_font *dest) {
 	int ret = 0;
 	ret+=ptb_data_string(f, &dest->family);
-	ret+=ptb_data(f, &dest->size, 1);
+	ret+=ptb_data_uint8(f, &dest->size);
 	ret+=ptb_data_unknown(f, 5);
-	ret+=ptb_data(f, &dest->thickness, 1);
+	ret+=ptb_data_uint8(f, &dest->thickness);
 	ret+=ptb_data_unknown(f, 2);
-	ret+=ptb_data(f, &dest->italic, 1);
-	ret+=ptb_data(f, &dest->underlined, 1);
+	ret+=ptb_data_uint8(f, &dest->italic);
+	ret+=ptb_data_uint8(f, &dest->underlined);
 	ret+=ptb_data_unknown(f, 4);
 	return ret;
 }
@@ -246,8 +250,8 @@ static ssize_t ptb_data_header(struct ptbf *f, struct ptb_hdr *hdr)
 {
 	ptb_data_constant_string(f, "ptab", 4);
 
-	ptb_data(f, &hdr->version, 2);
-	ptb_data(f, &hdr->classification, 1);
+	ptb_data_uint16(f, &hdr->version);
+	ptb_data_uint8(f, &hdr->classification);
 
 	switch(hdr->classification) {
 	case CLASSIFICATION_SONG:
@@ -255,24 +259,24 @@ static ssize_t ptb_data_header(struct ptbf *f, struct ptb_hdr *hdr)
 		ptb_data_string(f, &hdr->class_info.song.title);
 		ptb_data_string(f, &hdr->class_info.song.artist);
 
-		ptb_data(f, &hdr->class_info.song.release_type, 1);
+		ptb_data_uint8(f, &hdr->class_info.song.release_type);
 
 		switch(hdr->class_info.song.release_type) {
 		case RELEASE_TYPE_PR_AUDIO:
-			ptb_data(f, &hdr->class_info.song.release_info.pr_audio.type, 1);
+			ptb_data_uint8(f, &hdr->class_info.song.release_info.pr_audio.type);
 			ptb_data_string(f, &hdr->class_info.song.release_info.pr_audio.album_title);
-			ptb_data(f, &hdr->class_info.song.release_info.pr_audio.year, 2);
-			ptb_data(f, &hdr->class_info.song.release_info.pr_audio.is_live_recording, 1);
+			ptb_data_uint16(f, &hdr->class_info.song.release_info.pr_audio.year);
+			ptb_data_uint8(f, &hdr->class_info.song.release_info.pr_audio.is_live_recording);
 			break;
 		case RELEASE_TYPE_PR_VIDEO:
 			ptb_data_string(f, &hdr->class_info.song.release_info.pr_video.video_title);
-			ptb_data(f, &hdr->class_info.song.release_info.pr_video.is_live_recording, 1);
+			ptb_data_uint8(f, &hdr->class_info.song.release_info.pr_video.is_live_recording);
 			break;
 		case RELEASE_TYPE_BOOTLEG:
 			ptb_data_string(f, &hdr->class_info.song.release_info.bootleg.title);
-			ptb_data(f, &hdr->class_info.song.release_info.bootleg.day, 2);
-			ptb_data(f, &hdr->class_info.song.release_info.bootleg.month, 2);
-			ptb_data(f, &hdr->class_info.song.release_info.bootleg.year, 2);
+			ptb_data_uint16(f, &hdr->class_info.song.release_info.bootleg.day);
+			ptb_data_uint16(f, &hdr->class_info.song.release_info.bootleg.month);
+			ptb_data_uint16(f, &hdr->class_info.song.release_info.bootleg.year);
 			break;
 		case RELEASE_TYPE_UNRELEASED:
 			break;
@@ -282,7 +286,7 @@ static ssize_t ptb_data_header(struct ptbf *f, struct ptb_hdr *hdr)
 			break;
 		}
 
-		ptb_data(f, &hdr->class_info.song.is_original_author_unknown, 1);
+		ptb_data_uint8(f, &hdr->class_info.song.is_original_author_unknown);
 		ptb_data_string(f, &hdr->class_info.song.music_by);
 		ptb_data_string(f, &hdr->class_info.song.words_by);
 		ptb_data_string(f, &hdr->class_info.song.arranged_by);
@@ -296,8 +300,8 @@ static ssize_t ptb_data_header(struct ptbf *f, struct ptb_hdr *hdr)
 	case CLASSIFICATION_LESSON:
 		ptb_data_string(f, &hdr->class_info.lesson.title);
 		ptb_data_string(f, &hdr->class_info.lesson.artist);
-		ptb_data(f, &hdr->class_info.lesson.style, 2);
-		ptb_data(f, &hdr->class_info.lesson.level, 1);
+		ptb_data_uint16(f, &hdr->class_info.lesson.style);
+		ptb_data_uint8(f, &hdr->class_info.lesson.level);
 		ptb_data_string(f, &hdr->class_info.lesson.author);
 		ptb_data_string(f, &hdr->guitar_notes);
 		ptb_data_string(f, &hdr->class_info.lesson.copyright);
@@ -357,23 +361,23 @@ static int ptb_read_items(struct ptbf *bf, const char *assumed_type, struct ptb_
 
 	*result = NULL;
 
-	ret+=ptb_data(bf, &nr_items, 2);	
+	ret+=ptb_data_uint16(bf, &nr_items);	
 	if(ret == 0 || nr_items == 0x0) return 1; 
-	ret+=ptb_data(bf, &header, 2);
+	ret+=ptb_data_uint16(bf, &header);
 
 	ptb_debug("Going to read %d items", nr_items);
 
 	if(header == 0xffff) { /* New section */
 		char *my_section_name;
 		/* Read Section */
-		ret+=ptb_data(bf, &unknownval, 2);
+		ret+=ptb_data_uint16(bf, &unknownval);
 
 		if(unknownval != 0x0001) {
 			fprintf(stderr, "Unknownval: %04x\n", unknownval);
 			return 0;
 		}
 
-		ret+=ptb_data(bf, &length, 2);
+		ret+=ptb_data_uint16(bf, &length);
 
 		my_section_name = malloc_p(char, length + 1);
 		ret+=ptb_data(bf, my_section_name, length);
@@ -417,7 +421,7 @@ static int ptb_read_items(struct ptbf *bf, const char *assumed_type, struct ptb_
 		}
 		
 		if(l < nr_items - 1) {
-			ret+=ptb_data(bf, &next_thing, 2);
+			ret+=ptb_data_uint16(bf, &next_thing);
 			if(!(next_thing & 0x8000)) {
 				ptb_error("Warning: got %04x, expected | 0x8000\n", next_thing);
 				ptb_assert(bf, 0);
@@ -447,22 +451,22 @@ static int ptb_write_items(struct ptbf *bf, const char *assumed_type, struct ptb
 
 	DLIST_LEN(*result, nr_items, struct ptb_list *);
 
-	ret+=ptb_data(bf, &nr_items, 2);	
+	ret+=ptb_data_uint16(bf, &nr_items);	
 	if(nr_items == 0x0) return 1; 
 
 	header = generate_header_id(bf, assumed_type);
 	if (header == 0) header = 0xffff;
 
-	ret+=ptb_data(bf, &header, 2);
+	ret+=ptb_data_uint16(bf, &header);
 
 	ptb_debug("Going to write %d items", nr_items);
 
 	if (header == 0xffff) {
 		uint16_t unknownval = 0x0001; /* FIXME */
 
-		ret+=ptb_data(bf, &unknownval, 2);
+		ret+=ptb_data_uint16(bf, &unknownval);
 		length = strlen(assumed_type);
-		ret+=ptb_data(bf, &length, 2);
+		ret+=ptb_data_uint16(bf, &length);
 		ret+=ptb_data(bf, (void *)assumed_type, length);
 	}
 
@@ -486,7 +490,7 @@ static int ptb_write_items(struct ptbf *bf, const char *assumed_type, struct ptb
 		debug_level--;
 
 		if(gl->next) {
-			ret+=ptb_data(bf, &id, 2);
+			ret+=ptb_data_uint16(bf, &id);
 		}
 		gl = gl->next;
 	}
@@ -599,23 +603,23 @@ static int handle_unknown (struct ptbf *bf, const char *section, struct ptb_list
 static int handle_CGuitar (struct ptbf *bf, const char *section, struct ptb_list **dest) {
 	struct ptb_guitar *guitar = GET_ITEM(bf, dest, struct ptb_guitar);
 
-	ptb_data(bf, &guitar->index, 1);
+	ptb_data_uint8(bf, &guitar->index);
 	ptb_data_string(bf, &guitar->title);
 
-	ptb_data(bf, &guitar->midi_instrument, 1);
-	ptb_data(bf, &guitar->initial_volume, 1);
-	ptb_data(bf, &guitar->pan, 1);
-	ptb_data(bf, &guitar->reverb, 1);
-	ptb_data(bf, &guitar->chorus, 1);
-	ptb_data(bf, &guitar->tremolo, 1);
+	ptb_data_uint8(bf, &guitar->midi_instrument);
+	ptb_data_uint8(bf, &guitar->initial_volume);
+	ptb_data_uint8(bf, &guitar->pan);
+	ptb_data_uint8(bf, &guitar->reverb);
+	ptb_data_uint8(bf, &guitar->chorus);
+	ptb_data_uint8(bf, &guitar->tremolo);
 
-	ptb_data(bf, &guitar->simulate, 1);
-	ptb_data(bf, &guitar->capo, 1);
+	ptb_data_uint8(bf, &guitar->simulate);
+	ptb_data_uint8(bf, &guitar->capo);
 		
 	ptb_data_string(bf, &guitar->type);
 
-	ptb_data(bf, &guitar->half_up, 1);
-	ptb_data(bf, &guitar->nr_strings, 1);
+	ptb_data_uint8(bf, &guitar->half_up);
+	ptb_data_uint8(bf, &guitar->nr_strings);
 
 	if (bf->mode == O_RDONLY) {
 		guitar->strings = malloc_p(uint8_t, guitar->nr_strings);
@@ -633,9 +637,9 @@ static int handle_CFloatingText (struct ptbf *bf, const char *section, struct pt
 	struct ptb_floatingtext *text = GET_ITEM(bf, dest, struct ptb_floatingtext);
 
 	ptb_data_string(bf, &text->text);
-	ptb_data(bf, &text->offset, 1);
+	ptb_data_uint8(bf, &text->offset);
 	ptb_data_unknown(bf, 15);
-	ptb_data(bf, &text->alignment, 1);
+	ptb_data_uint8(bf, &text->alignment);
 	ptb_debug("Align: %x", text->alignment);
 	ptb_assert(bf, (text->alignment &~ ALIGN_TIMESTAMP) == ALIGN_LEFT || 
 			   	   (text->alignment &~ ALIGN_TIMESTAMP) == ALIGN_CENTER || 
@@ -652,20 +656,20 @@ static int handle_CSection (struct ptbf *bf, const char *sectionname, struct ptb
 
 	ptb_data_constant(bf, 0x32);
 	ptb_data_unknown(bf, 11);
-	ptb_data(bf, &section->properties, 2);
+	ptb_data_uint16(bf, &section->properties);
 	ptb_data_unknown(bf, 2);
-	ptb_data(bf, &section->end_mark, 1);
+	ptb_data_uint8(bf, &section->end_mark);
 	ptb_assert(bf, (section->end_mark &~ END_MARK_TYPE_NORMAL 
 			   & ~END_MARK_TYPE_DOUBLELINE
 			   & ~END_MARK_TYPE_REPEAT) < 24);
-	ptb_data(bf, &section->position_width, 1);
+	ptb_data_uint8(bf, &section->position_width);
 	ptb_data_unknown(bf, 5);
-	ptb_data(bf, &section->key_extra, 1);
+	ptb_data_uint8(bf, &section->key_extra);
 	ptb_data_unknown(bf, 1);
-	ptb_data(bf, &section->meter_type, 2);
-	ptb_data(bf, &section->beat_info, 1);
-	ptb_data(bf, &section->metronome_pulses_per_measure, 1);
-	ptb_data(bf, &section->letter, 1);
+	ptb_data_uint16(bf, &section->meter_type);
+	ptb_data_uint8(bf, &section->beat_info);
+	ptb_data_uint8(bf, &section->metronome_pulses_per_measure);
+	ptb_data_uint8(bf, &section->letter);
 	ptb_data_string(bf, &section->description);
 
 	ptb_data_items(bf, "CDirection", (struct ptb_list **)&section->directions);
@@ -681,12 +685,12 @@ static int handle_CSection (struct ptbf *bf, const char *sectionname, struct ptb
 static int handle_CTempoMarker (struct ptbf *bf, const char *section, struct ptb_list **dest) {
 	struct ptb_tempomarker *tempomarker = GET_ITEM(bf, dest, struct ptb_tempomarker);
 
-	ptb_data(bf, &tempomarker->section, 1);
+	ptb_data_uint8(bf, &tempomarker->section);
 	ptb_data_constant(bf, 0);
-	ptb_data(bf, &tempomarker->offset, 1);
-	ptb_data(bf, &tempomarker->bpm, 1);
+	ptb_data_uint8(bf, &tempomarker->offset);
+	ptb_data_uint8(bf, &tempomarker->bpm);
 	ptb_data_constant(bf, 0);
-	ptb_data(bf, &tempomarker->type, 2);
+	ptb_data_uint16(bf, &tempomarker->type);
 	ptb_data_string(bf, &tempomarker->description);
 
 	*dest = (struct ptb_list *)tempomarker;
@@ -699,9 +703,9 @@ static int handle_CChordDiagram (struct ptbf *bf, const char *section, struct pt
 
 	ptb_data(bf, chorddiagram->name, 2);
 	ptb_data_unknown(bf, 3);
-	ptb_data(bf, &chorddiagram->type, 1);
-	ptb_data(bf, &chorddiagram->frets, 1);
-	ptb_data(bf, &chorddiagram->nr_strings, 1);
+	ptb_data_uint8(bf, &chorddiagram->type);
+	ptb_data_uint8(bf, &chorddiagram->frets);
+	ptb_data_uint8(bf, &chorddiagram->nr_strings);
 	chorddiagram->tones = malloc_p(uint8_t, chorddiagram->nr_strings);
 	ptb_data(bf, chorddiagram->tones, chorddiagram->nr_strings);
 
@@ -712,8 +716,8 @@ static int handle_CChordDiagram (struct ptbf *bf, const char *section, struct pt
 static int handle_CLineData (struct ptbf *bf, const char *section, struct ptb_list **dest) { 
 	struct ptb_linedata *linedata = GET_ITEM(bf, dest, struct ptb_linedata);
 
-	ptb_data(bf, &linedata->tone, 1);
-	ptb_data(bf, &linedata->properties, 1);
+	ptb_data_uint8(bf, &linedata->tone);
+	ptb_data_uint8(bf, &linedata->properties);
 	ptb_assert_0(bf, linedata->properties
 			   & ~LINEDATA_PROPERTY_GHOST_NOTE
 			   & ~LINEDATA_PROPERTY_PULLOFF_FROM
@@ -723,14 +727,14 @@ static int handle_CLineData (struct ptbf *bf, const char *section, struct ptb_li
 			   & ~LINEDATA_PROPERTY_NATURAL_HARMONIC
 			   & ~LINEDATA_PROPERTY_CONTINUES
 			   & ~LINEDATA_PROPERTY_MUTED);
-	ptb_data(bf, &linedata->transcribe, 1);
+	ptb_data_uint8(bf, &linedata->transcribe);
 	ptb_assert(bf, linedata->transcribe == LINEDATA_TRANSCRIBE_8VA 
 			   ||  linedata->transcribe == LINEDATA_TRANSCRIBE_15MA
 			   ||  linedata->transcribe == LINEDATA_TRANSCRIBE_8VB
 			   ||  linedata->transcribe == LINEDATA_TRANSCRIBE_15MB
 			   ||  linedata->transcribe == 0);
 			   
-	ptb_data(bf, &linedata->conn_to_next, 1);
+	ptb_data_uint8(bf, &linedata->conn_to_next);
 	
 	if(linedata->conn_to_next) { 
 		linedata->bends = malloc_p(struct ptb_bend, 1);
@@ -747,16 +751,16 @@ static int handle_CLineData (struct ptbf *bf, const char *section, struct ptb_li
 static int handle_CChordText (struct ptbf *bf, const char *section, struct ptb_list **dest) {
 	struct ptb_chordtext *chordtext = GET_ITEM(bf, dest, struct ptb_chordtext);
 
-	ptb_data(bf, &chordtext->offset, 1);
-	ptb_data(bf, chordtext->name, 2);
+	ptb_data_uint8(bf, &chordtext->offset);
+	ptb_data_uint16(bf, chordtext->name);
 
-	ptb_data(bf, &chordtext->properties, 1);
+	ptb_data_uint8(bf, &chordtext->properties);
 	ptb_assert_0(bf, chordtext->properties 
 			   & ~CHORDTEXT_PROPERTY_NOCHORD
 			   & ~CHORDTEXT_PROPERTY_PARENTHESES
 			   & ~0x0F /* Formula */
 			   & ~0xC0 /*FIXME*/);
-	ptb_data(bf, &chordtext->additions, 1);
+	ptb_data_uint8(bf, &chordtext->additions);
 	ptb_assert_0(bf, chordtext->additions 
 			   & ~CHORDTEXT_EXT_7_9
 			   & ~CHORDTEXT_EXT_7_13
@@ -764,8 +768,8 @@ static int handle_CChordText (struct ptbf *bf, const char *section, struct ptb_l
 			   & ~CHORDTEXT_ADD_9
 			   & ~CHORDTEXT_ADD_11
 			   & ~CHORDTEXT_PLUS_5);
-	ptb_data(bf, &chordtext->alterations, 1);
-	ptb_data(bf, &chordtext->VII, 1);
+	ptb_data_uint8(bf, &chordtext->alterations);
+	ptb_data_uint8(bf, &chordtext->VII);
 	ptb_assert_0(bf, chordtext->VII 
 				 & ~CHORDTEXT_VII 
 				 & ~CHORDTEXT_VII_VI
@@ -781,12 +785,12 @@ static int handle_CChordText (struct ptbf *bf, const char *section, struct ptb_l
 static int handle_CGuitarIn (struct ptbf *bf, const char *section, struct ptb_list **dest) { 
 	struct ptb_guitarin *guitarin = GET_ITEM(bf, dest, struct ptb_guitarin);
 
-	ptb_data(bf, &guitarin->section, 1);
+	ptb_data_uint8(bf, &guitarin->section);
 	ptb_data_constant(bf, 0x0); 
-	ptb_data(bf, &guitarin->staff, 1);
-	ptb_data(bf, &guitarin->offset, 1);
-	ptb_data(bf, &guitarin->rhythm_slash, 1);
-	ptb_data(bf, &guitarin->staff_in, 1);
+	ptb_data_uint8(bf, &guitarin->staff);
+	ptb_data_uint8(bf, &guitarin->offset);
+	ptb_data_uint8(bf, &guitarin->rhythm_slash);
+	ptb_data_uint8(bf, &guitarin->staff_in);
 
 	*dest = (struct ptb_list *)guitarin;
 	return 1;
@@ -797,17 +801,17 @@ static int handle_CStaff (struct ptbf *bf, const char *section, struct ptb_list 
 	uint16_t next;
 	struct ptb_staff *staff = GET_ITEM(bf, dest, struct ptb_staff);
 
-	ptb_data(bf, &staff->properties, 1);
+	ptb_data_uint8(bf, &staff->properties);
 	ptb_debug("Properties: %02x", staff->properties);
-	ptb_data(bf, &staff->highest_note, 1);
-	ptb_data(bf, &staff->lowest_note, 1);
+	ptb_data_uint8(bf, &staff->highest_note);
+	ptb_data_uint8(bf, &staff->lowest_note);
 	ptb_data_unknown(bf, 2);
 
 	/* FIXME! */
 	ptb_data_items(bf, "CPosition", (struct ptb_list **)&staff->positions[0]);
 	/* This is ugly, but at least it works... */
 	if (bf->mode == O_RDONLY) {
-		ptb_data(bf, &next, 2);
+		ptb_data_uint16(bf, &next);
 		lseek(bf->fd, -2, SEEK_CUR); bf->curpos-=2;
 		if(next & 0x8000) {
 			*dest = (struct ptb_list *)staff;
@@ -819,7 +823,7 @@ static int handle_CStaff (struct ptbf *bf, const char *section, struct ptb_list 
 	ptb_data_items(bf, "CPosition", (struct ptb_list **)&staff->positions[1]);
 	/* This is ugly, but at least it works... */
 	if (bf->mode == O_RDONLY) {
-		ptb_data(bf, &next, 2);
+		ptb_data_uint16(bf, &next);
 		lseek(bf->fd, -2, SEEK_CUR);bf->curpos-=2;
 		if(next & 0x8000) {
 			*dest = (struct ptb_list *)staff;
@@ -836,8 +840,8 @@ static int handle_CPosition (struct ptbf *bf, const char *section, struct ptb_li
 	struct ptb_position *position = GET_ITEM(bf, dest, struct ptb_position);
 	int i;
 
-	ptb_data(bf, &position->offset, 1);
-	ptb_data(bf, &position->properties, 2); 
+	ptb_data_uint8(bf, &position->offset);
+	ptb_data_uint16(bf, &position->properties); 
 	ptb_assert_0(bf, position->properties 
 			   & ~POSITION_PROPERTY_IRREGULAR_GROUPING
 			   & ~POSITION_PROPERTY_IN_SINGLE_BEAM
@@ -847,7 +851,7 @@ static int handle_CPosition (struct ptbf *bf, const char *section, struct ptb_li
 			   & ~POSITION_PROPERTY_PARTIAL_BEAM
 			   & ~POSITION_PROPERTY_MIDDLE_IN_BEAM
 			   & ~POSITION_PROPERTY_LAST_IN_BEAM);
-	ptb_data(bf, &position->dots, 1);
+	ptb_data_uint8(bf, &position->dots);
 	ptb_assert_0(bf, position->dots 
 				 	&~ POSITION_DOTS_1 
 				 	& ~POSITION_DOTS_2 
@@ -856,7 +860,7 @@ static int handle_CPosition (struct ptbf *bf, const char *section, struct ptb_li
 					& ~POSITION_DOTS_ARPEGGIO_DOWN
 					& ~POSITION_DOTS_WIDE_VIBRATO
 					& ~POSITION_DOTS_VIBRATO);
-	ptb_data(bf, &position->palm_mute, 1);
+	ptb_data_uint8(bf, &position->palm_mute);
 	ptb_assert_0(bf, position->palm_mute 
 				 & ~POSITION_PALM_MUTE 
 				 & ~POSITION_STACCATO 
@@ -865,7 +869,7 @@ static int handle_CPosition (struct ptbf *bf, const char *section, struct ptb_li
 				 & ~POSITION_PICKSTROKE_DOWN
 				 & ~POSITION_TREMOLO_PICKING
 				 );
-	ptb_data(bf, &position->fermenta, 1);
+	ptb_data_uint8(bf, &position->fermenta);
 	ptb_assert_0(bf, position->fermenta
 					& ~POSITION_FERMENTA_ACCIACCATURA
 					& ~POSITION_FERMENTA_LET_RING
@@ -875,16 +879,16 @@ static int handle_CPosition (struct ptbf *bf, const char *section, struct ptb_li
 					& ~POSITION_FERMENTA_TRIPLET_2
 					& ~POSITION_FERMENTA_TRIPLET_3
 					& ~POSITION_FERMENTA_FERMENTA);
-	ptb_data(bf, &position->length, 1);
+	ptb_data_uint8(bf, &position->length);
 	
-	ptb_data(bf, &position->nr_additional_data, 1);
+	ptb_data_uint8(bf, &position->nr_additional_data);
 
 	position->additional = malloc_p(struct ptb_position_additional, position->nr_additional_data);
 	
 	for (i = 0; i < position->nr_additional_data; i++) {
-		ptb_data(bf, &position->additional[i].start_volume, 1);
-		ptb_data(bf, &position->additional[i].end_volume, 1);
-		ptb_data(bf, &position->additional[i].duration, 1);
+		ptb_data_uint8(bf, &position->additional[i].start_volume);
+		ptb_data_uint8(bf, &position->additional[i].end_volume);
+		ptb_data_uint8(bf, &position->additional[i].duration);
 		ptb_data_unknown(bf, 1);
 	}
 
@@ -897,10 +901,10 @@ static int handle_CPosition (struct ptbf *bf, const char *section, struct ptb_li
 static int handle_CDynamic (struct ptbf *bf, const char *section, struct ptb_list **dest) { 
 	struct ptb_dynamic *dynamic = GET_ITEM(bf, dest, struct ptb_dynamic);
 
-	ptb_data(bf, &dynamic->offset, 1);
-	ptb_data(bf, &dynamic->staff, 1);
+	ptb_data_uint8(bf, &dynamic->offset);
+	ptb_data_uint8(bf, &dynamic->staff);
 	ptb_data_unknown(bf, 3); /* FIXME */
-	ptb_data(bf, &dynamic->volume, 1);
+	ptb_data_uint8(bf, &dynamic->volume);
 
 	*dest = (struct ptb_list *)dynamic;
 	return 1;
@@ -910,7 +914,7 @@ static int handle_CSectionSymbol (struct ptbf *bf, const char *section, struct p
 	struct ptb_sectionsymbol *sectionsymbol = GET_ITEM(bf, dest, struct ptb_sectionsymbol);
 
 	ptb_data_unknown(bf, 5); /* FIXME */
-	ptb_data(bf, &sectionsymbol->repeat_ending, 2);
+	ptb_data_uint16(bf, &sectionsymbol->repeat_ending);
 
 	*dest = (struct ptb_list *)sectionsymbol;
 	return 1;
@@ -919,10 +923,10 @@ static int handle_CSectionSymbol (struct ptbf *bf, const char *section, struct p
 static int handle_CMusicBar (struct ptbf *bf, const char *section, struct ptb_list **dest) { 
 	struct ptb_musicbar *musicbar = GET_ITEM(bf, dest, struct ptb_musicbar);
 											 
-	ptb_data(bf, &musicbar->offset, 1);
-	ptb_data(bf, &musicbar->properties, 1);
+	ptb_data_uint8(bf, &musicbar->offset);
+	ptb_data_uint8(bf, &musicbar->properties);
 	ptb_data_unknown(bf, 6);
-	ptb_data(bf, &musicbar->letter, 1);
+	ptb_data_uint8(bf, &musicbar->letter);
 	ptb_data_string(bf, &musicbar->description);
 
 	*dest = (struct ptb_list *)musicbar; 
@@ -932,8 +936,8 @@ static int handle_CMusicBar (struct ptbf *bf, const char *section, struct ptb_li
 static int handle_CRhythmSlash (struct ptbf *bf, const char *section, struct ptb_list **dest) { 
 	struct ptb_rhythmslash *rhythmslash = GET_ITEM(bf, dest, struct ptb_rhythmslash);
 	
-	ptb_data(bf, &rhythmslash->offset, 1);
-	ptb_data(bf, &rhythmslash->properties, 1);
+	ptb_data_uint8(bf, &rhythmslash->offset);
+	ptb_data_uint8(bf, &rhythmslash->properties);
 	ptb_assert_0(bf, rhythmslash->properties 
 				 & ~RHYTHMSLASH_PROPERTY_FIRST_IN_BEAM
 				 & ~RHYTHMSLASH_PROPERTY_IN_SINGLE_BEAM
@@ -944,15 +948,15 @@ static int handle_CRhythmSlash (struct ptbf *bf, const char *section, struct ptb
 				 & ~RHYTHMSLASH_PROPERTY_TRIPLET_SECOND
 				 & ~RHYTHMSLASH_PROPERTY_TRIPLET_THIRD
 				 );
-	ptb_data(bf, &rhythmslash->dotted, 1);
-	ptb_data(bf, &rhythmslash->extra, 1);
+	ptb_data_uint8(bf, &rhythmslash->dotted);
+	ptb_data_uint8(bf, &rhythmslash->extra);
 	ptb_assert_0(bf, rhythmslash->extra 
 				 & ~RHYTHMSLASH_EXTRA_ARPEGGIO_UP
 				 & ~RHYTHMSLASH_EXTRA_ACCENT
 				 & ~RHYTHMSLASH_EXTRA_HEAVY_ACCENT
 				 & ~0x18 /* FIXME */);
-	ptb_data(bf, &rhythmslash->length, 1);
-	ptb_data(bf, &rhythmslash->singlenote, 1);
+	ptb_data_uint8(bf, &rhythmslash->length);
+	ptb_data_uint8(bf, &rhythmslash->singlenote);
 
 	*dest = (struct ptb_list *)rhythmslash;
 	return 1;
@@ -962,7 +966,7 @@ static int handle_CDirection (struct ptbf *bf, const char *section, struct ptb_l
 	struct ptb_direction *direction = GET_ITEM(bf, dest, struct ptb_direction);
 
 	ptb_data_unknown(bf, 1);
-	ptb_data(bf, &direction->nr_items, 1);
+	ptb_data_uint8(bf, &direction->nr_items);
 	ptb_data_unknown(bf, 2 * direction->nr_items); /* FIXME */
 
 	*dest = (struct ptb_list *)direction;

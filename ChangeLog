@@ -1,6 +1,10 @@
 All changes, unless specified otherwise, made by Jelmer Vernooij
 <jelmer@samba.org>.
 
+0.5.0:
+ * Portability improvements. 
+ * Switched VCS to bazaar.
+
 0.4.3:
  * Fix MacOSX shared library build
  * Add -t option to ptbinfo
