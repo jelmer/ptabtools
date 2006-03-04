@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!--
 	PowerTab to MusicXML converter. 
-	(C) 2004-2005 Jelmer Vernooij <jelmer@samba.org>
+	(C) 2004-2006 Jelmer Vernooij <jelmer@samba.org>
 	Published under the GNU GPL
 -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"

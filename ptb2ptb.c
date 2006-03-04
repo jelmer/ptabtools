@@ -54,7 +54,7 @@ int main(int argc, const char **argv)
 		switch(c) {
 		case 'v':
 			printf("ptb2ptb Version "PACKAGE_VERSION"\n");
-			printf("(C) 2004-2005 Jelmer Vernooij <jelmer@samba.org>\n");
+			printf("(C) 2004-2006 Jelmer Vernooij <jelmer@samba.org>\n");
 			exit(0);
 			break;
 		}

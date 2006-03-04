@@ -1,5 +1,5 @@
 /*
-	(c) 2005: Jelmer Vernooij <jelmer@samba.org>
+	(c) 2005-2006: Jelmer Vernooij <jelmer@samba.org>
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -83,7 +83,7 @@ int main(int argc, const char **argv)
 		switch(c) {
 		case 'v':
 			printf("ptbdict Version "PACKAGE_VERSION"\n");
-			printf("(C) 2005 Jelmer Vernooij <jelmer@samba.org>\n");
+			printf("(C) 2005-2006 Jelmer Vernooij <jelmer@samba.org>\n");
 			exit(0);
 			break;
 		}
