@@ -70,6 +70,15 @@ cags: tags
 tags: $(wildcard *.c) $(wildcard *.h)
 	ctags *.c *.h
 
+configure: configure.in
+	autoreconf -f
+
+config.status: configure
+	./configure
+
+Makefile.settings: config.status
+	./config.status
+
 clean: 
 	rm -f *.o core $(TARGETS) *.po
 

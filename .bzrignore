@@ -25,3 +25,9 @@ debian/ptabtools.substvars
 debian/tmp
 ptb2ptb
 tags
+config.status
+config.h
+config.h.in
+config.log
+autom4te.cache
+aclocal.m4
