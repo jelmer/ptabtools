@@ -1,8 +1,8 @@
-ptabtools (0.5.0) UNRELEASED; urgency=low
+ptabtools (0.5.0-1) UNRELEASED; urgency=low
 
   * New upstream release.
 
- -- Jelmer Vernooij <jelmer@rhonwyn.lan.vernstok.nl>  Sat,  4 Mar 2006 16:46:30 +0100
+ -- Jelmer Vernooij <jelmer@samba.org>  Sat,  4 Mar 2006 16:46:30 +0100
 
 ptabtools (0.4.3) unstable; urgency=low
 

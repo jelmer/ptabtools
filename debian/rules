@@ -1,6 +1,4 @@
 #!/usr/bin/make -f
-# Made with the aid of debmake, by Christoph Lameter,
-# based on the sample debian/rules file for GNU hello by Ian Jackson.
 
 package=ptabtools
 
@@ -44,6 +42,8 @@ binary-arch: build install
 	dh_md5sums -a
 	dh_builddeb -a
 
-binary: binary-arch 
+binary: binary-arch binary-indep
+
+binary-indep:
 
 .PHONY: binary binary-arch binary-indep clean
