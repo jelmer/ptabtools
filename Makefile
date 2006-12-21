@@ -90,3 +90,6 @@ distclean: clean
 
 realclean: distclean
 	rm -f configure
+
+ctags:
+	ctags -R .
