@@ -16,7 +16,7 @@ Description: PowerTab and GuitarPro file parsing library
 Package: libptb-dev
 Architecture: any
 Depends: libptb0 (= ${Source-Version}), libc6-dev, pkg-config (>= 0.14.0)
-Description: Development files for libptb0
+Description: Development files for the PowerTab/GuitarPro parser library
  Header files for the PowerTab and GuitarPro parser library.
  .
  This package contains the files necessary for compiling 
@@ -25,6 +25,7 @@ Description: Development files for libptb0
 Package: ptabtools
 Architecture: any
 Depends: ${shlibs:Depends}
+Recommends: lilypond, abcmidi
 Description: Tools for parsing PowerTab and GuitarPro files
  This package contains a utilities for using PowerTab and GuitarPro files
  on Linux. It includes utilities for converting PowerTab files to 
