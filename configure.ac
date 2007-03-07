@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.50)
-AC_INIT(ptabtools, 0.4.3, [jelmer@samba.org])
+AC_INIT(ptabtools, 0.5.0, [jelmer@samba.org])
 AC_CONFIG_SRCDIR([ptb.c])
 AC_CONFIG_HEADER([config.h])
 
@@ -29,6 +29,8 @@ if test $ac_cv_lib_popt_poptGetArg = yes; then
 fi
 ] , AC_MSG_WARN([libxml not found: not building ptb2xml]))
 PKG_CHECK_MODULES(LIBXSLT, libxslt, AC_DEFINE(HAVE_XSLT, 1, [whether libxslt is available]) , AC_MSG_WARN([libxslt not found: ptb2xml will not support musicxml]))
+
+PKG_CHECK_MODULES(CHECK, check)
 
 if test "$MINGW32" = "yes"; then 
 	TARGET_BINS="$TARGET_BINS ptb.dll" 

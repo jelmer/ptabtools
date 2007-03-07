@@ -5,6 +5,7 @@ All changes, unless specified otherwise, made by Jelmer Vernooij
  * Portability improvements. 
  * Switched VCS to bazaar.
  * Support a few more fields (based on ptparse released by Brad).
+ * Initial testsuite added.
 
 0.4.3:
  * Fix MacOSX shared library build

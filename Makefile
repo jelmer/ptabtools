@@ -66,9 +66,10 @@ install: all
 test: all ptb2ptb
 	$(MAKE) -C tests
 
-cags: tags
 tags: $(wildcard *.c) $(wildcard *.h)
 	ctags *.c *.h
+
+check::
 
 configure: configure.in
 	autoreconf -f
