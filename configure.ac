@@ -30,7 +30,7 @@ fi
 ] , AC_MSG_WARN([libxml not found: not building ptb2xml]))
 PKG_CHECK_MODULES(LIBXSLT, libxslt, AC_DEFINE(HAVE_XSLT, 1, [whether libxslt is available]) , AC_MSG_WARN([libxslt not found: ptb2xml will not support musicxml]))
 
-PKG_CHECK_MODULES(CHECK, check)
+PKG_CHECK_MODULES(CHECK, check, [], [ echo -n "" ])
 
 if test "$MINGW32" = "yes"; then 
 	TARGET_BINS="$TARGET_BINS ptb.dll" 
