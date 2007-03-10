@@ -5,8 +5,8 @@ TARGETS = $(TARGET_BINS) $(TARGET_LIBS)
 
 all: $(TARGETS)
 
-tests/check: tests/check.o tests/ptb.o tests/gp.o
-	$(CC) $(FLAGS) $^ -o $@ $(CHECK_LIBS)
+tests/check: tests/check.o tests/ptb.o tests/gp.o ptb.o
+	$(CC) $(FLAGS) $^ -o $@ $(CHECK_LIBS) 
 
 ptb2xml.o: ptb2xml.c
 	$(CC) $(CFLAGS) -c $< $(LIBXSLT_CFLAGS) $(LIBXML_CFLAGS) $(XSLT_DEFINE)
