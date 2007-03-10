@@ -5,11 +5,14 @@ TARGETS = $(TARGET_BINS) $(TARGET_LIBS)
 
 all: $(TARGETS)
 
+tests/check: tests/check.o tests/ptb.o tests/gp.o
+	$(CC) $(FLAGS) $^ -o $@ $(CHECK_LIBS)
+
 ptb2xml.o: ptb2xml.c
 	$(CC) $(CFLAGS) -c $< $(LIBXSLT_CFLAGS) $(LIBXML_CFLAGS) $(XSLT_DEFINE)
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c $< 
+	$(CC) $(CFLAGS) -c $< -o $@
 
 %.po: %.c
 	$(CC) $(CFLAGS) -fPIC -c $< -o $@
@@ -69,7 +72,8 @@ test: all ptb2ptb
 tags: $(wildcard *.c) $(wildcard *.h)
 	ctags *.c *.h
 
-check::
+check:: tests/check
+	./tests/check
 
 configure: configure.in
 	autoreconf -f
@@ -82,6 +86,7 @@ Makefile.settings: config.status
 
 clean: 
 	rm -f *.o core $(TARGETS) *.po
+	rm -f tests/check tests/*.o
 
 distclean: clean
 	rm -f Makefile.settings config.h config.log
