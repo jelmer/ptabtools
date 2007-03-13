@@ -571,6 +571,20 @@ static ssize_t ptb_data_file(struct ptbf *bf)
 	return 0;
 }
 
+struct ptbf *ptb_read_mem(const char *data, size_t length)
+{
+	struct ptbf *bf = malloc_p(struct ptbf, 1);
+
+	bf->mode = O_RDONLY;
+	bf->filename = NULL;
+	bf->curpos = 1;
+	if (ptb_data_file(bf) == -1) 
+		return NULL;
+
+	close(bf->fd);
+	return bf;
+}
+
 struct ptbf *ptb_read_file(const char *file)
 {
 	struct ptbf *bf = malloc_p(struct ptbf, 1);
@@ -581,8 +595,6 @@ struct ptbf *ptb_read_file(const char *file)
 				  | O_BINARY
 #endif
 				  );
-
-	strncpy(bf->data, "abc", 3);
 
 	bf->filename = strdup(file);
 
@@ -601,8 +613,6 @@ int ptb_write_file(const char *file, struct ptbf *bf)
 {
 	bf->mode = O_WRONLY;
 	bf->fd = creat(file, 0644);
-
-	strncpy(bf->data, "abc", 3);
 
 	bf->filename = strdup(file);
 

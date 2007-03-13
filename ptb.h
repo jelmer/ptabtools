@@ -1,6 +1,6 @@
 /*
    Functions for writing and reading PowerTab (.ptb) files
-   (c) 2004-2006 Jelmer Vernooij <jelmer@samba.org>
+   (c) 2004-2007 Jelmer Vernooij <jelmer@samba.org>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -485,10 +485,10 @@ struct ptb_direction {
 };
 
 struct ptbf {
-	char data[3];
 	int fd;
 	int mode;
 	char *filename;
+	char *data;
 	struct ptb_hdr hdr;
 	struct ptb_instrument {
 		struct ptb_guitar *guitars;
@@ -509,6 +509,7 @@ struct ptbf {
 	uint32_t fade_out; /* amount of fade-out at end of song */
 };
 
+extern struct ptbf *ptb_read_mem(const char *data, size_t length);
 extern struct ptbf *ptb_read_file(const char *ptb);
 extern int ptb_write_file(const char *ptb, struct ptbf *);
 extern void ptb_free(struct ptbf *);
