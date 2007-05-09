@@ -1,5 +1,7 @@
 -include Makefile.settings
 
+SOVERSION = 0.5.0
+
 PTBLIB_OBJS = ptb.o gp.o ptb-tuning.o
 TARGETS = $(TARGET_BINS) $(TARGET_LIBS)
 
@@ -21,7 +23,7 @@ ptb.dll: $(PTBLIB_OBJS)
 	$(CC) $(SHFLAGS) $(CFLAGS) -Wl,--out-implib=ptb.dll.a -o $@ $^
 
 libptb.so.$(VERSION): $(PTBLIB_OBJS:.o=.po)
-	$(CC) $(SHFLAGS) -Wl,-soname -Wl,$@ $(CFLAGS) -o $@ $^
+	$(CC) $(SHFLAGS) -Wl,-soname,libptb.so.$(SOVERSION) -Wl,$@ $(CFLAGS) -o $@ $^
 
 libptb.a: $(PTBLIB_OBJS)
 	$(AR) rs $@ $^
