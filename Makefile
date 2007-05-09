@@ -1,6 +1,6 @@
 -include Makefile.settings
 
-SOVERSION = 0.5.0
+SOVERSION = 0
 
 PTBLIB_OBJS = ptb.o gp.o ptb-tuning.o
 TARGETS = $(TARGET_BINS) $(TARGET_LIBS)
