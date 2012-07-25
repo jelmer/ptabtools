@@ -7,6 +7,9 @@ All changes, unless specified otherwise, made by Jelmer Vernooij
   
   * Change license to GPLv3 or later.
 
+  * Fix compatibility with newer versions of lilypond.
+    (Ricardo Wurmus, #187134)
+
 0.5.0:
  * Portability improvements. 
  * Switched VCS to bazaar.

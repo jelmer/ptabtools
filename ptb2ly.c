@@ -39,7 +39,7 @@
 
 #include "ptb.h"
 
-#define LILYPOND_VERSION "2.4"
+#define LILYPOND_VERSION "2.4.0"
 
 int warn_unsupported = 0;
 
@@ -498,12 +498,12 @@ int ly_write_book_section(FILE *out, struct ptb_section *s, int section_num)
 	int staff_num = 0;
 	struct ptb_staff *st = s->staffs;
 
-	fprintf(out, "\\score {  \n");
-	fprintf(out, "\t\\header { \n");
 	if (s->description) {
+		fprintf(out, "\t\\header { \n");
 		fprintf(out, "\t\tpiece = \"%c: %s\"\n", s->letter, s->description);
+		fprintf(out, "\t}\n");
 	}
-	fprintf(out, "\t} << \n");
+	fprintf(out, "\\score { << \n");
 	fprintf(out, "\t\\context ChordNames {\n");
 	ly_write_chords(out, s, section_num);
 	fprintf(out, "\t}\n");
