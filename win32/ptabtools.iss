@@ -2,9 +2,9 @@
 AppName=Ptabtools
 AppVerName=Ptabtools 0.4
 AppPublisher=Jelmer Vernooij
-AppPublisherURL=http://jelmer.vernstok.nl/oss/ptabtools/
-AppSupportURL=http://jelmer.vernstok.nl/oss/ptabtools/
-AppUpdatesURL=http://jelmer.vernstok.nl/oss/ptabtools/
+AppPublisherURL=https://samba.org/~jelmer/ptabtools/
+AppSupportURL=https://samba.org/~jelmer/ptabtools/
+AppUpdatesURL=https://samba.org/~jelmer/ptabtools/
 DefaultDirName={pf}\ptabtools
 DefaultGroupName=Ptabtools
 DisableProgramGroupPage=yes

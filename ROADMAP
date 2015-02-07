@@ -1,6 +1,6 @@
 This is the roadmap for ptabtools, e.g. what I plan to implement for which 
 version and estimated release dates. Please send comments/additions/requests
-to jelmer@vernstok.nl
+to jelmer@samba.org
 
 0.6:
  - Working ptb2ly (for pretty much all ptb files), including rewrite of ptb2ly output engine. Minor glitches allowed.. 

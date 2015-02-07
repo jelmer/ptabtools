@@ -4,9 +4,9 @@ Version: @PACKAGE_VERSION@
 Release: 0
 License: GPL
 Group: Applications/Internet
-Source: http://jelmer.vernstok.nl/releases/ptabtools-%{version}.tar.gz
-Url: http://jelmer.vernstok.nl/oss/ptabtools/
-Packager: Jelmer Vernooij <jelmer@vernstok.nl>
+Source: https://samba.org/~jelmer/ptabtools/ptabtools-%{version}.tar.gz
+Url: https://samba.org/~jelmer/ptabtools/
+Packager: Jelmer Vernooij <jelmer@samba.org>
 BuildRoot: /var/tmp/%{name}-buildroot
 
 %description
